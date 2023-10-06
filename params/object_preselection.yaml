@@ -1,0 +1,22 @@
+object_preselection:
+  Muon:
+    pt: 18
+    eta: 2.4
+    iso: 0.25  #PFIsoLoose
+    id: tightId
+
+  Electron:
+    pt: 18
+    eta: 2.4
+    iso: 0.06
+    id: mvaFall17V2Iso_WP80
+
+  Jet:
+    dr_lepton: 0.5
+    pt: 25
+    eta: 2.4
+    jetId: 2
+    puId:
+      wp: T
+      value: 4
+      maxpt: 50.0

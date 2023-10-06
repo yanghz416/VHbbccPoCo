@@ -1,0 +1,25 @@
+plotting_style:
+#    samples_groups:
+#      DATA:
+#        DYJetsToLL_MLM
+#      DY:
+#        DYJetsToLL_FxFx
+
+    labels_mc:
+      # DY:  FxFx
+      DYJetsToLL_FxFx: DY FxFx
+      #DYJetsToLL_MLM: DY MLM
+      
+      #DYJetsToLL_MiNNLO_MuMu: DY MiNNLO_MuMu
+      #DYJetsToLL_MiNNLO_EE: DY MiNNLO_EE
+
+
+
+    opts_figure:
+      datamc:
+        figsize: [8,6]
+      datamc_ratio:
+        figsize: [8,8]
+        gridspec_kw:
+          height_ratios: [3,1]
+        sharex: true

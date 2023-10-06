@@ -1,0 +1,54 @@
+HLT_triggers:
+
+  "2016_PreVFP":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
+      - Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL
+      - Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+    SingleMuon:
+      - IsoMu24
+      - IsoTkMu24
+    SingleEle:
+      - Ele27_WPTight_Gsf
+
+  "2016_PostVFP":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
+      - Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL
+      - Mu17_TrkIsoVVL_TkMu8_TrkIsoVVL_DZ
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL_DZ
+    SingleMuon:
+      - IsoMu24
+      - IsoTkMu24
+    SingleEle:
+      - Ele27_WPTight_Gsf
+
+  "2017":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu27
+    SingleEle:
+      - Ele32_WPTight_Gsf_L1DoubleEG
+      - Ele28_eta2p1_WPTight_Gsf_HT150
+
+  "2018":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu24
+    SingleEle:
+      - Ele32_WPTight_Gsf
+      - Ele28_eta2p1_WPTight_Gsf_HT150
