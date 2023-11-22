@@ -1,14 +1,12 @@
-# VHcc selection with PocketCoffea
+# VHcc with PocketCoffea
 
-# PocketCoffea VHcc setup
-
-1. Install Miniconda in your /net/scratch_cms3a area
+1. Install Miniconda in your `/net/scratch_cms3a/username` area
 2. Install PocketCoffea packages in a dedicated environment, then activate it
-   2a. (Temporarily): you may need to checkout the modified PocketCoffea version: https://github.com/andreypz/PocketCoffea/tree/dev-andrey
-   2b. recompile
-    ```
-    pip install -e .
-    ```
+   * 2a. (Temporarily): you may need to checkout the modified PocketCoffea version: https://github.com/andreypz/PocketCoffea/tree/dev-andrey
+   * 2b. recompile
+       ```
+       pip install -e .
+       ```
 1. Checkout this repo:
     ```
     git@github.com:cms-rwth/VHccPoCo.git
@@ -19,7 +17,7 @@
     ```
 1. Follow [examples](https://pocketcoffea.readthedocs.io/en/latest/analysis_example.html) to create dataset input files:
     ```
-    build_datasets.py --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH T2_DE_KIT T2_DE_DESY T2_BE_IIHE T2_CH_CERN
+    build_datasets.py --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH T2_DE_DESY T1_DE_KIT_Disk T2_CH_CERN
     ```
 1. Run with futures (test before large submission):
     ```
