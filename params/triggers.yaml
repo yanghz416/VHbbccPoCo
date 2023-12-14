@@ -27,6 +27,7 @@ HLT_triggers:
       - IsoTkMu24
     SingleEle:
       - Ele27_WPTight_Gsf
+      - Ele27_eta2p1_WPTight_Gsf
 
   "2017":
     DoubleMuon:

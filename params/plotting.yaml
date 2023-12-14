@@ -1,25 +1,27 @@
 plotting_style:
-#    samples_groups:
-#      DATA:
-#        DYJetsToLL_MLM
-#      DY:
-#        DYJetsToLL_FxFx
+  samples_groups:
+    Top:
+      - TTToSemiLeptonic
+      - TTTo2L2Nu
+    VV:
+      - WW
+      - WZ
+      - ZZ
 
-    labels_mc:
-      # DY:  FxFx
-      DYJetsToLL_FxFx: DY FxFx
-      #DYJetsToLL_MLM: DY MLM
+  exclude_samples:
+    - XYZ
+
+#   rescale_samples:
+#      DY: 1.2
       
-      #DYJetsToLL_MiNNLO_MuMu: DY MiNNLO_MuMu
-      #DYJetsToLL_MiNNLO_EE: DY MiNNLO_EE
+  labels_mc:
+    DYJetsToLL_MLM: Z+jets (LO)
+    DYJetsToLL_FxFx: Z+jets
+    WJetsToLNu_FxFx: W+jets
 
-
-
-    opts_figure:
-      datamc:
-        figsize: [8,6]
-      datamc_ratio:
-        figsize: [8,8]
-        gridspec_kw:
-          height_ratios: [3,1]
-        sharex: true
+  colors_mc:
+    Top: "#00BFFF"
+    DYJetsToLL_FxFx: "#ADFF2F"
+    WJetsToLNu_FxFx: "#F6D608"
+    VV: "#FFA07A"
+    QCD: "#D3D3D3"

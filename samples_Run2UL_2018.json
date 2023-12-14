@@ -1,7 +1,63 @@
 {
+    "TTToSemiLeptonic": {
+        "sample": "TTToSemiLeptonic",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/TTToSemiLeptonic_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 366.3
+              }
+            }
+        ]
+    },
+
+    "TTTo2L2Nu": {
+        "sample": "TTTo2L2Nu",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/TTTo2L2Nu_TuneCP5_13TeV-powheg-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 88.51
+              }
+            }
+        ]
+    },
+
+    "WJetsToLNu_MLM": {
+        "sample": "WJetsToLNu_MLM",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
+        "files": [
+            { "das_names": ["/WJetsToLNu_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 61526.7
+              }
+            }
+        ]
+    },
+
+    "WJetsToLNu_FxFx": {
+        "sample": "WJetsToLNu_FxFx",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
+        "files": [
+            { "das_names": ["/WJetsToLNu_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 61526.7
+              }
+            }
+        ]
+    },
+
     "DYJetsToLL_MLM": {
         "sample": "DYJetsToLL_MLM",
-        "json_output"    : "datasets/DYJetsToLL_MLM.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
               "metadata": {
@@ -15,7 +71,7 @@
 
     "DYJetsToLL_FxFx": {
         "sample": "DYJetsToLL_FxFx",
-        "json_output"    : "datasets/DYJetsToLL_FxFx.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
@@ -29,7 +85,7 @@
 
     "DYJetsToLL_MiNNLO_MuMu": {
         "sample": "DYJetsToLL_MiNNLO_MuMu",
-        "json_output"    : "datasets/DYJetsToLL_MiNNLO_MuMu.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToMuMu_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
@@ -43,7 +99,7 @@
 
     "DYJetsToLL_MiNNLO_EE": {
         "sample": "DYJetsToLL_MiNNLO_EE",
-        "json_output"    : "datasets/DYJetsToLL_MiNNLO_EE.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToEE_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
@@ -54,11 +110,11 @@
             }
         ]
     },
-    
+
 
     "DYJetsToLL_MiNNLO_ZptWei_MuMu": {
         "sample": "DYJetsToLL_MiNNLO_ZptWei_MuMu",
-        "json_output"    : "datasets/DYJetsToLL_MiNNLO_ZptWei_MuMu.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToMuMu_M-50_TuneCP5_ZptWeighted_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
@@ -72,7 +128,7 @@
 
     "DYJetsToLL_MiNNLO_ZptWei_EE": {
         "sample": "DYJetsToLL_MiNNLO_ZptWei_EE",
-        "json_output"    : "datasets/DYJetsToLL_MiNNLO_ZptWei_EE.json",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToEE_M-50_TuneCP5_ZptWeighted_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
@@ -83,12 +139,12 @@
             }
         ]
     },
-    
+
 
 
     "DATA_SingleMuon": {
         "sample": "DATA_SingleMuon",
-        "json_output": "datasets/DATA_SingleMuon.json",
+        "json_output": "datasets/Run2UL2018_DATA.json",
         "files": [
             {
                 "das_names": [
@@ -148,11 +204,11 @@
             }
         ]
     },
-    
+
     "DATA_DoubleMuon": {
         "sample": "DATA_DoubleMuon",
-        "json_output": "datasets/DATA_DoubleMuon.json",
-    
+        "json_output": "datasets/Run2UL2018_DATA.json",
+
         "files": [
             {
                 "das_names": [
@@ -215,7 +271,7 @@
 
     "DATA_EGamma": {
 	"sample": "DATA_EGamma",
-        "json_output": "datasets/DATA_EGamma.json",
+        "json_output": "datasets/Run2UL2018_DATA.json",
         "files": [
             {
                 "das_names": [

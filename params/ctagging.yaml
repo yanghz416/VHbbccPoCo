@@ -1,0 +1,18 @@
+
+ctagging:
+  working_point:
+    '2016_PreVFP':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+
+    '2016_PostVFP':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+
+    '2017':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+
+    '2018':
+      tagger: btagDeepFlavCvL
+      wp: 0.20

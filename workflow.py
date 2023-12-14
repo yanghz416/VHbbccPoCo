@@ -8,16 +8,18 @@ from pocket_coffea.lib.objects import (
     lepton_selection,
     jet_selection,
     btagging,
+    CvsLsorted,
     get_dilepton,
     get_dijet
 )
 
 
-class ZjetsBaseProcessor(BaseProcessorABC):
+class VHccBaseProcessor(BaseProcessorABC):
     def __init__(self, cfg: Configurator):
         super().__init__(cfg)
 
-
+        self.proc_type = self.params["proc_type"]
+        
     def apply_object_preselection(self, variation):
         '''
         
@@ -50,13 +52,12 @@ class ZjetsBaseProcessor(BaseProcessorABC):
         self.events["BJetGood"] = btagging(
             self.events["JetGood"], self.params.btagging.working_point[self._year])
 
-        self.events["dijet"] = get_dijet(self.events.JetGood)
-
     def count_objects(self, variation):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood)
         self.events["nElectronGood"] = ak.num(self.events.ElectronGood)
         self.events["nLeptonGood"] = ak.num(self.events.LeptonGood)
 
+        self.events["nJet"] = ak.num(self.events.Jet)
         self.events["nJetGood"] = ak.num(self.events.JetGood)
         self.events["nBJetGood"] = ak.num(self.events.BJetGood)
         # self.events["nfatjet"]   = ak.num(self.events.FatJetGood)
@@ -66,5 +67,19 @@ class ZjetsBaseProcessor(BaseProcessorABC):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
 
     def define_common_variables_after_presel(self, variation):
-        self.events["dilep_deltaR"] = self.events.ll.deltaR
+
+        if self.proc_type=="ZLL":
+            self.events["dilep_deltaR"] = self.events.ll.deltaR
+
+        self.events["dijet"] = get_dijet(self.events.JetGood)
         self.events["dijet_deltaR"] = self.events.dijet.deltaR
+        
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], self.params.ctagging.working_point[self._year])
+
+        #print("Pt sort pt:", self.events["JetGood"][self.events["nJetGood"]>=3].pt)
+        #print("CvsL sort pt:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].pt)
+
+        #print("Pt sort CvsL:", self.events["JetGood"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
+        #print("CvsL sort CvsL:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
+
+        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
