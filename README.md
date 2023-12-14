@@ -1,16 +1,16 @@
 # PocketCoffea VHcc setup
 
 1. Install Miniconda
-   1.1 At RWTH it should be at your `/net/scratch_cms3a/<username>` area
-   1.2 At lxplus CERN, it should be in your `/eos/user/u/username` area
-2. Create a dedicated environment for PocketCoffea, install the packages, and compile:
+   * At RWTH it should be at your `/net/scratch_cms3a/<username>` area
+   * At lxplus CERN, it should be in your `/eos/user/u/username` area
+3. Create a dedicated environment for PocketCoffea, install the packages, and compile:
     ```
 	conda create -n PocketCoffea python=3.10 -c conda-forge
 	conda activate PocketCoffea
     pip install -e .
     ```
 	Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
-3. Checkout *this* repo:
+4. Checkout *this* repo:
     ```
     git@github.com:cms-rwth/VHccPoCo.git
     ```
