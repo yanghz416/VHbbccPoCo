@@ -1,16 +1,25 @@
 {
-
     "QCD_Pt-30To50_MuEnriched": {
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 1652471
-              }
+            {
+		"das_names": ["/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 1652471
+		}
+            },
+	    {
+		"das_names": ["/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 1652471
+		}
             }
+
 	]
     },
 
@@ -18,13 +27,22 @@
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 437504
-              }
-            }
+            {
+		"das_names": ["/QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 437504
+		}
+            },
+	    {
+		"das_names": ["/QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 437504
+		}
+	    }	    
 	]
     },
 
@@ -32,12 +50,21 @@
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 106033
-              }
+            {
+		"das_names": ["/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 106033
+		}
+            },
+            {
+		"das_names": ["/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 106033
+		}
             }
 	]
     },
@@ -46,12 +73,21 @@
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 24720
-              }
+            {
+		"das_names": ["/QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_preVFP",
+                    "isMC": true,
+                    "xsec": 24720
+		}
+            },
+	    {
+		"das_names": ["/QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 24720
+		}
             }
 	]
     },
@@ -60,12 +96,21 @@
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 8654
-              }
+            {
+		"das_names": ["/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 8654
+		}
+            },
+	                {
+		"das_names": ["/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 8654
+		}
             }
 	]
     },
@@ -75,12 +120,21 @@
         "sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 367500.0
-              }
+            {
+		"das_names": ["/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 367500.0
+		}
+	    },
+	    {
+		"das_names": ["/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 367500.0
+		}
 	    }
 	]
     },
@@ -89,13 +143,21 @@
 	"sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-
-            { "das_names": ["/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 66590.0
-              }
+            {
+		"das_names": ["/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 66590.0
+		}
+	    },
+	    {
+		"das_names": ["/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 66590.0
+		}
 	    }
 	]
     },
@@ -104,13 +166,21 @@
 	"sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-
-	    { "das_names": ["/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 16620.0
-              }
+	    {
+		"das_names": ["/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 16620.0
+		}
+	    },
+	    {
+		"das_names": ["/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 16620.0
+		}
 	    }
 	]
     },
@@ -119,13 +189,21 @@
 	"sample": "QCD",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-
-            { "das_names": ["/QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 1104.0
-              }
+            {
+		"das_names": ["/QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 1104.0
+		}
+	    },
+            {
+		"das_names": ["/QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v2/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 1104.0
+		}
 	    }
 	]
     },
@@ -134,12 +212,21 @@
         "sample": "ZZ",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 16.523
-              }
+            {
+		"das_names": ["/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 16.523
+		}
+            },
+	    {
+		"das_names": ["/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 16.523
+		}
             }
         ]
     },
@@ -148,13 +235,23 @@
         "sample": "WZ",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 27.57
-              }
+            {
+		"das_names": ["/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 27.57
+		}
+            },
+	    {
+		"das_names": ["/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 27.57
+		}
             }
+
         ]
     },
 
@@ -162,12 +259,21 @@
         "sample": "WW",
         "json_output"    : "datasets/Run2UL2016_MC_OtherBkg.json",
         "files": [
-            { "das_names": ["/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-                  "xsec": 75.9
-              }
+            {
+		"das_names": ["/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+                    "xsec": 75.9
+		}
+            },
+	    {
+		"das_names": ["/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+                    "xsec": 75.9
+		}
             }
         ]
     },
@@ -319,13 +425,23 @@
         "sample": "DYJetsToLL_MiNNLO_MuMu",
         "json_output"    : "datasets/Run2UL2016_MC_VJets.json",
         "files": [
-            { "das_names": ["/DYJetsToMuMu_M-50_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-		  "xsec": 6077.22
-              }
+            {
+		"das_names": ["/DYJetsToMuMu_M-50_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+		    "xsec": 6077.22
+		}
+            },
+	    {
+		"das_names": ["/DYJetsToMuMu_M-50_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+		    "xsec": 6077.22
+		}
             }
+
         ]
     },
 
@@ -333,13 +449,22 @@
         "sample": "DYJetsToLL_MiNNLO_EE",
         "json_output"    : "datasets/Run2UL2016_MC_VJets.json",
         "files": [
-            { "das_names": ["/DYJetsToEE_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
-              "metadata": {
-                  "year":"2016_PostVFP",
-                  "isMC": true,
-		  "xsec": 6077.22
-              }
-            }
+            {
+		"das_names": ["/DYJetsToEE_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODAPVv9-106X_mcRun2_asymptotic_preVFP_v11-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PreVFP",
+                    "isMC": true,
+		    "xsec": 6077.22
+		}
+            },
+	    {
+		"das_names": ["/DYJetsToEE_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL16NanoAODv9-106X_mcRun2_asymptotic_v17-v1/NANOAODSIM"],
+		"metadata": {
+                    "year":"2016_PostVFP",
+                    "isMC": true,
+		    "xsec": 6077.22
+		}
+            }   
         ]
     },
 
@@ -553,7 +678,7 @@
             },
             {
                 "das_names": [
-                    "/DoubleMuon/Run2016G-UL2016_MiniAODv2_NanoAODv9-v1/NANOAOD"
+                    "/DoubleMuon/Run2016G-UL2016_MiniAODv2_NanoAODv9-v2/NANOAOD"
                 ],
                 "metadata": {
                     "year": "2016_PostVFP",
@@ -708,12 +833,12 @@
         "files": [
             {
                 "das_names": [
-                    "/DoubleEG/Run2016B-ver1_HIPM_UL2016_MiniAODv2_NanoAODv9-v2/NANOAOD", "/DoubleEG/Run2016B-ver2_HIPM_UL2016_MiniAODv2_NanoAODv9-v2/NANOAOD"
+                    "/DoubleEG/Run2016B-ver1_HIPM_UL2016_MiniAODv2_NanoAODv9-v2/NANOAOD", "/DoubleEG/Run2016B-ver2_HIPM_UL2016_MiniAODv2_NanoAODv9-v3/NANOAOD"
                 ],
                 "metadata": {
                     "year": "2016_PreVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "B"
                 },
                 "das_parents_names": [
@@ -727,7 +852,7 @@
                 "metadata": {
                     "year": "2016_PreVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "C"
                 },
                 "das_parents_names": [
@@ -741,7 +866,7 @@
                 "metadata": {
                     "year": "2016_PreVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "D"
                 },
                 "das_parents_names": [
@@ -755,7 +880,7 @@
                 "metadata": {
                     "year": "2016_PreVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "E"
                 },
                 "das_parents_names": [
@@ -769,7 +894,7 @@
                 "metadata": {
                     "year": "2016_PreVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "F"
                 },
                 "das_parents_names": [
@@ -783,7 +908,7 @@
                 "metadata": {
                     "year": "2016_PostVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "F"
                 },
                 "das_parents_names": [
@@ -797,7 +922,7 @@
                 "metadata": {
                     "year": "2016_PostVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "G"
                 },
                 "das_parents_names": [
@@ -811,7 +936,7 @@
                 "metadata": {
                     "year": "2016_PostVFP",
                     "isMC": false,
-                    "primaryDataset": "SingleEle",
+                    "primaryDataset": "DoubleEle",
                     "era": "H"
                 },
                 "das_parents_names": [

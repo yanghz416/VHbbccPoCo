@@ -54,15 +54,15 @@ cfg = Configurator(
         "filter" : {
             "samples": [
                 "DATA_SingleMuon",
-                #"DATA_SingleElectron", # For 2017
-                #"DATA_EGamma",          # For 2018
-                #"DYJetsToLL_FxFx",
+                "DATA_SingleElectron", # For 2017
+                "DATA_EGamma",          # For 2018
+                "DYJetsToLL_FxFx",
                 "WJetsToLNu_FxFx",
-                #"TTToSemiLeptonic", "TTTo2L2Nu",
-                #"WW", "WZ", "ZZ", "QCD"
+                "TTToSemiLeptonic", #"TTTo2L2Nu",
+                "WW", "WZ", "ZZ", "QCD"
             ],
             "samples_exclude" : [],
-            "year": ['2016_PostVFP']
+            "year": ['2016_PreVFP', '2016_PostVFP']
         },
     },
 

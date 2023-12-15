@@ -74,6 +74,7 @@ cfg = Configurator(
         "baseline_2L2J": [passthrough],
         "presel_mumu_2j": [mumu_2j],
         "presel_ee_2j": [ee_2j],
+        "SR_ll_2j_cj": [ll_2j, ctag_j1],
         "SR_mumu_2j_cj": [mumu_2j, ctag_j1],
         "SR_ee_2j_cj": [ee_2j, ctag_j1],
     },
