@@ -15,7 +15,7 @@ def diLepton(events, params, year, sample, **kwargs):
         & (events.ll.mass > params["mll"]["low"])
         & (events.ll.mass < params["mll"]["high"])
     )
-
+    
     # Pad None values with False
     return ak.where(ak.is_none(mask), False, mask)
 
@@ -40,7 +40,7 @@ def TwoLepTwoJets(events, params, **kwargs):
              & (events.ll.pt > params["pt_dilep"])
              & (events.ll.mass > params["mll"]["low"])
              & (events.ll.mass < params["mll"]["high"])
-         )
+            )
     return ak.where(ak.is_none(mask), False, mask)
 
 def OneLeptonPlusMet(events, params, **kwargs):
@@ -48,7 +48,7 @@ def OneLeptonPlusMet(events, params, **kwargs):
     mask = ( (events.nLeptonGood == 1 )
              & (ak.firsts(events.LeptonGood.pt) > params["pt_lep"])
              & (events.MET.pt > params["pt_met"])
-        )
+            )
     return ak.where(ak.is_none(mask), False, mask)
 
 def LepMetTwoJets(events, params, **kwargs):
@@ -56,8 +56,24 @@ def LepMetTwoJets(events, params, **kwargs):
              & (ak.firsts(events.LeptonGood.pt) > params["pt_lep"])
              & (events.MET.pt > params["pt_met"])
              & (events.nJetGood >= 2)
-        )
+            )
     return ak.where(ak.is_none(mask), False, mask)
+
+def MetTwoJetsNoLep(events, params, **kwargs):    
+    mask = ( (events.nLeptonGood == 0 )
+             & (events.MET.pt > params["pt_met"])
+             & (events.nJetGood >= 2)
+             & (ak.firsts(events.JetGood.pt) > params["pt_jet1"])
+             & (ak.pad_none(events.JetGood.pt, 2, axis=1)[:,1] > params["pt_jet2"])
+            )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DiJetPtCut(events, params, **kwargs):
+    mask = (  (events.nJetGood >= 2)
+              & (events.dijet.pt > params["pt_dijet"])
+            )
+    return ak.where(ak.is_none(mask), False, mask)
+
 
 def WLNuTwoJets(events, params, **kwargs):
 
@@ -104,6 +120,24 @@ lep_met_2jets = Cut(
     params={
         "pt_lep": 33,
         "pt_met": 10,
+    },
+)
+
+met_2jets_0lep = Cut(
+    name="met_2jets_0lep",
+    function=MetTwoJetsNoLep,
+    params={
+        "pt_met": 170,
+        "pt_jet1": 60,
+        "pt_jet2": 35,
+    },
+)
+
+dijet_pt_cut = Cut(
+    name="dijet_pt_cut",
+    function=DiJetPtCut,
+    params={
+	"pt_dijet": 120,
     },
 )
 

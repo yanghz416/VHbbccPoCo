@@ -28,6 +28,12 @@ HLT_triggers:
     SingleEle:
       - Ele27_WPTight_Gsf
       - Ele27_eta2p1_WPTight_Gsf
+    MET:
+      - PFMET110_PFMHT110_IDTight
+      - PFMET120_PFMHT120_IDTight
+      - PFMET170_NoiseCleaned
+      - PFMET170_BeamHaloCleaned
+      - PFMET170_HBHECleaned
 
   "2017":
     DoubleMuon:
@@ -42,7 +48,10 @@ HLT_triggers:
     SingleEle:
       - Ele32_WPTight_Gsf_L1DoubleEG
       - Ele28_eta2p1_WPTight_Gsf_HT150
-
+    MET:
+      - PFMET120_PFMHT120_IDTight
+      - PFMET120_PFMHT120_IDTight_PFHT60
+        
   "2018":
     DoubleMuon:
       - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
@@ -53,3 +62,5 @@ HLT_triggers:
     SingleEle:
       - Ele32_WPTight_Gsf
       - Ele28_eta2p1_WPTight_Gsf_HT150
+    MET:
+      - PFMET120_PFMHT120_IDTight

@@ -73,6 +73,10 @@ class VHccBaseProcessor(BaseProcessorABC):
 
         self.events["dijet"] = get_dijet(self.events.JetGood)
         self.events["dijet_deltaR"] = self.events.dijet.deltaR
+
+        #if self.proc_type=="ZNuNu":
+        #    self.events["deltaPhi_jet1_MET"] = self.events.MET.deltaPhi(self.events.JetGood[:,0])
+        #    self.events["deltaPhi_jet2_MET"] = self.events.MET.deltaPhi(self.events.JetGood[:,1])
         
         self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], self.params.ctagging.working_point[self._year])
 

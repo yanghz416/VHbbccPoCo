@@ -1,4 +1,176 @@
-{
+{        
+    "QCD_Pt-30To50_MuEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-30To50_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 1652471
+              }
+            }
+	]
+    },
+
+    "QCD_Pt-50To80_MuEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-50To80_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 437504
+              }
+            }
+	]
+    },
+
+    "QCD_Pt-80To120_MuEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-80To120_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 106033
+              }
+            }
+	]
+    },
+
+    "QCD_Pt-120To170_MuEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-120To170_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 24720
+              }
+            }
+	]
+    },
+
+    "QCD_Pt-170To300_MuEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-170To300_MuEnrichedPt5_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 8654
+              }
+            }
+	]
+    },
+
+    
+    "QCD_Pt-80to120_EMEnriched": {
+        "sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/QCD_Pt-80to120_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 367500.0
+              }
+	    }
+	]
+    },
+    
+    "QCD_Pt-120to170_EMEnriched": {
+	"sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+
+            { "das_names": ["/QCD_Pt-120to170_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 66590.0
+              }
+	    }
+	]
+    },
+    
+    "QCD_Pt-170to300_EMEnriched": {
+	"sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+
+	    { "das_names": ["/QCD_Pt-170to300_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 16620.0
+              }
+	    }
+	]
+    },
+    
+    "QCD_Pt-300toInf_EMEnriched": {
+	"sample": "QCD",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+
+            { "das_names": ["/QCD_Pt-300toInf_EMEnriched_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 1104.0
+              }
+	    }
+	]
+    },
+
+    "ZZ": {
+        "sample": "ZZ",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/ZZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 16.523
+              }
+            }
+        ]
+    },
+    
+    "WZ": {
+        "sample": "WZ",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/WZ_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 27.57
+              }
+            }
+        ]
+    },
+
+    "WW": {
+        "sample": "WW",
+        "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
+        "files": [
+            { "das_names": ["/WW_TuneCP5_13TeV-pythia8/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+                  "xsec": 75.9
+              }
+            }
+        ]
+    },
+    
     "TTToSemiLeptonic": {
         "sample": "TTToSemiLeptonic",
         "json_output"    : "datasets/Run2UL2018_MC_OtherBkg.json",
@@ -328,6 +500,61 @@
                 "das_parents_names": [
                     "/EGamma/Run2018D-UL2018_MiniAODv2-v2/MINIAOD"
                 ]
+            }
+	]
+    },
+
+    "DATA_MET": {
+        "sample": "DATA_MET",
+        "json_output": "datasets/Run2UL2018_DATA.json",
+
+        "files": [
+            {
+                "das_names": [
+                    "/MET/Run2018A-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2018",
+                    "isMC": false,
+                    "primaryDataset": "MET",
+                    "era": "A"
+                }
+            },
+
+            {
+                "das_names": [
+                    "/MET/Run2018B-UL2018_MiniAODv2_NanoAODv9-v2/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2018",
+                    "isMC": false,
+                    "primaryDataset": "MET",
+                    "era": "B"
+                }
+            },
+
+            {
+                "das_names": [
+                    "/MET/Run2018C-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2018",
+                    "isMC": false,
+                    "primaryDataset": "MET",
+                    "era": "C"
+                }
+            },
+
+            {
+                "das_names": [
+                    "/MET/Run2018D-UL2018_MiniAODv2_NanoAODv9-v1/NANOAOD"
+                ],
+                "metadata": {
+                    "year": "2018",
+                    "isMC": false,
+                    "primaryDataset": "MET",
+                    "era": "D"
+                }
             }
 	]
     }

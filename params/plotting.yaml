@@ -8,8 +8,8 @@ plotting_style:
       - WZ
       - ZZ
 
-  exclude_samples:
-    - XYZ
+#  exclude_samples:
+#    - DYJetsToLL_FxFx
 
 #   rescale_samples:
 #      DY: 1.2
@@ -18,9 +18,11 @@ plotting_style:
     DYJetsToLL_MLM: Z+jets (LO)
     DYJetsToLL_FxFx: Z+jets
     WJetsToLNu_FxFx: W+jets
+    ZJetsToNuNu_FxFx: ZNuNu
 
   colors_mc:
     Top: "#00BFFF"
+    ZJetsToNuNu_FxFx: "#ADFF2F"
     DYJetsToLL_FxFx: "#ADFF2F"
     WJetsToLNu_FxFx: "#F6D608"
     VV: "#FFA07A"

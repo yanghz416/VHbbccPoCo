@@ -46,28 +46,29 @@ parameters["proc_type"] = "ZLL"
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016,
+        "jsons": files_2016 + files_2017 + files_2018,
         #"jsons": files_2017,
-        #"jsons": files_2018,
 
         "filter" : {
             "samples": [
-                "DATA_DoubleMuon",
-                "DATA_DoubleEG", # in 2016/2017
-                "DATA_EGamma",   # in 2018
+                #"DATA_DoubleMuon",
+                #"DATA_DoubleEG", # in 2016/2017
+                #"DATA_EGamma",   # in 2018
+	        #"WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
-                "TTToSemiLeptonic", "TTTo2L2Nu",
-	        "WW", "WZ", "ZZ"
+                #"TTToSemiLeptonic", "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            "year": ['2016_PreVFP', '2016_PostVFP']
+            #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
+            "year": ['2018']
         }
     },
 
     workflow = VHccBaseProcessor,
 
     #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"])],
-    skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"])],
+    skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
+            get_nObj_min(4, 18., "Jet")],
 
     preselections = [ll_2j],
     categories = {
@@ -109,7 +110,6 @@ cfg = Configurator(
         },
     },
 
-
     variables = {
         **lepton_hists(coll="LeptonGood", pos=0),
         **lepton_hists(coll="LeptonGood", pos=1),
@@ -123,7 +123,7 @@ cfg = Configurator(
         **jet_hists(coll="JetsCvsL", pos=0),
 	**jet_hists(coll="JetsCvsL", pos=1),
 
-        "nJet": HistConf( [Axis(field="nJet", bins=10, start=0, stop=10, label=r"nJet direct from NanoAOD")] ),
+        "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
 
         "dilep_m" : HistConf( [Axis(coll="ll", field="mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_m_zoom" : HistConf( [Axis(coll="ll", field="mass", bins=40, start=70, stop=110, label=r"$M_{\ell\ell}$ [GeV]")] ),
@@ -153,8 +153,8 @@ run_options = {
     "workers"        : 1,
     "scaleout"       : 10,
     "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
+#    "mem_per_worker_parsl" : 2, # For Parsl
+    "mem_per_worker" : "2GB", # For Dask
     "exclusive"      : False,
     "skipbadfiles"   : False,
     "chunk"          : 500000,
