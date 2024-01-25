@@ -1,4 +1,5 @@
 import awkward as ak
+import numpy as np
 
 from pocket_coffea.workflows.base import BaseProcessorABC
 from pocket_coffea.utils.configurator import Configurator
@@ -19,6 +20,8 @@ class VHccBaseProcessor(BaseProcessorABC):
         super().__init__(cfg)
 
         self.proc_type = self.params["proc_type"]
+        
+        self.isRun3 = True if self.params["run_period"]=='Run3' else False
         
     def apply_object_preselection(self, variation):
         '''
@@ -74,9 +77,9 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.events["dijet"] = get_dijet(self.events.JetGood)
         self.events["dijet_deltaR"] = self.events.dijet.deltaR
 
-        #if self.proc_type=="ZNuNu":
-        #    self.events["deltaPhi_jet1_MET"] = self.events.MET.deltaPhi(self.events.JetGood[:,0])
-        #    self.events["deltaPhi_jet2_MET"] = self.events.MET.deltaPhi(self.events.JetGood[:,1])
+        if self.proc_type=="ZNuNu":
+            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
+            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
         
         self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], self.params.ctagging.working_point[self._year])
 

@@ -52,14 +52,14 @@ cfg = Configurator(
         "filter" : {
             "samples": [
                 "DATA_MET",
-                #"WW", "WZ", "ZZ",
-                #"QCD", "QCD_Mu", "QCD_EM",
-                #"DYJetsToLL_FxFx",
+                "WW", "WZ", "ZZ",
+                "QCD", "QCD_Mu", "QCD_EM",
+                "DYJetsToLL_FxFx",
                 "ZJetsToNuNu_FxFx",
-                #"WJetsToLNu_FxFx",
-                #"WJetsToQQ", "ZJetsToQQ",
-                #"TTToSemiLeptonic", "TTTo2L2Nu",
-                #"TTToHadrons"
+                "WJetsToLNu_FxFx",
+                "WJetsToQQ", "ZJetsToQQ",
+                "TTToSemiLeptonic", "TTTo2L2Nu",
+                "TTToHadrons"
             ],
             "samples_exclude" : [],
             "year": ['2017']
@@ -76,8 +76,8 @@ cfg = Configurator(
     
     categories = {
         "presel_Met_2j": [passthrough],
-        "baseline_Met_2j_ptcut":  [dijet_pt_cut],
-        "SR_ZNuNu_2j_cj":  [dijet_pt_cut, ctag_j1],
+        "baseline_Met_2j_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
+        "SR_ZNuNu_2j_cj":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1],
     },
 
     weights = {
@@ -124,20 +124,21 @@ cfg = Configurator(
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
 
+        
         "dijet_nom_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=700, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_nom_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_nom_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=500, label=r"$p_T{jj}$ [GeV]")] ),
         
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=700, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
-        "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=00, label=r"$p_T{jj}$ [GeV]")] ),
-
+        "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=500, label=r"$p_T{jj}$ [GeV]")] ),
+        
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=900, label=r"Jet HT [GeV]")] ),
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=100, stop=600, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
-
-        #"met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=-math.pi, stop=math.pi, label=r"$\delta\phi$(MET, j1)")] ),
-        #"met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=-math.pi, stop=math.pi, label=r"$\delta\phi$(MET, j2)")] ),
+        
+        "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
+        "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
     }
 )
 

@@ -68,13 +68,6 @@ def MetTwoJetsNoLep(events, params, **kwargs):
             )
     return ak.where(ak.is_none(mask), False, mask)
 
-def DiJetPtCut(events, params, **kwargs):
-    mask = (  (events.nJetGood >= 2)
-              & (events.dijet.pt > params["pt_dijet"])
-            )
-    return ak.where(ak.is_none(mask), False, mask)
-
-
 def WLNuTwoJets(events, params, **kwargs):
 
     fields = {
@@ -104,6 +97,58 @@ def ctag(events, params, **kwargs):
 def CvsLsorted(jets, ctag):
     return jets[ak.argsort(jets[ctag["tagger"]], axis=1, ascending=False)]
 
+def DiJetPtCut(events, params, **kwargs):
+    mask = (  (events.nJetGood >= 2)
+              & (events.dijet.pt > params["pt_dijet"])
+              #& (events.dijet_csort.pt > params["pt_dijet"])
+            )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DeltaPhiJetMetCut(events, params, **kwargs):
+    mask = ( (events['deltaPhi_jet1_MET'] > params["jet_met_dphi_cut"])
+             & (events['deltaPhi_jet2_MET'] > params["jet_met_dphi_cut"])
+            )
+    return ak.where(ak.is_none(mask), False, mask)
+
+
+
+# General cuts
+
+ctag_j1 = Cut(
+    name="ctag_j1",
+    function=ctag,
+    params={}
+    
+)
+
+dijet_pt_cut = Cut(
+    name="dijet_pt_cut",
+    function=DiJetPtCut,
+    params={
+	"pt_dijet": 120,
+    },
+)
+
+jet_met_dphi_cut = Cut(
+    name='jet_met_dphi_cut',
+    function=DeltaPhiJetMetCut,
+    params={
+	"jet_met_dphi_cut": 0.6,
+    },
+)
+# Cuts for 0-Lep channel
+
+met_2jets_0lep = Cut(
+    name="met_2jets_0lep",
+    function=MetTwoJetsNoLep,
+    params={
+        "pt_met": 170,
+        "pt_jet1": 60,
+        "pt_jet2": 35,
+    },
+)
+
+# Cuts for 1-Lep channel
 
 onelep_plus_met = Cut(
     name="onelep_plus_met",
@@ -120,24 +165,6 @@ lep_met_2jets = Cut(
     params={
         "pt_lep": 33,
         "pt_met": 10,
-    },
-)
-
-met_2jets_0lep = Cut(
-    name="met_2jets_0lep",
-    function=MetTwoJetsNoLep,
-    params={
-        "pt_met": 170,
-        "pt_jet1": 60,
-        "pt_jet2": 35,
-    },
-)
-
-dijet_pt_cut = Cut(
-    name="dijet_pt_cut",
-    function=DiJetPtCut,
-    params={
-	"pt_dijet": 120,
     },
 )
 
@@ -167,12 +194,8 @@ welnu_plus_2j = Cut(
         "pt_w": 100
     }
 )
-ctag_j1 = Cut(
-    name="ctag_j1",
-    function=ctag,
-    params={}
-    
-)
+
+# Cuts for 1-Lep channel
 
 dilepton = Cut(
     name="dilepton",

@@ -41,26 +41,35 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
+files_Run3 = [
+    f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+    f"{localdir}/datasets/Run3_DATA.json",
+]
+
 parameters["proc_type"] = "ZLL"
+parameters["run_period"] = "Run2" # Run2 Or Run3
 
 cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_2017,
+        #"jsons": files_Run3,
 
         "filter" : {
             "samples": [
-                #"DATA_DoubleMuon",
+                "DATA_DoubleMuon",
                 #"DATA_DoubleEG", # in 2016/2017
-                #"DATA_EGamma",   # in 2018
+                "DATA_EGamma",   # in 2018. 2022, 2023
 	        #"WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
-                #"TTToSemiLeptonic", "TTTo2L2Nu",
+                #"TTToSemiLeptonic",
+                "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
+            "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
-            "year": ['2018']
+            #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
         }
     },
 
@@ -83,9 +92,9 @@ cfg = Configurator(
     weights = {
         "common": {
             "inclusive": ["genWeight","lumi","XS",
-                          "pileup",
-                          "sf_mu_id","sf_mu_iso",
-                          "sf_ele_reco","sf_ele_id",
+                          # "pileup", Not in 2023
+                          #"sf_mu_id","sf_mu_iso",
+                          #"sf_ele_reco","sf_ele_id",
                           ],
             "bycategory" : {
             }
@@ -98,7 +107,7 @@ cfg = Configurator(
         "weights": {
             "common": {
                 "inclusive": [
-                     "pileup",
+                    #"pileup",
                     # "sf_mu_id", "sf_mu_iso",
                     # "sf_ele_reco", "sf_ele_id",
                               ],
@@ -158,7 +167,7 @@ run_options = {
     "exclusive"      : False,
     "skipbadfiles"   : False,
     "chunk"          : 500000,
-    "retries"        : 20,
+    "retries"        : 10,
     "treereduction"  : 20,
     "adapt"          : False,
     "requirements": (

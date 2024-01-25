@@ -16,3 +16,16 @@ ctagging:
     '2018':
       tagger: btagDeepFlavCvL
       wp: 0.20
+
+    '2022_preEE':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+    '2022_postEE':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+    '2023_preBPix':
+      tagger: btagDeepFlavCvL
+      wp: 0.20
+    '2023_postBPix':
+      tagger: btagDeepFlavCvL
+      wp: 0.20

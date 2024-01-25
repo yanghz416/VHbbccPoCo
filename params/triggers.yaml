@@ -64,3 +64,52 @@ HLT_triggers:
       - Ele28_eta2p1_WPTight_Gsf_HT150
     MET:
       - PFMET120_PFMHT120_IDTight
+
+      
+  "2022_preEE":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu24
+    SingleEle:
+      - Ele30_WPTight_Gsf
+    MET:
+      - PFMET120_PFMHT120_IDTight
+
+  "2022_postEE":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu24
+    SingleEle:
+      - Ele30_WPTight_Gsf
+    MET:
+      - PFMET120_PFMHT120_IDTight
+
+  "2023_preBPix":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu24
+    SingleEle:
+      - Ele30_WPTight_Gsf
+    MET:
+      - PFMET120_PFMHT120_IDTight      
+      
+  "2023_postBPix":
+    DoubleMuon:
+      - Mu17_TrkIsoVVL_Mu8_TrkIsoVVL_DZ_Mass3p8
+    DoubleEle:
+      - Ele23_Ele12_CaloIdL_TrackIdL_IsoVL
+    SingleMuon:
+      - IsoMu24
+    SingleEle:
+      - Ele30_WPTight_Gsf
+    MET:
+      - PFMET120_PFMHT120_IDTight
