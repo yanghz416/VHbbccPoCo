@@ -256,28 +256,28 @@
     },
 
     "DYJetsToLL_MiNNLO_MuMu": {
-        "sample": "DYJetsToLL_MiNNLO_MuMu",
+        "sample": "DYJetsToLL_MiNNLO",
         "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToMuMu_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
                   "year":"2018",
                   "isMC": true,
-		  "xsec": 6077.22
+		  "xsec": 1976
               }
             }
         ]
     },
 
     "DYJetsToLL_MiNNLO_EE": {
-        "sample": "DYJetsToLL_MiNNLO_EE",
+        "sample": "DYJetsToLL_MiNNLO",
         "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToEE_M-50_massWgtFix_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
                   "year":"2018",
                   "isMC": true,
-		  "xsec": 6077.22
+		  "xsec": 1976
               }
             }
         ]
@@ -285,33 +285,46 @@
 
 
     "DYJetsToLL_MiNNLO_ZptWei_MuMu": {
-        "sample": "DYJetsToLL_MiNNLO_ZptWei_MuMu",
+        "sample": "DYJetsToLL_MiNNLO_ZptWei",
         "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToMuMu_M-50_TuneCP5_ZptWeighted_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
                   "year":"2018",
                   "isMC": true,
-		  "xsec": 6077.22
+		  "xsec": 1976
               }
             }
         ]
     },
 
     "DYJetsToLL_MiNNLO_ZptWei_EE": {
-        "sample": "DYJetsToLL_MiNNLO_ZptWei_EE",
+        "sample": "DYJetsToLL_MiNNLO_ZptWei",
         "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
         "files": [
             { "das_names": ["/DYJetsToEE_M-50_TuneCP5_ZptWeighted_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
               "metadata": {
                   "year":"2018",
                   "isMC": true,
-		  "xsec": 6077.22
+		  "xsec": 1976
               }
             }
         ]
     },
 
+    "DYJetsToLL_MiNNLO_ZptWei_TauTau": {
+        "sample": "DYJetsToLL_MiNNLO_ZptWei_TauTau",
+        "json_output"    : "datasets/Run2UL2018_MC_VJets.json",
+        "files": [
+            { "das_names": ["/DYJetsToTauTau_M-50_TuneCP5_ZptWeighted_13TeV-powhegMiNNLO-pythia8-photos/RunIISummer20UL18NanoAODv9-106X_upgrade2018_realistic_v16_L1v1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2018",
+                  "isMC": true,
+		  "xsec": 1976
+              }
+            }
+        ]
+    },
 
 
     "DATA_SingleMuon": {

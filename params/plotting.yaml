@@ -8,8 +8,10 @@ plotting_style:
       - WZ
       - ZZ
 
-#  exclude_samples:
-#    - DYJetsToLL_FxFx
+  exclude_samples:
+    - DYJetsToLL_FxFx
+    - DYJetsToLL_MiNNLO
+#    - DYJetsToLL_MiNNLO_ZptWei
 
 #   rescale_samples:
 #      DY: 1.2

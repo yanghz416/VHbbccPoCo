@@ -59,12 +59,14 @@ cfg = Configurator(
         "filter" : {
             "samples": [
                 "DATA_DoubleMuon",
-                #"DATA_DoubleEG", # in 2016/2017
+                "DATA_DoubleEG", # in 2016/2017
                 "DATA_EGamma",   # in 2018. 2022, 2023
 	        #"WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"TTToSemiLeptonic",
-                "TTTo2L2Nu",
+                "DYJetsToLL_MiNNLO",
+                "DYJetsToLL_MiNNLO_ZptWei",
+                #"TTTo2L2Nu",
             ],
             "samples_exclude" : [],
             "year": ['2017']
@@ -91,18 +93,17 @@ cfg = Configurator(
 
     weights = {
         "common": {
-            "inclusive": ["genWeight","lumi","XS",
-                          # "pileup", Not in 2023
+            "inclusive": ["signOf_genWeight","lumi","XS",
+                          "pileup", #Not in 2022/2023
                           #"sf_mu_id","sf_mu_iso",
                           #"sf_ele_reco","sf_ele_id",
                           ],
             "bycategory" : {
             }
         },
-        "bysample": {
-        }
+        "bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
     },
-
+    
     variations = {
         "weights": {
             "common": {
@@ -171,7 +172,8 @@ run_options = {
     "treereduction"  : 20,
     "adapt"          : False,
     "requirements": (
-            '( Machine != "lx3a44.physik.rwth-aachen.de")'
+            '( Machine != "lx3a44.physik.rwth-aachen.de" ) && ' 
+            '( Machine != "lx3b80.physik.rwth-aachen.de" )'
         ),
 
     }
