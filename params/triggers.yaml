@@ -13,6 +13,12 @@ HLT_triggers:
       - IsoTkMu24
     SingleEle:
       - Ele27_WPTight_Gsf
+    MET:
+      - PFMET110_PFMHT110_IDTight
+      - PFMET120_PFMHT120_IDTight
+      - PFMET170_NoiseCleaned
+      - PFMET170_BeamHaloCleaned
+      - PFMET170_HBHECleaned
 
   "2016_PostVFP":
     DoubleMuon:

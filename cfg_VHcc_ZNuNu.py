@@ -48,7 +48,7 @@ cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
-        
+
         "filter" : {
             "samples": [
                 "DATA_MET",
@@ -62,8 +62,8 @@ cfg = Configurator(
                 "TTToHadrons"
             ],
             "samples_exclude" : [],
-            "year": ['2017']
-            #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
+            #"year": ['2017']
+            "year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
         },
     },
 
@@ -73,21 +73,25 @@ cfg = Configurator(
             get_nObj_min(2, 32., "Jet")],
 
     preselections = [met_2jets_0lep],
-    
+
     categories = {
-        "presel_Met_2j": [passthrough],
-        "baseline_Met_2j_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
-        "SR_ZNuNu_2j_cj":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1],
+        "presel_Met_2J_no_ctag": [passthrough],
+        "presel_Met_2J_ctag": [passthrough],
+        "presel_Met_2J_ctag_calib": [passthrough],
+        "baseline_Met_2J_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
+        "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1],
     },
 
     weights = {
         "common": {
-            "inclusive": ["genWeight","lumi","XS",
+            "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup",
-                          #"sf_mu_id","sf_mu_iso",
-                          #"sf_ele_reco","sf_ele_id",
+                          "sf_mu_id","sf_mu_iso",
+                          "sf_ele_reco","sf_ele_id",
                           ],
             "bycategory" : {
+                "presel_Met_2J_ctag" : ["sf_ctag"],
+                "presel_Met_2J_ctag_calib" : ["sf_ctag", "sf_ctag_calib"],
             }
         },
         "bysample": {
@@ -99,8 +103,8 @@ cfg = Configurator(
             "common": {
                 "inclusive": [
                     "pileup",
-                    #"sf_mu_id", "sf_mu_iso",
-                    #"sf_ele_reco", "sf_ele_id",
+                    "sf_mu_id", "sf_mu_iso",
+                    "sf_ele_reco", "sf_ele_id",
                 ],
                 "bycategory" : {
                 }
@@ -124,21 +128,30 @@ cfg = Configurator(
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
 
-        
+
         "dijet_nom_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=700, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_nom_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_nom_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=500, label=r"$p_T{jj}$ [GeV]")] ),
-        
+
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=700, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=500, label=r"$p_T{jj}$ [GeV]")] ),
-        
+
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=900, label=r"Jet HT [GeV]")] ),
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=100, stop=600, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
-        
+
         "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
+
+        # 2D plots
+	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
+                                   type="variable",   label="N. Jets (good)"),
+                              Axis(coll="events", field="JetGood_Ht",
+                                   bins=[0,80,150,200,300,450,700],
+                                   type="variable",
+                                   label="Jets $H_T$ [GeV]")]),
+
     }
 )
 
@@ -158,7 +171,9 @@ run_options = {
     "treereduction"  : 20,
     "adapt"          : False,
     "requirements": (
-            '( Machine != "lx3a44.physik.rwth-aachen.de")'
+        '( TotalCpus >= 10) &&'
+        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
+        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
         ),
 
     }

@@ -1,8 +1,9 @@
 plotting_style:
   samples_groups:
     Top:
-      - TTToSemiLeptonic
+      #- TTToSemiLeptonic
       - TTTo2L2Nu
+      #- TTToHadrons
     VV:
       - WW
       - WZ
@@ -11,21 +12,24 @@ plotting_style:
   exclude_samples:
     - DYJetsToLL_FxFx
     - DYJetsToLL_MiNNLO
-#    - DYJetsToLL_MiNNLO_ZptWei
+    - DYJetsToLL_MiNNLO_ZptWei
 
-#   rescale_samples:
-#      DY: 1.2
+  rescale_samples:
+    DYJetsToLL_MLM: 1.33
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
     DYJetsToLL_FxFx: Z+jets
+    DYJetsToLL_MiNNLO: Z+jets
     WJetsToLNu_FxFx: W+jets
     ZJetsToNuNu_FxFx: ZNuNu
 
   colors_mc:
     Top: "#00BFFF"
-    ZJetsToNuNu_FxFx: "#ADFF2F"
+    DYJetsToLL_MLM: "#ADFF2F"
     DYJetsToLL_FxFx: "#ADFF2F"
+    DYJetsToLL_MiNNLO: "#ADFF2F"
     WJetsToLNu_FxFx: "#F6D608"
+    ZJetsToNuNu_FxFx: "#ADFF2F"
     VV: "#FFA07A"
     QCD: "#D3D3D3"

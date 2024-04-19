@@ -21,3 +21,5 @@ object_preselection:
       wp: T
       value: 4
       maxpt: 50.0
+
+  bJetWP: M

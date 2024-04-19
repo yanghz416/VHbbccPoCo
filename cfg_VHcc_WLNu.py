@@ -62,8 +62,8 @@ cfg = Configurator(
                 "TTToSemiLeptonic", "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            #"year": ['2016_PreVFP', '2016_PostVFP']
-            "year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
+            "year": ['2017']
+            #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
         },
     },
 
@@ -76,21 +76,27 @@ cfg = Configurator(
     preselections = [lep_met_2jets],
     categories = {
         "baseline_1L2j": [passthrough],
-        "presel_Wlnu_2j": [wlnu_plus_2j],
-        "SR_Wlnu_2j_cj":  [wlnu_plus_2j,ctag_j1],
-        "SR_Wmunu_2j_cj": [wmunu_plus_2j,ctag_j1],
-        "SR_Welnu_2j_cj": [welnu_plus_2j,ctag_j1],
+        #"baseline_1L2J_no_ctag": [passthrough],
+        #"baseline_1L2J_ctag": [passthrough],
+        #"baseline_1L2J_ctag_calib": [passthrough],
+        "presel_Wlnu_2J": [wlnu_plus_2j],
+        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j,ctag_j1],
+        "SR_Wmunu_2J_cJ": [wmunu_plus_2j,ctag_j1],
+        "SR_Welnu_2J_cJ": [welnu_plus_2j,ctag_j1],
     },
 
     weights = {
         "common": {
-            "inclusive": ["genWeight","lumi","XS",
+            "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup",
                           "sf_mu_id","sf_mu_iso",
                           "sf_ele_reco","sf_ele_id",
+                          "sf_ctag", "sf_ctag_calib"
                           ],
-            "bycategory" : {
-            }
+            #"bycategory" : {
+            #    "baseline_1L2J_ctag" : ["sf_ctag"],
+            #    "baseline_1L2J_ctag_calib" : ["sf_ctag", "sf_ctag_calib"],
+            #}
         },
         "bysample": {
         }
@@ -103,6 +109,7 @@ cfg = Configurator(
                     "pileup",
                     "sf_mu_id", "sf_mu_iso",
                     "sf_ele_reco", "sf_ele_id",
+                    "sf_ctag"
                 ],
                 "bycategory" : {
                 }
@@ -130,7 +137,7 @@ cfg = Configurator(
         "dijet_nom_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_nom_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_nom_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
-        
+
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
@@ -138,6 +145,14 @@ cfg = Configurator(
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=700, label=r"Jet HT [GeV]")] ),
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
+
+        # 2D plots
+	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
+                                   type="variable",   label="N. Jets (good)"),
+                              Axis(coll="events", field="JetGood_Ht",
+                                   bins=[0,80,150,200,300,450,700],
+                                   type="variable",
+                                   label="Jets $H_T$ [GeV]")]),
 
     }
 )
@@ -154,11 +169,13 @@ run_options = {
     "exclusive"      : False,
     "skipbadfiles"   : False,
     "chunk"          : 500000,
-    "retries"        : 20,
+    "retries"        : 10,
     "treereduction"  : 20,
     "adapt"          : False,
     "requirements": (
-            '( Machine != "lx3a44.physik.rwth-aachen.de")'
+        '( TotalCpus >= 8) &&'
+	'( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
+	'( Machine != "lx3b80.physik.rwth-aachen.de" )'
         ),
 
     }

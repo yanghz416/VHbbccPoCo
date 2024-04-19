@@ -25,14 +25,13 @@
                   "xsec": 6688.0
               }
             },
-	    { "das_names": ["/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23BPixNanoAODv12-JMENano12p5_132X_mcRun3_2023_realistic_postBPix_v4-v1/NANOAODSIM"],
+	    { "das_names": ["/DYto2L-2Jets_MLL-50_TuneCP5_13p6TeV_amcatnloFXFX-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM"],
               "metadata": {
                   "year":"2023_postBPix",
                   "isMC": true,
                   "xsec": 6688.0
               }
             }
-
 	]
     },
 
@@ -57,6 +56,41 @@
 	]
     },
 
+    "DYJetsToLL_MLM": {
+        "sample": "DYJetsToLL_MLM",
+        "json_output"    : "datasets/Run3_MC_VJets.json",
+        "files": [
+            { "das_names": ["/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5-v2/NANOAODSIM", "/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22NanoAODv12-130X_mcRun3_2022_realistic_v5_ext1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2022_preEE",
+                  "isMC": true,
+                  "xsec": 6688.0
+              }
+            },
+            { "das_names": ["/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6-v2/NANOAODSIM", "/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer22EENanoAODv12-130X_mcRun3_2022_realistic_postEE_v6_ext1-v2/NANOAODSIM"],
+              "metadata": {
+                  "year":"2022_postEE",
+                  "isMC": true,
+                  "xsec": 6688.0
+              }
+            },
+            { "das_names": ["/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23NanoAODv12-130X_mcRun3_2023_realistic_v14-v1/NANOAODSIM"],
+              "metadata": {
+                  "year":"2023_preBPix",
+                  "isMC": true,
+                  "xsec": 6688.0
+              }
+            },
+            { "das_names": ["/DYto2L-4Jets_MLL-50_TuneCP5_13p6TeV_madgraphMLM-pythia8/Run3Summer23BPixNanoAODv12-130X_mcRun3_2023_realistic_postBPix_v2-v3/NANOAODSIM"],
+              "metadata": {
+                  "year":"2023_postBPix",
+                  "isMC": true,
+                  "xsec": 6688.0
+              }
+            }
+	]
+    },
+    
     "TTTo2L2Nu": {
         "sample": "TTTo2L2Nu",
         "json_output"    : "datasets/Run3_MC_OtherBkg.json",

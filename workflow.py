@@ -21,7 +21,7 @@ class VHccBaseProcessor(BaseProcessorABC):
 
         self.proc_type = self.params["proc_type"]
         
-        self.isRun3 = True if self.params["run_period"]=='Run3' else False
+        #self.isRun3 = True if self.params["run_period"]=='Run3' else False
         
     def apply_object_preselection(self, variation):
         '''
@@ -53,8 +53,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events, "Jet", self.params, "LeptonGood"
         )
         self.events["BJetGood"] = btagging(
-            self.events["JetGood"], self.params.btagging.working_point[self._year])
-
+            self.events["JetGood"], self.params.btagging.working_point[self._year], wp=self.params.object_preselection.bJetWP)
+            
     def count_objects(self, variation):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood)
         self.events["nElectronGood"] = ak.num(self.events.ElectronGood)

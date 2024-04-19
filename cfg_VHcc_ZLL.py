@@ -48,25 +48,26 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["run_period"] = "Run2" # Run2 Or Run3
+#parameters["run_period"] = "Run2" # Run2 Or Run3
 
 cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
         #"jsons": files_Run3,
-
+        
         "filter" : {
             "samples": [
                 "DATA_DoubleMuon",
                 "DATA_DoubleEG", # in 2016/2017
-                "DATA_EGamma",   # in 2018. 2022, 2023
-	        #"WW", "WZ", "ZZ",
+                #"DATA_EGamma",   # in 2018/2022/2023
+	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
+                "DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
                 "DYJetsToLL_MiNNLO",
-                "DYJetsToLL_MiNNLO_ZptWei",
-                #"TTTo2L2Nu",
+                #"DYJetsToLL_MiNNLO_ZptWei",
+                "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
             "year": ['2017']
@@ -83,40 +84,45 @@ cfg = Configurator(
 
     preselections = [ll_2j],
     categories = {
-        "baseline_2L2J": [passthrough],
-        "presel_mumu_2j": [mumu_2j],
-        "presel_ee_2j": [ee_2j],
-        "SR_ll_2j_cj": [ll_2j, ctag_j1],
-        "SR_mumu_2j_cj": [mumu_2j, ctag_j1],
-        "SR_ee_2j_cj": [ee_2j, ctag_j1],
+        #"baseline_2L2J": [passthrough],
+        "baseline_2L2J_no_ctag": [passthrough],
+        "baseline_2L2J_ctag": [passthrough],
+        "baseline_2L2J_ctag_calib": [passthrough],
+        "presel_mumu_2J": [mumu_2j],
+        "presel_ee_2J": [ee_2j],
+        "SR_ll_2J_cJ": [ll_2j, ctag_j1],
+        "SR_mumu_2J_cJ": [mumu_2j, ctag_j1],
+        "SR_ee_2J_cJ": [ee_2j, ctag_j1],
     },
 
     weights = {
         "common": {
             "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup", #Not in 2022/2023
-                          #"sf_mu_id","sf_mu_iso",
-                          #"sf_ele_reco","sf_ele_id",
+                          "sf_mu_id","sf_mu_iso",
+                          "sf_ele_reco","sf_ele_id",
+                          #"sf_ctag", "sf_ctag_calib"
                           ],
             "bycategory" : {
+                "baseline_2L2J_ctag" : ["sf_ctag"],
+                "baseline_2L2J_ctag_calib": ["sf_ctag","sf_ctag_calib"]
             }
         },
-        "bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
+        #"bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
     },
     
     variations = {
         "weights": {
             "common": {
                 "inclusive": [
-                    #"pileup",
-                    # "sf_mu_id", "sf_mu_iso",
-                    # "sf_ele_reco", "sf_ele_id",
-                              ],
-                "bycategory" : {
-                }
+                    "pileup",
+                    "sf_mu_id", "sf_mu_iso",
+                    "sf_ele_reco", "sf_ele_id",
+                    #"sf_ctag"
+                ]
             },
-        "bysample": {
-        }
+            "bysample": {
+            }
         },
     },
 
@@ -153,6 +159,13 @@ cfg = Configurator(
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
+        # 2D plots
+        "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
+                                   type="variable",   label="N. Jets (good)"),
+                              Axis(coll="events", field="JetGood_Ht",
+                                   bins=[0,80,150,200,300,450,700],
+                                   type="variable",
+                                   label="Jets $H_T$ [GeV]")]),
     }
 )
 
@@ -172,8 +185,9 @@ run_options = {
     "treereduction"  : 20,
     "adapt"          : False,
     "requirements": (
-            '( Machine != "lx3a44.physik.rwth-aachen.de" ) && ' 
-            '( Machine != "lx3b80.physik.rwth-aachen.de" )'
-        ),
-
-    }
+        '( TotalCpus >= 8) &&'
+        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && ' 
+        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
+    ),
+    
+}
