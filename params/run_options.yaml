@@ -1,0 +1,6 @@
+retries: 1
+chunksize: 400000
+requirements: >
+  ( TotalCpus >= 8) && 
+  ( Machine != "lx3a44.physik.rwth-aachen.de" ) &&  
+  ( Machine != "lx3b80.physik.rwth-aachen.de" )

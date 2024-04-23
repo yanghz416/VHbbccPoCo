@@ -48,7 +48,6 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-#parameters["run_period"] = "Run2" # Run2 Or Run3
 
 cfg = Configurator(
     parameters = parameters,
@@ -60,7 +59,7 @@ cfg = Configurator(
             "samples": [
                 "DATA_DoubleMuon",
                 "DATA_DoubleEG", # in 2016/2017
-                #"DATA_EGamma",   # in 2018/2022/2023
+                "DATA_EGamma",   # in 2018/2022/2023
 	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 "DYJetsToLL_MLM",
@@ -73,6 +72,7 @@ cfg = Configurator(
             "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+            #"year": ['2022_preEE']
         }
     },
 
@@ -86,8 +86,8 @@ cfg = Configurator(
     categories = {
         #"baseline_2L2J": [passthrough],
         "baseline_2L2J_no_ctag": [passthrough],
-        "baseline_2L2J_ctag": [passthrough],
-        "baseline_2L2J_ctag_calib": [passthrough],
+        #"baseline_2L2J_ctag": [passthrough],
+        #"baseline_2L2J_ctag_calib": [passthrough],
         "presel_mumu_2J": [mumu_2j],
         "presel_ee_2J": [ee_2j],
         "SR_ll_2J_cJ": [ll_2j, ctag_j1],
@@ -104,8 +104,8 @@ cfg = Configurator(
                           #"sf_ctag", "sf_ctag_calib"
                           ],
             "bycategory" : {
-                "baseline_2L2J_ctag" : ["sf_ctag"],
-                "baseline_2L2J_ctag_calib": ["sf_ctag","sf_ctag_calib"]
+                #"baseline_2L2J_ctag" : ["sf_ctag"],
+                #"baseline_2L2J_ctag_calib": ["sf_ctag","sf_ctag_calib"]
             }
         },
         #"bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
@@ -168,26 +168,3 @@ cfg = Configurator(
                                    label="Jets $H_T$ [GeV]")]),
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-#    "mem_per_worker_parsl" : 2, # For Parsl
-    "mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 10,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 8) &&'
-        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && ' 
-        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
-    ),
-    
-}
