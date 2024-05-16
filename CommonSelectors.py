@@ -14,6 +14,7 @@ def diLepton(events, params, year, sample, **kwargs):
         & (ak.firsts(events.LeptonGood.pt) > params["pt_leading_lep"])
         & (events.ll.mass > params["mll"]["low"])
         & (events.ll.mass < params["mll"]["high"])
+        & (events.ll.pt > params["pt_dilep"])
     )
     
     # Pad None values with False
@@ -29,6 +30,10 @@ def TwoElectrons(events, **kwargs):
 
 def TwoJets(events, **kwargs):
     mask = (events.nJetGood >= 2)
+    return ak.where(ak.is_none(mask), False, mask)
+
+def OneJet(events, **kwargs):
+    mask = (events.nJetGood >= 1)
     return ak.where(ak.is_none(mask), False, mask)
 
 def TwoLepTwoJets(events, params, **kwargs):
@@ -113,6 +118,13 @@ def DeltaPhiJetMetCut(events, params, **kwargs):
 
 
 # General cuts
+
+one_jet = Cut(
+    name="one_jet",
+    function=OneJet,
+    params={}
+    
+)
 
 ctag_j1 = Cut(
     name="ctag_j1",
@@ -201,8 +213,9 @@ dilepton = Cut(
     name="dilepton",
     function=diLepton,
     params={
-        "pt_leading_lep": 33,
-        "mll": {'low': 60, 'high': 120},
+        "pt_leading_lep": 27,
+        "mll": {'low': 81, 'high': 101},
+        "pt_dilep": 15
     },
 )
 

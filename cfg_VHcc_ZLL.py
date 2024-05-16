@@ -52,33 +52,35 @@ parameters["proc_type"] = "ZLL"
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_Run3,
+        #"jsons": files_2016 + files_2017 + files_2018,
+        "jsons": files_Run3,
         
         "filter" : {
             "samples": [
                 "DATA_DoubleMuon",
                 "DATA_DoubleEG", # in 2016/2017
                 "DATA_EGamma",   # in 2018/2022/2023
+                ##"DATA_SingleMuon",
+                ##"DATA_SingleElectron",
 	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 "DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
-                "DYJetsToLL_MiNNLO",
+                #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            "year": ['2017']
+            #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
-            #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+            "year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE']
         }
     },
 
     workflow = VHccBaseProcessor,
 
-    #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"])],
+    #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
             get_nObj_min(4, 18., "Jet")],
 
@@ -100,7 +102,7 @@ cfg = Configurator(
             "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup", #Not in 2022/2023
                           "sf_mu_id","sf_mu_iso",
-                          "sf_ele_reco","sf_ele_id",
+                          #"sf_ele_reco","sf_ele_id",
                           #"sf_ctag", "sf_ctag_calib"
                           ],
             "bycategory" : {
@@ -117,7 +119,7 @@ cfg = Configurator(
                 "inclusive": [
                     "pileup",
                     "sf_mu_id", "sf_mu_iso",
-                    "sf_ele_reco", "sf_ele_id",
+                    #"sf_ele_reco", "sf_ele_id",
                     #"sf_ctag"
                 ]
             },
