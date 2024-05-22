@@ -73,8 +73,8 @@ cfg = Configurator(
             "samples_exclude" : [],
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
-            "year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
-            #"year": ['2022_preEE']
+            #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+            "year": ['2022_preEE','2022_postEE']
         }
     },
 
@@ -92,9 +92,14 @@ cfg = Configurator(
         #"baseline_2L2J_ctag_calib": [passthrough],
         "presel_mumu_2J": [mumu_2j],
         "presel_ee_2J": [ee_2j],
-        "SR_ll_2J_cJ": [ll_2j, ctag_j1],
-        "SR_mumu_2J_cJ": [mumu_2j, ctag_j1],
-        "SR_ee_2J_cJ": [ee_2j, ctag_j1],
+        "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
+        "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
+        "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
+        
+        "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
+        "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
+        "CR_ll_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
+        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1]
     },
 
     weights = {
@@ -102,7 +107,7 @@ cfg = Configurator(
             "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup", #Not in 2022/2023
                           "sf_mu_id","sf_mu_iso",
-                          #"sf_ele_reco","sf_ele_id",
+                          "sf_ele_reco","sf_ele_id",
                           #"sf_ctag", "sf_ctag_calib"
                           ],
             "bycategory" : {
@@ -119,7 +124,7 @@ cfg = Configurator(
                 "inclusive": [
                     "pileup",
                     "sf_mu_id", "sf_mu_iso",
-                    #"sf_ele_reco", "sf_ele_id",
+                    "sf_ele_reco", "sf_ele_id",
                     #"sf_ctag"
                 ]
             },
