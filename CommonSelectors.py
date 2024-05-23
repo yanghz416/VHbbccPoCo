@@ -174,8 +174,8 @@ ctag_j1 = Cut(
     params={
         "ctag": True,
         "btag": False,
-        "cut_CvL": 0.4,
-        "cut_CvB": 0.2
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
     }
 )
 antictag_j1 = Cut(
@@ -184,8 +184,8 @@ antictag_j1 = Cut(
     params={
         "ctag": False,
         "btag": False,
-        "cut_CvL": 0.4,
-        "cut_CvB": 0.2
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
     }
 )
 btag_j1 = Cut(
@@ -194,8 +194,8 @@ btag_j1 = Cut(
     params={
         "ctag": True,
         "btag": True,
-        "cut_CvL": 0.4,
-        "cut_CvB": 0.2
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
     }
 )
 

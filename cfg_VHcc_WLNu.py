@@ -80,9 +80,17 @@ cfg = Configurator(
         #"baseline_1L2J_ctag": [passthrough],
         #"baseline_1L2J_ctag_calib": [passthrough],
         "presel_Wlnu_2J": [wlnu_plus_2j],
-        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j,ctag_j1],
-        "SR_Wmunu_2J_cJ": [wmunu_plus_2j,ctag_j1],
-        "SR_Welnu_2J_cJ": [welnu_plus_2j,ctag_j1],
+        
+        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j,ctag_j1, dijet_mass_cut],
+        "SR_Wmunu_2J_cJ": [wmunu_plus_2j,ctag_j1, dijet_mass_cut],
+        "SR_Welnu_2J_cJ": [welnu_plus_2j,ctag_j1, dijet_mass_cut],
+
+        "CR_Wlnu_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
+        "CR_Wlnu_4J_TT": [ll_antiZ_4j, btag_j1]
+
+        
     },
 
     weights = {
