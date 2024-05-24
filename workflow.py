@@ -76,33 +76,53 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
 
     def define_common_variables_after_presel(self, variation):
-        high_pt_mask = (self.events.ll.pt > 150)
-        low_pt_mask = (self.events.ll.pt >= 50) & (self.events.ll.pt < 150)
         self.events["dijet"] = get_dijet(self.events.JetGood)
-        
-        # Determine the maximum length
-        max_length = len(self.events.ll)
-        ll_low = self.events.ll[low_pt_mask]
-        ll_high = self.events.ll[high_pt_mask]
-        dijet_low = self.events.dijet[low_pt_mask]
-        dijet_high = self.events.dijet[high_pt_mask]
-        # Pad the arrays to match the maximum length
-        ll_low_padded = ak.pad_none(ll_low, max_length, axis=0)
-        ll_high_padded = ak.pad_none(ll_high, max_length, axis=0)
-        dijet_low_padded = ak.pad_none(dijet_low, max_length, axis=0)
-        dijet_high_padded = ak.pad_none(dijet_high, max_length, axis=0)
-
-        # Concatenate the jagged arrays along the first axis
-        self.events["ll_low"] = ll_low_padded
-        self.events["ll_high"] = ll_high_padded
-        self.events["dijet_low"] = dijet_low_padded
-        self.events["dijet_high"] = dijet_high_padded
         
         
         
         #self.events["dijet_pt"] = self.events.dijet.pt
         
         if self.proc_type=="ZLL":
+            high_pt_mask = (self.events.ll.pt > 150)
+            low_pt_mask = (self.events.ll.pt >= 50) & (self.events.ll.pt < 150)
+            
+            # Determine the maximum length
+            max_length = len(self.events.ll)
+            ll_low = self.events.ll[low_pt_mask]
+            ll_high = self.events.ll[high_pt_mask]
+            dijet_low = self.events.dijet[low_pt_mask]
+            dijet_high = self.events.dijet[high_pt_mask]
+            # Pad the arrays to match the maximum length
+            ll_low_padded = ak.pad_none(ll_low, max_length, axis=0)
+            ll_high_padded = ak.pad_none(ll_high, max_length, axis=0)
+            dijet_low_padded = ak.pad_none(dijet_low, max_length, axis=0)
+            dijet_high_padded = ak.pad_none(dijet_high, max_length, axis=0)
+
+            # Concatenate the jagged arrays along the first axis
+            self.events["ll_low"] = ll_low_padded
+            self.events["ll_high"] = ll_high_padded
+            self.events["dijet_low"] = dijet_low_padded
+            self.events["dijet_high"] = dijet_high_padded
+            
+            ### General
+            self.events["dijet_deltaR"] = self.events.dijet.deltaR
+            self.events["dijet_deltaPhi"] = self.events.dijet.deltaPhi
+            self.events["dijet_deltaEta"] = self.events.dijet.deltaEta
+            self.events["dijet_m"] = self.events.dijet.mass
+            self.events["dijet_pt"] = self.events.dijet.pt
+            self.events["dilep_deltaR"] = self.events.ll.deltaR
+            self.events["dilep_pt"] = self.events.ll.pt
+            self.events["dilep_mass"] = self.events.ll.mass
+            self.events["dilep_phi"] = self.events.ll.deltaPhi
+            self.events["dilep_eta"] = self.events.ll.deltaEta
+            self.events["pt_ratio"] = self.events.ll.pt/self.events.dijet.pt
+            self.events["ZH_delphi"] = np.abs(self.events.ll.delta_phi(self.events.dijet))
+            self.angle21_gen = (abs(self.events.ll.l2phi - self.events.dijet.j1Phi) < np.pi)
+            self.angle22_gen = (abs(self.events.ll.l2phi - self.events.dijet.j2Phi) < np.pi)
+            self.events["deltaPhi_l2_j1"] = ak.where(self.angle21_gen, abs(self.events.ll.l2phi - self.events.dijet.j1Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet.j1Phi))              
+            self.events["deltaPhi_l2_j2"] = ak.where(self.angle22_gen, abs(self.events.ll.l2phi - self.events.dijet.j2Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet.j2Phi))
+            
+            
             ### Low_pt dilepton
             self.events["dijet_deltaR_low"] = self.events.dijet_low.deltaR
             self.events["dijet_deltaPhi_low"] = self.events.dijet_low.deltaPhi

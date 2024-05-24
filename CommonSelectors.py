@@ -1,6 +1,11 @@
 import awkward as ak
 from pocket_coffea.lib.cut_definition import Cut
 
+def CvsLsorted(jets, ctag):
+    # This returns Jets sorted by CvL score (or other tagger defined in params/ctagging.yaml )
+    return jets[ak.argsort(jets[ctag["tagger"]], axis=1, ascending=False)]
+
+
 def diLepton(events, params, year, sample, **kwargs):
 
     # Masks for same-flavor (SF) and opposite-sign (OS)
@@ -14,6 +19,7 @@ def diLepton(events, params, year, sample, **kwargs):
         & (ak.firsts(events.LeptonGood.pt) > params["pt_leading_lep"])
         & (events.ll.mass > params["mll"]["low"])
         & (events.ll.mass < params["mll"]["high"])
+        & (events.ll.pt > params["pt_dilep"])
     )
     
     # Pad None values with False
@@ -31,6 +37,10 @@ def TwoJets(events, **kwargs):
     mask = (events.nJetGood >= 2)
     return ak.where(ak.is_none(mask), False, mask)
 
+def OneJet(events, **kwargs):
+    mask = (events.nJetGood >= 1)
+    return ak.where(ak.is_none(mask), False, mask)
+
 def TwoLepTwoJets(events, params, **kwargs):
     mask = ( (events.nJetGood >= 2)
              & ( ( (params["lep_flav"]=="mu") & (events.nMuonGood>=2) ) |
@@ -40,6 +50,19 @@ def TwoLepTwoJets(events, params, **kwargs):
              & (events.ll.pt > params["pt_dilep"])
              & (events.ll.mass > params["mll"]["low"])
              & (events.ll.mass < params["mll"]["high"])
+            )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def AntiZFourJets(events, params, **kwargs):
+    # This mask is used for TTbar CR
+    mask = ( (events.nJetGood >= 4)
+             & ( ( (params["lep_flav"]=="mu") & (events.nMuonGood>=2) ) |
+                 ( (params["lep_flav"]=="el") & (events.nElectronGood>=2) )  |
+                 ( (params["lep_flav"]=="both") & (events.nLeptonGood>=2) )
+                )
+             & (events.ll.pt > params["pt_dilep"])
+             & ( (events.ll.mass < params["mll"]["low"]) | (events.ll.mass > params["mll"]["high"]) )
+             & (events.ll.mass > 50) 
             )
     return ak.where(ak.is_none(mask), False, mask)
 
@@ -89,13 +112,22 @@ def WLNuTwoJets(events, params, **kwargs):
         )
     return ak.where(ak.is_none(mask), False, mask)
 
-def ctag(events, params, **kwargs):
+def jettag(events, params, **kwargs):
     #print(events.JetsCvsL.btagDeepFlavCvL[:, 0]>0.2)
-    mask = (events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2)
+    if params["ctag"]:
+        CvL = (events.JetsCvsL.btagDeepFlavCvL[:,0]>params["cut_CvL"])
+    else:
+        CvL = (events.JetsCvsL.btagDeepFlavCvL[:,0]<params["cut_CvL"])
+
+    if params["btag"]:
+        CvB = (events.JetsCvsL.btagDeepFlavCvB[:,0]<params["cut_CvB"])
+    else:
+        CvB = (events.JetsCvsL.btagDeepFlavCvB[:,0]>params["cut_CvB"])
+
+    mask = CvL & CvB
+    
     return ak.where(ak.is_none(mask), False, mask)
 
-def CvsLsorted(jets, ctag):
-    return jets[ak.argsort(jets[ctag["tagger"]], axis=1, ascending=False)]
 
 def DiJetPtCut(events, params, **kwargs):
     mask = (  (events.nJetGood >= 2)
@@ -103,6 +135,29 @@ def DiJetPtCut(events, params, **kwargs):
               #& (events.dijet_csort.pt > params["pt_dijet"])
             )
     return ak.where(ak.is_none(mask), False, mask)
+
+def DiJetMassCut(events, params, **kwargs):
+
+    if params["invert"]:
+        mask = (  (events.nJetGood >= 2)          
+                  & ( (events.dijet_csort.mass < params["mjj"]["low"])
+                      | (events.dijet_csort.mass > params["mjj"]["high"]) )
+                )        
+    else:
+        mask = (  (events.nJetGood >= 2)          
+                  & (events.dijet_csort.mass > params["mjj"]["low"])
+                  & (events.dijet_csort.mass < params["mjj"]["high"])
+                )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DiLeptonPtCut(events, params, **kwargs):
+
+    if params["high"]:
+        mask = (  (events.ll.pt > params["ptll"]["low"]))      
+    else:
+        mask = (  (events.ll.pt > params["ptll"]["low"]) & (events.ll.pt < params["ptll"]["high"]) )
+    return ak.where(ak.is_none(mask), False, mask)
+
 
 def DeltaPhiJetMetCut(events, params, **kwargs):
     mask = ( (events['deltaPhi_jet1_MET'] > params["jet_met_dphi_cut"])
@@ -114,11 +169,42 @@ def DeltaPhiJetMetCut(events, params, **kwargs):
 
 # General cuts
 
-ctag_j1 = Cut(
-    name="ctag_j1",
-    function=ctag,
+one_jet = Cut(
+    name="one_jet",
+    function=OneJet,
     params={}
     
+)
+
+ctag_j1 = Cut(
+    name="ctag_j1",
+    function=jettag,
+    params={
+        "ctag": True,
+        "btag": False,
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
+    }
+)
+antictag_j1 = Cut(
+    name="antictag_j1",
+    function=jettag,
+    params={
+        "ctag": False,
+        "btag": False,
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
+    }
+)
+btag_j1 = Cut(
+    name="btag_j1",
+    function=jettag,
+    params={
+        "ctag": True,
+        "btag": True,
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4
+    }
 )
 
 dijet_pt_cut = Cut(
@@ -126,6 +212,23 @@ dijet_pt_cut = Cut(
     function=DiJetPtCut,
     params={
 	"pt_dijet": 120,
+    },
+)
+
+dijet_mass_cut = Cut(
+    name="dijet_mass_cut",
+    function=DiJetMassCut,
+    params={
+        "invert": False,
+	"mjj": {'low': 75, 'high': 200}
+    },
+)
+dijet_invmass_cut = Cut(
+    name="dijet_invmass_cut",
+    function=DiJetMassCut,
+    params={
+        "invert": True,
+	"mjj": {'low': 75, 'high': 200}
     },
 )
 
@@ -195,14 +298,15 @@ welnu_plus_2j = Cut(
     }
 )
 
-# Cuts for 1-Lep channel
+# Cuts for 2-Lep channel
 
 dilepton = Cut(
     name="dilepton",
     function=diLepton,
     params={
-        "pt_leading_lep": 33,
-        "mll": {'low': 60, 'high': 120},
+        "pt_leading_lep": 27,
+        "mll": {'low': 81, 'high': 101},
+        "pt_dilep": 15
     },
 )
 
@@ -217,12 +321,13 @@ ee_channel = Cut(
     params=None
 )
 
+
 ll_2j = Cut(
     name = 'll_2j',
     function=TwoLepTwoJets,
     params={"lep_flav": "both",
             "pt_dilep": 60,
-            "mll": {'low': 70, 'high': 120}
+            "mll": {'low': 50, 'high': 400}
             }
 )
 mumu_2j = Cut(
@@ -230,7 +335,7 @@ mumu_2j = Cut(
     function=TwoLepTwoJets,
     params={"lep_flav": "mu",
             "pt_dilep": 60,
-            "mll": {'low': 70, 'high': 120}
+            "mll": {'low': 50, 'high': 400}
         }
 )
 ee_2j = Cut(
@@ -238,6 +343,63 @@ ee_2j = Cut(
     function=TwoLepTwoJets,
     params={"lep_flav": "el",
             "pt_dilep": 60,
-            "mll": {'low': 70, 'high': 120}
+            "mll": {'low': 50, 'high': 400}
         }
 )
+
+Zll_2j = Cut(
+    name = 'Zll_2j',
+    function=TwoLepTwoJets,
+    params={"lep_flav": "both",
+            "pt_dilep": 60,
+            "mll": {'low': 75, 'high': 115}
+            }
+)
+
+Zll_2j_low = Cut(
+    name="Zll_2j_low",
+    function=DiLeptonPtCut,
+    params={
+        "high": False,
+	"ptll": {'low': 50, 'high': 150}
+    },
+)
+
+Zll_2j_high = Cut(
+    name="Zll_2j_high",
+    function=DiLeptonPtCut,
+    params={
+        "high": True,
+	"ptll": {'low': 150}
+    },
+)
+
+Zmumu_2j = Cut(
+    name = 'Zmumu_2j',
+    function=TwoLepTwoJets,
+    params={"lep_flav": "mu",
+            "pt_dilep": 60,
+            "mll": {'low': 75, 'high': 115}
+        }
+)
+Zee_2j = Cut(
+    name = 'Zee_2j',
+    function=TwoLepTwoJets,
+    params={"lep_flav": "el",
+            "pt_dilep": 60,
+            "mll": {'low': 75, 'high': 115}
+        }
+)
+
+
+# Cut for ttbar control region
+ll_antiZ_4j = Cut(
+    name = 'll_antiZ_4j',
+    function=AntiZFourJets,
+    params={"lep_flav": "both",
+            "pt_dilep": 60,
+            "mll": {'low': 75, 'high': 120}
+            }
+)
+
+

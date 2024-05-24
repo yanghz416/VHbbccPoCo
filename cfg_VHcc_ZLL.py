@@ -41,14 +41,13 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
-files_Run3 = [
-    f"{localdir}/datasets/Run3_MC_VJets.json",
-    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
-    f"{localdir}/datasets/Run3_DATA.json",
-]
+#files_Run3 = [
+#    f"{localdir}/datasets/Run3_MC_VJets.json",
+#    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+#    f"{localdir}/datasets/Run3_DATA.json",
+#]
 
 parameters["proc_type"] = "ZLL"
-#parameters["run_period"] = "Run2" # Run2 Or Run3
 
 cfg = Configurator(
     parameters = parameters,
@@ -60,12 +59,14 @@ cfg = Configurator(
             "samples": [
                 "DATA_DoubleMuon",
                 "DATA_DoubleEG", # in 2016/2017
-                #"DATA_EGamma",   # in 2018/2022/2023
+                "DATA_EGamma",   # in 2018/2022/2023
+                ##"DATA_SingleMuon",
+                ##"DATA_SingleElectron",
 	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 "DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
-                "DYJetsToLL_MiNNLO",
+                #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
             ],
@@ -73,12 +74,13 @@ cfg = Configurator(
             "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+            #"year": ['2022_preEE','2022_postEE']
         }
     },
 
     workflow = VHccBaseProcessor,
 
-    #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"])],
+    #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
             get_nObj_min(4, 18., "Jet")],
 
@@ -90,9 +92,16 @@ cfg = Configurator(
         #"baseline_2L2J_ctag_calib": [passthrough],
         "presel_mumu_2J": [mumu_2j],
         "presel_ee_2J": [ee_2j],
-        "SR_ll_2J_cJ": [ll_2j, ctag_j1],
-        "SR_mumu_2J_cJ": [mumu_2j, ctag_j1],
-        "SR_ee_2J_cJ": [ee_2j, ctag_j1],
+        "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
+        "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
+        "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
+        "SR_ll_2j_low": [Zll_2j, dijet_mass_cut, Zll_2j_low],
+        "SR_ll_2j_high": [Zll_2j, dijet_mass_cut, Zll_2j_high],
+        
+        "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
+        "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
+        "CR_ll_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
+        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1]
     },
 
     weights = {
@@ -140,41 +149,26 @@ cfg = Configurator(
 	**jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
-        "dilepton_m_low": HistConf( [Axis(field="dilep_mass_low", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV], 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_pt_low": HistConf( [Axis(field="dilep_pt_low", bins=100, start=0, stop=200, label=r"$p_{T_{\ell\ell}}$ [GeV], 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_dphi_low": HistConf( [Axis(field="dilep_phi_low", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{\ell\ell}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_deta_low": HistConf( [Axis(field="dilep_eta_low", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{\ell\ell}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_dijet_ratio_low": HistConf( [Axis(field="pt_ratio_low", bins=100, start=0, stop=2, label=r"$\frac{p_T(\ell\ell)}{p_T(jj)}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_dijet_dphi_low": HistConf( [Axis(field="ZH_delphi_low", bins=100, start=-4, stop=4, label=r"$\Delta \phi (\ell\ell, jj)$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_l2j1_low": HistConf( [Axis(field="deltaPhi_l2_j1_low", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_1)$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dilepton_l2j2_low": HistConf( [Axis(field="deltaPhi_l2_j2_low", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_2)$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        
-        "dilepton_m_high": HistConf( [Axis(field="dilep_mass_high", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV], 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_pt_high": HistConf( [Axis(field="dilep_pt_high", bins=100, start=0, stop=200, label=r"$p_{T_{\ell\ell}}$ [GeV], 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_dphi_high": HistConf( [Axis(field="dilep_phi_high", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{\ell\ell}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_deta_high": HistConf( [Axis(field="dilep_eta_high", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{\ell\ell}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_dijet_ratio_high": HistConf( [Axis(field="pt_ratio_high", bins=100, start=0, stop=2, label=r"$\frac{p_T(\ell\ell)}{p_T(jj)}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_dijet_dphi_high": HistConf( [Axis(field="ZH_delphi_high", bins=100, start=-4, stop=4, label=r"$\Delta \phi (\ell\ell, jj)$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_l2j1_high": HistConf( [Axis(field="deltaPhi_l2_j1_high", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_1)$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dilepton_l2j2_high": HistConf( [Axis(field="deltaPhi_l2_j2_high", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_2)$, 150 < $p_{T_{\ell\ell}}$")] ),
+        "dilepton_m": HistConf( [Axis(field="dilep_mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
+        "dilepton_pt": HistConf( [Axis(field="dilep_pt", bins=100, start=0, stop=200, label=r"$p_{T_{\ell\ell}}$ [GeV]")] ),
+        "dilepton_dphi": HistConf( [Axis(field="dilep_phi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{\ell\ell}$")] ),
+        "dilepton_deta": HistConf( [Axis(field="dilep_eta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{\ell\ell}$")] ),
+        "dilepton_dijet_ratio": HistConf( [Axis(field="pt_ratio", bins=100, start=0, stop=2, label=r"$\frac{p_T(\ell\ell)}{p_T(jj)}$")] ),
+        "dilepton_dijet_dphi": HistConf( [Axis(field="ZH_delphi", bins=100, start=-4, stop=4, label=r"$\Delta \phi (\ell\ell, jj)$")] ),
+        "dilepton_l2j1": HistConf( [Axis(field="deltaPhi_l2_j1", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_1)$")] ),
+        "dilepton_l2j2": HistConf( [Axis(field="deltaPhi_l2_j2", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_2)$")] ),
         
         "dilep_m" : HistConf( [Axis(coll="ll", field="mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_m_zoom" : HistConf( [Axis(coll="ll", field="mass", bins=40, start=70, stop=110, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_dr" : HistConf( [Axis(coll="ll", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{\ell\ell}$")] ),
         "dilep_pt" : HistConf( [Axis(coll="ll", field="pt", bins=100, start=0, stop=400, label=r"$p_T{\ell\ell}$ [GeV]")] ),
 
-        "dijet_m_low" : HistConf( [Axis(field="dijet_m_low", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV], 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dijet_dr_low" : HistConf( [Axis(field="dijet_deltaR_low", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dijet_dphi_low": HistConf( [Axis(field="dijet_deltaPhi_low", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dijet_deta_low": HistConf( [Axis(field="dijet_deltaEta_low", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150")] ),
-        "dijet_pt_low" : HistConf( [Axis(field="dijet_pt_low", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV], 50 < $p_{T_{\ell\ell}}$ < 150")] ),
+        "dijet_m" : HistConf( [Axis(field="dijet_m", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
+        "dijet_dr" : HistConf( [Axis(field="dijet_deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
+        "dijet_dphi": HistConf( [Axis(field="dijet_deltaPhi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")] ),
+        "dijet_deta": HistConf( [Axis(field="dijet_deltaEta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{jj}$")] ),
+        "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
         
-        "dijet_m_high" : HistConf( [Axis(field="dijet_m_high", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV], 150 < $p_{T_{\ell\ell}}$")] ),
-        "dijet_dr_high" : HistConf( [Axis(field="dijet_deltaR_high", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dijet_dphi_high": HistConf( [Axis(field="dijet_deltaPhi_high", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dijet_deta_high": HistConf( [Axis(field="dijet_deltaEta_high", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{jj}$, 150 < $p_{T_{\ell\ell}}$")] ),
-        "dijet_pt_high" : HistConf( [Axis(field="dijet_pt_high", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV], 150 < $p_{T_{\ell\ell}}$")] ),
-
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
@@ -195,26 +189,3 @@ cfg = Configurator(
                               Axis(field="dijet_deltaPhi_low", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150")]),
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-#    "mem_per_worker_parsl" : 2, # For Parsl
-    "mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 10,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 8) &&'
-        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && ' 
-        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
-    ),
-    
-}
