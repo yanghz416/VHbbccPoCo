@@ -9,17 +9,17 @@ object_preselection:
     pt: 18
     eta: 2.4
     iso: 0.06
-    id: mvaFall17V2Iso_WP80   # for Run2
-#    id: mvaIso_WP80 # for Run3
+#    id: mvaFall17V2Iso_WP80   # for Run2
+    id: mvaIso_WP80 # for Run3
 
   Jet:
     dr_lepton: 0.5
-    pt: 25
+    pt: 20  #25
     eta: 2.4
     jetId: 2
     puId:
       wp: T
       value: 4
-      maxpt: 50.0
+      maxpt: 50
 
   bJetWP: M

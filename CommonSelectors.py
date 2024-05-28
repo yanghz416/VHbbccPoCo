@@ -150,6 +150,7 @@ def DiJetMassCut(events, params, **kwargs):
                 )
     return ak.where(ak.is_none(mask), False, mask)
 
+
 def DiLeptonPtCut(events, params, **kwargs):
 
     if params["high"]:
@@ -355,6 +356,7 @@ Zll_2j = Cut(
             "mll": {'low': 75, 'high': 115}
             }
 )
+
 
 Zll_2j_low = Cut(
     name="Zll_2j_low",

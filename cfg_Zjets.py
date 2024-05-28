@@ -24,7 +24,7 @@ defaults.register_configuration_dir("config_dir", localdir+"/params")
 parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
-                                                  f"{localdir}/params/plotting.yaml",
+                                                  f"{localdir}/params/ctagging.yaml",
                                                   update=True)
 
 files_2017 = [
@@ -37,42 +37,49 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
+parameters["proc_type"] = "ZLL"
 
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        #"jsons": files_2017,
-        "jsons": files_2018,
+        "jsons": files_2017 + files_2018,
 
         "filter" : {
             "samples": [
-                "DATA_DoubleMuon",
+                #"DATA_DoubleMuon",
                 #"DATA_DoubleEG",
                 #"DATA_EGamma", # for 2018
-                #"DATA_SingleMuon",
-                #"DYJetsToLL_MLM",
+                "DATA_SingleMuon",
+                "DATA_SingleElectron",
+                "DYJetsToLL_MLM",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MiNNLO_MuMu",
                 #"DYJetsToLL_MiNNLO_EE",
                 "TTTo2L2Nu"
             ],
             "samples_exclude" : [],
-            "year": ['2018']
+            "year": ['2017']
         }
     },
 
     workflow = VHccBaseProcessor,
 
-    #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"])],
-    skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"])],
+    skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"])],
+    #skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"])],
 
     preselections = [dilepton],
     categories = {
         "baseline": [passthrough],
         "mumu": [mumu_channel],
         "ee": [ee_channel],
-        "mumu_2j": [mumu_2j_channel],
-        "ee_2j": [ee_2j_channel],
+        #"mumu_1j_no_ctag": [mumu_channel,  one_jet],
+        "mumu_1j_no_ctag_MZ": [mumu_channel, dilepton, one_jet],
+        #"ee_1j_no_ctag": [ee_channel, one_jet],
+        "ee_1j_no_ctag_MZ": [ee_channel, dilepton, one_jet],
+        "ll_1j_no_ctag_MZ": [dilepton, one_jet],
+        #"mumu_1j_ctag_calib": [mumu_channel, one_jet],
+        "mumu_2j": [mumu_2j],
+        "ee_2j": [ee_2j]
     },
 
     weights = {
@@ -83,6 +90,8 @@ cfg = Configurator(
                           "sf_ele_reco","sf_ele_id",
                           ],
             "bycategory" : {
+                #"mumu_1j_ctag" : ["sf_ctag"],
+                #"mumu_1j_ctag_calib": ["sf_ctag","sf_ctag_calib"]
             }
         },
         "bysample": {
@@ -93,10 +102,10 @@ cfg = Configurator(
         "weights": {
             "common": {
                 "inclusive": [
-                     "pileup",
-                    # "sf_mu_id", "sf_mu_iso",
-                    # "sf_ele_reco", "sf_ele_id",
-                              ],
+                    "pileup",
+                    "sf_mu_id", "sf_mu_iso",
+                    "sf_ele_reco", "sf_ele_id",
+                ],
                 "bycategory" : {
                 }
             },
@@ -129,24 +138,3 @@ cfg = Configurator(
 
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 20,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-            '( Machine != "lx3a44.physik.rwth-aachen.de")'
-        ),
-
-    }

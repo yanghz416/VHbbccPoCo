@@ -52,8 +52,8 @@ parameters["proc_type"] = "ZLL"
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_Run3,
+        #"jsons": files_2016 + files_2017 + files_2018,
+        "jsons": files_Run3,
         
         "filter" : {
             "samples": [
@@ -71,10 +71,14 @@ cfg = Configurator(
                 "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            "year": ['2017']
+            #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+
             #"year": ['2022_preEE','2022_postEE']
+
+            "year": ['2022_preEE','2022_postEE']
+
         }
     },
 
@@ -95,8 +99,10 @@ cfg = Configurator(
         "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
+
         "SR_ll_2j_low": [Zll_2j, dijet_mass_cut, Zll_2j_low],
         "SR_ll_2j_high": [Zll_2j, dijet_mass_cut, Zll_2j_high],
+
         
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
         "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
