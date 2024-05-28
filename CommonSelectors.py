@@ -151,6 +151,15 @@ def DiJetMassCut(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def DiLeptonPtCut(events, params, **kwargs):
+
+    if params["high"]:
+        mask = (  (events.ll.pt > params["ptll"]["low"]))      
+    else:
+        mask = (  (events.ll.pt > params["ptll"]["low"]) & (events.ll.pt < params["ptll"]["high"]) )
+    return ak.where(ak.is_none(mask), False, mask)
+
+
 def DeltaPhiJetMetCut(events, params, **kwargs):
     mask = ( (events['deltaPhi_jet1_MET'] > params["jet_met_dphi_cut"])
              & (events['deltaPhi_jet2_MET'] > params["jet_met_dphi_cut"])
@@ -347,6 +356,26 @@ Zll_2j = Cut(
             "mll": {'low': 75, 'high': 115}
             }
 )
+
+
+Zll_2j_low = Cut(
+    name="Zll_2j_low",
+    function=DiLeptonPtCut,
+    params={
+        "high": False,
+	"ptll": {'low': 50, 'high': 150}
+    },
+)
+
+Zll_2j_high = Cut(
+    name="Zll_2j_high",
+    function=DiLeptonPtCut,
+    params={
+        "high": True,
+	"ptll": {'low': 150}
+    },
+)
+
 Zmumu_2j = Cut(
     name = 'Zmumu_2j',
     function=TwoLepTwoJets,

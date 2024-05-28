@@ -41,11 +41,11 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
-files_Run3 = [
-    f"{localdir}/datasets/Run3_MC_VJets.json",
-    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
-    f"{localdir}/datasets/Run3_DATA.json",
-]
+#files_Run3 = [
+#    f"{localdir}/datasets/Run3_MC_VJets.json",
+#    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+#    f"{localdir}/datasets/Run3_DATA.json",
+#]
 
 parameters["proc_type"] = "ZLL"
 
@@ -74,7 +74,11 @@ cfg = Configurator(
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
+
+            #"year": ['2022_preEE','2022_postEE']
+
             "year": ['2022_preEE','2022_postEE']
+
         }
     },
 
@@ -95,6 +99,10 @@ cfg = Configurator(
         "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
+
+        "SR_ll_2j_low": [Zll_2j, dijet_mass_cut, Zll_2j_low],
+        "SR_ll_2j_high": [Zll_2j, dijet_mass_cut, Zll_2j_high],
+
         
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
         "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
@@ -106,7 +114,7 @@ cfg = Configurator(
         "common": {
             "inclusive": ["signOf_genWeight","lumi","XS",
                           "pileup", #Not in 2022/2023
-                          "sf_mu_id","sf_mu_iso",
+                          #"sf_mu_id","sf_mu_iso",
                           "sf_ele_reco","sf_ele_id",
                           #"sf_ctag", "sf_ctag_calib"
                           ],
@@ -123,7 +131,7 @@ cfg = Configurator(
             "common": {
                 "inclusive": [
                     "pileup",
-                    "sf_mu_id", "sf_mu_iso",
+                    #"sf_mu_id", "sf_mu_iso",
                     "sf_ele_reco", "sf_ele_id",
                     #"sf_ctag"
                 ]
@@ -147,16 +155,26 @@ cfg = Configurator(
 	**jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
-
+        "dilepton_m": HistConf( [Axis(field="dilep_mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
+        "dilepton_pt": HistConf( [Axis(field="dilep_pt", bins=100, start=0, stop=200, label=r"$p_{T_{\ell\ell}}$ [GeV]")] ),
+        "dilepton_dphi": HistConf( [Axis(field="dilep_phi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{\ell\ell}$")] ),
+        "dilepton_deta": HistConf( [Axis(field="dilep_eta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{\ell\ell}$")] ),
+        "dilepton_dijet_ratio": HistConf( [Axis(field="pt_ratio", bins=100, start=0, stop=2, label=r"$\frac{p_T(\ell\ell)}{p_T(jj)}$")] ),
+        "dilepton_dijet_dphi": HistConf( [Axis(field="ZH_delphi", bins=100, start=-4, stop=4, label=r"$\Delta \phi (\ell\ell, jj)$")] ),
+        "dilepton_l2j1": HistConf( [Axis(field="deltaPhi_l2_j1", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_1)$")] ),
+        "dilepton_l2j2": HistConf( [Axis(field="deltaPhi_l2_j2", bins=100, start=-1, stop=3.5, label=r"$\Delta \phi (\ell_2, j_2)$")] ),
+        
         "dilep_m" : HistConf( [Axis(coll="ll", field="mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_m_zoom" : HistConf( [Axis(coll="ll", field="mass", bins=40, start=70, stop=110, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_dr" : HistConf( [Axis(coll="ll", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{\ell\ell}$")] ),
         "dilep_pt" : HistConf( [Axis(coll="ll", field="pt", bins=100, start=0, stop=400, label=r"$p_T{\ell\ell}$ [GeV]")] ),
 
-        "dijet_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
-        "dijet_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
-        "dijet_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
-
+        "dijet_m" : HistConf( [Axis(field="dijet_m", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
+        "dijet_dr" : HistConf( [Axis(field="dijet_deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
+        "dijet_dphi": HistConf( [Axis(field="dijet_deltaPhi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")] ),
+        "dijet_deta": HistConf( [Axis(field="dijet_deltaEta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{jj}$")] ),
+        "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
+        
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
@@ -173,5 +191,7 @@ cfg = Configurator(
                                    bins=[0,80,150,200,300,450,700],
                                    type="variable",
                                    label="Jets $H_T$ [GeV]")]),
+        "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_deltaR_low", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150"),
+                              Axis(field="dijet_deltaPhi_low", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$, 50 < $p_{T_{\ell\ell}}$ < 150")]),
     }
 )
