@@ -62,8 +62,8 @@ cfg = Configurator(
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
-	        "WW", "WZ", "ZZ",
-                "DYJetsToLL_FxFx",
+	        #"WW", "WZ", "ZZ",
+                #"DYJetsToLL_FxFx",
                 "DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
@@ -74,11 +74,8 @@ cfg = Configurator(
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
-
             #"year": ['2022_preEE','2022_postEE']
-
-            "year": ['2022_preEE','2022_postEE']
-
+            "year": ['2023_preBPix', '2023_postBPix']
         }
     },
 
@@ -133,12 +130,17 @@ cfg = Configurator(
                     "pileup",
                     #"sf_mu_id", "sf_mu_iso",
                     "sf_ele_reco", "sf_ele_id",
-                    #"sf_ctag"
+                    #"sf_ctag",
                 ]
             },
-            "bysample": {
-            }
+            "bysample": { }
         },
+        "shape": {
+            "common":{
+                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+                "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+            }
+        }
     },
 
     variables = {
