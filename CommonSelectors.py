@@ -152,11 +152,7 @@ def DiJetMassCut(events, params, **kwargs):
 
 
 def DiLeptonPtCut(events, params, **kwargs):
-
-    if params["high"]:
-        mask = (  (events.ll.pt > params["ptll"]["low"]))      
-    else:
-        mask = (  (events.ll.pt > params["ptll"]["low"]) & (events.ll.pt < params["ptll"]["high"]) )
+    mask = (  (events.ll.pt > params["ptll"]["low"]) & (events.ll.pt < params["ptll"]["high"]) )
     return ak.where(ak.is_none(mask), False, mask)
 
 
@@ -358,21 +354,19 @@ Zll_2j = Cut(
 )
 
 
-Zll_2j_low = Cut(
-    name="Zll_2j_low",
+dilep_pt60to150 = Cut(
+    name="dilep_pt60to150",
     function=DiLeptonPtCut,
     params={
-        "high": False,
-	"ptll": {'low': 50, 'high': 150}
+	"ptll": {'low': 60, 'high': 150}
     },
 )
 
-Zll_2j_high = Cut(
-    name="Zll_2j_high",
+dilep_pt150to2000 = Cut(
+    name="dilep_pt150to2000",
     function=DiLeptonPtCut,
     params={
-        "high": True,
-	"ptll": {'low': 150}
+	"ptll": {'low': 150, 'high': 2000}
     },
 )
 
