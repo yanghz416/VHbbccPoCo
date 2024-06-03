@@ -98,8 +98,8 @@ cfg = Configurator(
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
 
-        "SR_ll_2j_low": [Zll_2j, dijet_mass_cut, Zll_2j_low],
-        "SR_ll_2j_high": [Zll_2j, dijet_mass_cut, Zll_2j_high],
+        "SR_ll_2J_cJ_low":  [Zll_2j, dijet_mass_cut, dilep_pt60to150],
+        "SR_ll_2J_cJ_high": [Zll_2j, dijet_mass_cut, dilep_pt150to2000],
 
         
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
@@ -162,8 +162,7 @@ cfg = Configurator(
         "dilep_m" : HistConf( [Axis(coll="ll", field="mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_m_zoom" : HistConf( [Axis(coll="ll", field="mass", bins=40, start=70, stop=110, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_pt" : HistConf( [Axis(coll="ll", field="pt", bins=100, start=0, stop=400, label=r"$p_T{\ell\ell}$ [GeV]")] ),
-        "dilep_deltaR" : HistConf( [Axis(coll="ll", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{\ell\ell}$")] ),
-        
+        "dilep_dr" : HistConf( [Axis(coll="ll", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{\ell\ell}$")] ),
         "dilep_deltaPhi": HistConf( [Axis(field="dilep_deltaPhi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{\ell\ell}$")] ),
         "dilep_deltaEta": HistConf( [Axis(field="dilep_deltaEta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{\ell\ell}$")] ),
 
@@ -174,7 +173,7 @@ cfg = Configurator(
 
         "dijet_m" : HistConf( [Axis(field="dijet_m", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_deltaR" : HistConf( [Axis(field="dijet_deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
+        "dijet_dr" : HistConf( [Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_deltaPhi": HistConf( [Axis(field="dijet_deltaPhi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")] ),
         "dijet_deltaEta": HistConf( [Axis(field="dijet_deltaEta", bins=100, start=-1, stop=4, label=r"$\Delta \eta_{jj}$")] ),
         
@@ -195,7 +194,7 @@ cfg = Configurator(
                                    type="variable",
                                    label="Jets $H_T$ [GeV]")]),
         
-        "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$"),
+        "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$"),
                                     Axis(field="dijet_deltaPhi", bins=64, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")]),
     }
 )

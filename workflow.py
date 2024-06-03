@@ -88,13 +88,13 @@ class VHccBaseProcessor(BaseProcessorABC):
             ### General
             self.events["dijet_m"] = self.events.dijet.mass
             self.events["dijet_pt"] = self.events.dijet.pt
-            self.events["dijet_deltaR"] = self.events.dijet.deltaR
+            self.events["dijet_dr"] = self.events.dijet.deltaR
             self.events["dijet_deltaPhi"] = self.events.dijet.deltaPhi
             self.events["dijet_deltaEta"] = self.events.dijet.deltaEta
 
             self.events["dilep_m"] = self.events.ll.mass
             self.events["dilep_pt"] = self.events.ll.pt
-            self.events["dilep_deltaR"] = self.events.ll.deltaR
+            self.events["dilep_dr"] = self.events.ll.deltaR
             self.events["dilep_deltaPhi"] = self.events.ll.deltaPhi
             self.events["dilep_deltaEta"] = self.events.ll.deltaEta
             
@@ -114,13 +114,13 @@ class VHccBaseProcessor(BaseProcessorABC):
                 variables_to_save = ak.zip({
                     "dilep_m": self.events["dilep_m"],
                     "dilep_pt": self.events["dilep_pt"],
-                    "dilep_deltaR": self.events["dilep_deltaR"],
+                    "dilep_dr": self.events["dilep_deltaR"],
                     "dilep_deltaPhi": self.events["dilep_deltaPhi"],
                     "dilep_deltaEta": self.events["dilep_deltaEta"],
                     
                     "dijet_m": self.events["dijet_m"],
                     "dijet_pt": self.events["dijet_pt"],
-                    "dijet_deltaR": self.events["dijet_deltaR"],
+                    "dijet_dr": self.events["dijet_deltaR"],
                     "dijet_deltaPhi": self.events["dijet_deltaPhi"],
                     "dijet_deltaEta": self.events["dijet_deltaEta"],
                     
