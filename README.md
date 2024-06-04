@@ -14,23 +14,23 @@
     ```
     git@github.com:cms-rwth/VHccPoCo.git
     ```
-3. (If you local username is different from your CERN username) Setup your CERN username variable:
+3. (If your local username is different from your CERN username) Setup your CERN username variable:
     ```
     export CERN_USERNAME="YOURUSERNAME"
     ```
 5. Follow [examples](https://pocketcoffea.readthedocs.io/en/latest/analysis_example.html) to create dataset input files:
     ```
-    build_datasets.py --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH T2_DE_DESY T1_DE_KIT_Disk T2_CH_CERN
+    build_datasets --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN
     ```
-6. Run with futures (test before large submission):
+6. Run with the `futures` executor (test before large submission):
     ```
-    python scripts/runner.py --cfg VHccPoCo/cfg_VHcc_ZLL.py  -o output_VHcc_Test --executor futures -s 10 -lf 1
+    runner --cfg VHccPoCo/cfg_VHcc_ZLL.py  -o output_VHcc_Test --executor futures -s 10 -lf 1 -lc 1
     ```
-7. Run on condor with Parsl executor (if the previous step was successeful):
+7. Run on condor with Parsl executor (only if the previous step was successeful):
     ```
-    python scripts/runner.py --cfg VHccPoCo/cfg_VHcc_ZLL.py  -o output_VHcc_v01 --executor parsl/condor -s 100 -ll ERROR
+    runner --cfg VHccPoCo/cfg_VHcc_ZLL.py  -o output_VHcc_v01 --executor parsl-condor@RWTH -s 60
     ```
 8. Make some plots:
    ```
-   make_plots.py output_VHcc_v01
+   make_plots output_VHcc_v01
    ```
