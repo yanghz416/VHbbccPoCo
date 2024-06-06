@@ -163,28 +163,61 @@ def DeltaPhiJetMetCut(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
-def GetTrueJetFlavors(events, params, **kwargs):
-    mask = True
+def TrueJetFlavors(events, params, **kwargs):
+    gen_jets = events.GenJet
+    
+    cGenJetTot = ak.sum((gen_jets.hadronFlavour == 4) & (gen_jets.pt > 20) & (abs(gen_jets.eta) < 2.4), axis=1)
+    bGenJetTot = ak.sum((gen_jets.hadronFlavour == 5) & (gen_jets.pt > 20) & (abs(gen_jets.eta) < 2.4), axis=1)
 
+    tag_cc = (cGenJetTot >= 2)
+    tag_bb = (bGenJetTot >= 2)
+    tag_bc = (bGenJetTot == 1) & (cGenJetTot == 1)
+    tag_cl = (cGenJetTot == 1) & (bGenJetTot == 0)
+    tag_bl = (bGenJetTot == 1) & (cGenJetTot == 0)
+    tag_ll = (cGenJetTot == 0) & (bGenJetTot == 0)
+
+    mask = (  ((params['jj_flav']=='cc') & tag_cc) |
+              ((params['jj_flav']=='bb') & tag_bb) |
+              ((params['jj_flav']=='bc') & tag_bc) |
+              ((params['jj_flav']=='cl') & tag_cl) |
+              ((params['jj_flav']=='bl') & tag_bl) |
+              ((params['jj_flav']=='bx') & (tag_bb | tag_bc | tag_bl)) |
+              ((params['jj_flav']=='cx') & (tag_cc | tag_cl)) |
+              ((params['jj_flav']=='ll') & tag_ll)
+            )
+    
+    #mask = ( (params['jj_flav']=='cc') & tag_cc)
+    """
+    sampleFlavSplit = 1 * tag_cc  +  2 * tag_bb  +  3 * tag_bc  +  4 * tag_cl  +  5 * tag_bl  +  6 * tag_ll 
+
+    mask = (  (params['jj_flav']=='cc' & (sampleFlavSplit==1)) |
+              (params['jj_flav']=='bb' & (sampleFlavSplit==2)) |
+              (params['jj_flav']=='bc' & (sampleFlavSplit==3)) |
+              (params['jj_flav']=='cl' & (sampleFlavSplit==4)) |
+              (params['jj_flav']=='bl' & (sampleFlavSplit==5)) |
+              (params['jj_flav']=='udsg' & (sampleFlavSplit==6)) 
+            )
+    """
+    
     return ak.where(ak.is_none(mask), False, mask)
 
 # General cuts
 
 
 ZJets_BX = Cut(
-    name="ZJets_BX",
-    function=GetTrueJetFlavors,
-    params={}    
+    name="ZJets_bx",
+    function=TrueJetFlavors,
+    params={"jj_flav": "bx"}
 )
 ZJets_CX = Cut(
-    name="ZJets_CX",
-    function=GetTrueJetFlavors,
-    params={}    
+    name="ZJets_cx",
+    function=TrueJetFlavors,
+    params={"jj_flav": "cx"}
 )
 ZJets_LL = Cut(
-    name="ZJets_LL",
-    function=GetTrueJetFlavors,
-    params={}    
+    name="ZJets_ll",
+    function=TrueJetFlavors,
+    params={"jj_flav": "ll"}
 )
 
 one_jet = Cut(

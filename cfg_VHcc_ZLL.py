@@ -77,7 +77,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2023_preBPix', '2023_postBPix']
+            "year": ['2023_preBPix']
         },
 
         "subsamples": {
@@ -86,7 +86,7 @@ cfg = Configurator(
                 'ZJets_CX': [ZJets_CX],
                 'ZJets_LL': [ZJets_LL],
             }
-            },
+        }
     },
 
     workflow = VHccBaseProcessor,
