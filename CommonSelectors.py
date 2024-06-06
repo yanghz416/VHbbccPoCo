@@ -163,14 +163,34 @@ def DeltaPhiJetMetCut(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 
+def GetTrueJetFlavors(events, params, **kwargs):
+    mask = True
+
+    return ak.where(ak.is_none(mask), False, mask)
 
 # General cuts
+
+
+ZJets_BX = Cut(
+    name="ZJets_BX",
+    function=GetTrueJetFlavors,
+    params={}    
+)
+ZJets_CX = Cut(
+    name="ZJets_CX",
+    function=GetTrueJetFlavors,
+    params={}    
+)
+ZJets_LL = Cut(
+    name="ZJets_LL",
+    function=GetTrueJetFlavors,
+    params={}    
+)
 
 one_jet = Cut(
     name="one_jet",
     function=OneJet,
     params={}
-    
 )
 
 ctag_j1 = Cut(

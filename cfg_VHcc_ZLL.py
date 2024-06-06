@@ -78,7 +78,15 @@ cfg = Configurator(
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE','2022_postEE']
             "year": ['2023_preBPix', '2023_postBPix']
-        }
+        },
+
+        "subsamples": {
+            'DYJetsToLL_MLM': {
+                'ZJets_BX': [ZJets_BX],
+                'ZJets_CX': [ZJets_CX],
+                'ZJets_LL': [ZJets_LL],
+            }
+            },
     },
 
     workflow = VHccBaseProcessor,
@@ -95,6 +103,7 @@ cfg = Configurator(
         #"baseline_2L2J_ctag_calib": [passthrough],
         "presel_mumu_2J": [mumu_2j],
         "presel_ee_2J": [ee_2j],
+        
         "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
@@ -137,12 +146,12 @@ cfg = Configurator(
             },
             "bysample": { }
         },
-        "shape": {
-            "common":{
-                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
-                "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
-            }
-        }
+        #"shape": {
+        #    #"common":{
+        #        #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+        #        #"inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+        #    #}
+        #}
     },
 
     variables = {
@@ -176,7 +185,7 @@ cfg = Configurator(
         "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
         "dijet_dr" : HistConf( [Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_deltaPhi": HistConf( [Axis(field="dijet_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi_{jj}$")] ),
-        "dijet_deltaEta": HistConf( [Axis(field="dijet_deltaEta", bins=50, start=0, stop=5, label=r"$\Delta \eta_{jj}$")] ),
+        "dijet_deltaEta": HistConf( [Axis(field="dijet_deltaEta", bins=50, start=0, stop=4, label=r"$\Delta \eta_{jj}$")] ),
         
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
