@@ -1,0 +1,17 @@
+xgboost:
+  '2016_PreVFP':
+    model_file: '${config_dir:}/xgboost_model_2016.xgb'
+  '2016_PostVFP':
+    model_file: '${config_dir:}/xgboost_model_2016.xgb'
+  '2017':
+    model_file: '${config_dir:}/xgboost_model_2017.xgb'
+  '2018':
+    model_file: '${config_dir:}/xgboost_model_2018.xgb'
+  '2022_preEE':
+    model_file: '${config_dir:}/xgboost_model_2022.xgb'
+  '2022_postEE':
+    model_file: '${config_dir:}/xgboost_model_2022.xgb'
+  '2023_preBPix':
+    model_file: '${config_dir:}/xgboost_model_2023.xgb'
+  '2023_postBPix':
+    model_file: '${config_dir:}/xgboost_model_2023.xgb'

@@ -74,6 +74,31 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.events["nBJetGood"] = ak.num(self.events.BJetGood)
         # self.events["nfatjet"]   = ak.num(self.events.FatJetGood)
 
+
+    def evaluateBDT(self):
+        # Template for BDT evaluation method
+
+        # Some useful links:
+        ## xgboost wrapper in coffea:
+        ## https://coffeateam.github.io/coffea/api/coffea.ml_tools.xgboost_wrapper.html#coffea.ml_tools.xgboost_wrapper
+        ## Its usage example:
+        ## https://github.com/CoffeaTeam/coffea/blob/d167d169821f4ffca94db65cf82d74daafb890e4/tests/test_ml_tools.py#L166-L183
+
+
+        
+        # Read the model file
+        model_file = self.params.xgboost[self._year].model_file
+        
+        # print("XGBoost Model file: ", model_file)
+
+        # Create input data
+
+        # Evaluate the BDT score
+
+        bdt_score = np.zeros(len(self.events), dtype=np.float64)
+
+        return bdt_score
+    
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
@@ -98,7 +123,7 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["dilep_deltaPhi"] = self.events.ll.deltaPhi
             self.events["dilep_deltaEta"] = self.events.ll.deltaEta
             
-            self.events["ZH_pt_ratio"] = self.events.ll.pt/self.events.dijet.pt
+            self.events["ZH_pt_ratio"] = self.events.dijet.pt/self.events.ll.pt
             self.events["ZH_deltaPhi"] = np.abs(self.events.ll.delta_phi(self.events.dijet))
 
             # why cant't we use delta_phi function here?
@@ -109,6 +134,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l2_j1"] = np.abs(delta_phi(self.events.ll.l2phi, self.events.dijet.j1Phi))
 
             
+            self.events["BDT"] = self.evaluateBDT()
+
             if self.save_arrays:
                 # Create a record of variables to be dumped as root/parquete file:
                 variables_to_save = ak.zip({
