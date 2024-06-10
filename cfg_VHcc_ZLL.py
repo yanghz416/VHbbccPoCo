@@ -146,12 +146,12 @@ cfg = Configurator(
             },
             "bysample": { }
         },
-        #"shape": {
-        #    #"common":{
-        #        #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
-        #        #"inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
-        #    #}
-        #}
+        "shape": {
+            "common":{
+                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+                "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+            }
+        }
     },
 
     variables = {

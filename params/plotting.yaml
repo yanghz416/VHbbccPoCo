@@ -9,6 +9,11 @@ plotting_style:
       - WZ
       - ZZ
 
+    DYJetsToLL_MLM:
+      - DYJetsToLL_MLM__ZJets_BX
+      - DYJetsToLL_MLM__ZJets_CX
+      - DYJetsToLL_MLM__ZJets_LL
+
   exclude_samples:
     #- DYJetsToLL_MLM
     - DYJetsToLL_FxFx
@@ -25,6 +30,10 @@ plotting_style:
     WJetsToLNu_FxFx: W+jets
     ZJetsToNuNu_FxFx: ZNuNu
 
+    DYJetsToLL_MLM__ZJets_BX: Z+bj 
+    DYJetsToLL_MLM__ZJets_CX: Z+cj
+    DYJetsToLL_MLM__ZJets_LL: Z+jj
+    
   colors_mc:
     Top: "#00BFFF"
     DYJetsToLL_MLM: "#ADFF2F"
@@ -34,3 +43,7 @@ plotting_style:
     ZJetsToNuNu_FxFx: "#ADFF2F"
     VV: "#FFA07A"
     QCD: "#D3D3D3"
+
+    DYJetsToLL_MLM__ZJets_BX:  "#196f3d"
+    DYJetsToLL_MLM__ZJets_CX:  "#52be80"
+    DYJetsToLL_MLM__ZJets_LL:  "#ADFF2F"
