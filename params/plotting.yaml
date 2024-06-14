@@ -1,7 +1,7 @@
 plotting_style:
   samples_groups:
     Top:
-      #- TTToSemiLeptonic
+      - TTToSemiLeptonic
       - TTTo2L2Nu
       #- TTToHadrons
     VV:
@@ -9,19 +9,31 @@ plotting_style:
       - WZ
       - ZZ
 
-    DYJetsToLL_MLM:
-      - DYJetsToLL_MLM__ZJets_BX
-      - DYJetsToLL_MLM__ZJets_CX
-      - DYJetsToLL_MLM__ZJets_LL
-
   exclude_samples:
-    #- DYJetsToLL_MLM
-    - DYJetsToLL_FxFx
+    - DYJetsToLL_MLM
+    #- DYJetsToLL_FxFx
     - DYJetsToLL_MiNNLO
     - DYJetsToLL_MiNNLO_ZptWei
 
-  rescale_samples:
-    DYJetsToLL_MLM: 1.33
+
+    - DYJetsToLL_MLM__DiJet_incl
+    - DYJetsToLL_FxFx__DiJet_incl
+    - WJetsToLNu_FxFx__DiJet_incl
+
+    ## - DYJetsToLL_MLM__DiJet_bx
+    ## - DYJetsToLL_MLM__DiJet_cx
+    ## - DYJetsToLL_MLM__DiJet_ll
+    ## 
+    ## - DYJetsToLL_FxFx__DiJet_bx
+    ## - DYJetsToLL_FxFx__DiJet_cx
+    ## - DYJetsToLL_FxFx__DiJet_ll
+    ## 
+    ## - WJetsToLNu_FxFx__DiJet_bx
+    ## - WJetsToLNu_FxFx__DiJet_cx
+    ## - WJetsToLNu_FxFx__DiJet_ll
+    
+#  rescale_samples:
+#    DYJetsToLL_MLM: 1.33
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
@@ -30,9 +42,20 @@ plotting_style:
     WJetsToLNu_FxFx: W+jets
     ZJetsToNuNu_FxFx: ZNuNu
 
-    DYJetsToLL_MLM__ZJets_BX: Z+bj 
-    DYJetsToLL_MLM__ZJets_CX: Z+cj
-    DYJetsToLL_MLM__ZJets_LL: Z+jj
+    DYJetsToLL_MLM__DiJet_incl: Z+jets
+    DYJetsToLL_MLM__DiJet_bx: Z+bj
+    DYJetsToLL_MLM__DiJet_cx: Z+cj
+    DYJetsToLL_MLM__DiJet_ll: Z+jj
+
+    DYJetsToLL_FxFx__DiJet_incl: Z+jets
+    DYJetsToLL_FxFx__DiJet_bx: Z+bj
+    DYJetsToLL_FxFx__DiJet_cx: Z+cj
+    DYJetsToLL_FxFx__DiJet_ll: Z+jj
+
+    WJetsToLNu_FxFx__DiJet_incl: W+jets
+    WJetsToLNu_FxFx__DiJet_bx: W+bj
+    WJetsToLNu_FxFx__DiJet_cx: W+cj
+    WJetsToLNu_FxFx__DiJet_ll: W+jj
     
   colors_mc:
     Top: "#00BFFF"

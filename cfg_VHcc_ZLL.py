@@ -54,8 +54,8 @@ parameters["save_arrays"] = False
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        #"jsons": files_2016 + files_2017 + files_2018,
-        "jsons": files_Run3,
+        "jsons": files_2016 + files_2017 + files_2018,
+        #"jsons": files_Run3,
         
         "filter" : {
             "samples": [
@@ -73,18 +73,25 @@ cfg = Configurator(
                 "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            #"year": ['2017']
+            "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2023_preBPix']
+            #"year": ['2023_preBPix']
         },
 
         "subsamples": {
             'DYJetsToLL_MLM': {
-                'ZJets_BX': [ZJets_BX],
-                'ZJets_CX': [ZJets_CX],
-                'ZJets_LL': [ZJets_LL],
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
             }
         }
     },
@@ -115,7 +122,7 @@ cfg = Configurator(
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
         "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
         "CR_ll_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
-        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1]
+        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1, dijet_mass_cut]
     },
 
     weights = {
@@ -148,8 +155,8 @@ cfg = Configurator(
         },
         "shape": {
             "common":{
-                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
-                "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+                "inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+                #"inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
             }
         }
     },

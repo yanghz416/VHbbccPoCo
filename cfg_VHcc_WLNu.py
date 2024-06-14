@@ -25,6 +25,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
+                                                  f"{localdir}/params/xgboost.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -42,14 +43,20 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
+files_Run3 = [
+    f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+    f"{localdir}/datasets/Run3_DATA.json",
+]
 
 parameters["proc_type"] = "WLNu"
+parameters["save_arrays"] = False
+
 cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_2017,
-        #"jsons": files_2018,
+        #"jsons": files_Run3,
 
         "filter" : {
             "samples": [
@@ -65,6 +72,28 @@ cfg = Configurator(
             "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
         },
+
+        "subsamples": {
+            'DYJetsToLL_MLM': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'WJetsToLNu_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            }
+        }
+
     },
 
     workflow = VHccBaseProcessor,
@@ -80,17 +109,17 @@ cfg = Configurator(
         #"baseline_1L2J_ctag": [passthrough],
         #"baseline_1L2J_ctag_calib": [passthrough],
         "presel_Wlnu_2J": [wlnu_plus_2j],
-        
-        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j,ctag_j1, dijet_mass_cut],
-        "SR_Wmunu_2J_cJ": [wmunu_plus_2j,ctag_j1, dijet_mass_cut],
-        "SR_Welnu_2J_cJ": [welnu_plus_2j,ctag_j1, dijet_mass_cut],
 
-        "CR_Wlnu_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
-        "CR_Wlnu_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
-        "CR_Wlnu_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
-        "CR_Wlnu_4J_TT": [ll_antiZ_4j, btag_j1]
+        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j, ctag_j1, dijet_mass_cut],
+        "SR_Wmunu_2J_cJ": [wmunu_plus_2j, ctag_j1, dijet_mass_cut],
+        "SR_Welnu_2J_cJ": [welnu_plus_2j, ctag_j1, dijet_mass_cut],
 
-        
+        "CR_Wlnu_2J_LF": [wlnu_plus_2j, antictag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_HF": [wlnu_plus_2j, btag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_CC": [wlnu_plus_2j, ctag_j1, dijet_invmass_cut],
+        "CR_Wlnu_4J_TT": [wlnu_plus_2j, four_jets, btag_j1, dijet_mass_cut]
+
+
     },
 
     weights = {
@@ -154,6 +183,10 @@ cfg = Configurator(
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
+
+        "BDT": HistConf( [Axis(field="BDT", bins=20, start=-1, stop=1, label="BDT")],
+                        only_categories = ['SR_Wlnu_2J_cJ','SR_Wmunu_2J_cJ','SR_Welnu_2J_cJ']),
+
         # 2D plots
 	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
                                    type="variable",   label="N. Jets (good)"),
@@ -164,26 +197,3 @@ cfg = Configurator(
 
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 10,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 8) &&'
-	'( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
-	'( Machine != "lx3b80.physik.rwth-aachen.de" )'
-        ),
-
-    }
