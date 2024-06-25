@@ -33,12 +33,8 @@ def TwoElectrons(events, **kwargs):
     mask = (events.nElectronGood >= 2)
     return ak.where(ak.is_none(mask), False, mask)
 
-def TwoJets(events, **kwargs):
-    mask = (events.nJetGood >= 2)
-    return ak.where(ak.is_none(mask), False, mask)
-
-def OneJet(events, **kwargs):
-    mask = (events.nJetGood >= 1)
+def NJets(events, params, **kwargs):
+    mask = (events.nJetGood >= params['nj'])
     return ak.where(ak.is_none(mask), False, mask)
 
 def TwoLepTwoJets(events, params, **kwargs):
@@ -204,26 +200,31 @@ def TrueJetFlavors(events, params, **kwargs):
 # General cuts
 
 
-ZJets_BX = Cut(
-    name="ZJets_bx",
+DiJet_bx = Cut(
+    name="DiJet_bx",
     function=TrueJetFlavors,
     params={"jj_flav": "bx"}
 )
-ZJets_CX = Cut(
-    name="ZJets_cx",
+DiJet_cx = Cut(
+    name="DiJet_bcx",
     function=TrueJetFlavors,
     params={"jj_flav": "cx"}
 )
-ZJets_LL = Cut(
-    name="ZJets_ll",
+DiJet_ll = Cut(
+    name="DiJet_ll",
     function=TrueJetFlavors,
     params={"jj_flav": "ll"}
 )
 
 one_jet = Cut(
     name="one_jet",
-    function=OneJet,
-    params={}
+    function=NJets,
+    params={'nj': 1}
+)
+four_jets = Cut(
+    name="four_jets",
+    function=NJets,
+    params={'nj': 4}
 )
 
 ctag_j1 = Cut(
@@ -270,7 +271,7 @@ dijet_mass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": False,
-	"mjj": {'low': 75, 'high': 200}
+	"mjj": {'low': 70, 'high': 250}
     },
 )
 dijet_invmass_cut = Cut(
@@ -278,7 +279,7 @@ dijet_invmass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": True,
-	"mjj": {'low': 75, 'high': 200}
+	"mjj": {'low': 70, 'high': 250}
     },
 )
 
@@ -441,7 +442,7 @@ Zee_2j = Cut(
 )
 
 
-# Cut for ttbar control region
+# Cuts for ttbar control region
 ll_antiZ_4j = Cut(
     name = 'll_antiZ_4j',
     function=AntiZFourJets,

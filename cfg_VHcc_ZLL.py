@@ -65,8 +65,8 @@ cfg = Configurator(
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
 	        #"WW", "WZ", "ZZ",
-                #"DYJetsToLL_FxFx",
-                "DYJetsToLL_MLM",
+                "DYJetsToLL_FxFx",
+                #"DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
@@ -77,14 +77,21 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2023_preBPix']
+            "year": ['2023_preBPix','2023_postBPix']
         },
 
         "subsamples": {
             'DYJetsToLL_MLM': {
-                'ZJets_BX': [ZJets_BX],
-                'ZJets_CX': [ZJets_CX],
-                'ZJets_LL': [ZJets_LL],
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
             }
         }
     },
@@ -115,7 +122,7 @@ cfg = Configurator(
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
         "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
         "CR_ll_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
-        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1]
+        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1, dijet_mass_cut]
     },
 
     weights = {
