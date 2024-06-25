@@ -54,8 +54,8 @@ parameters["save_arrays"] = False
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_Run3,
+        #"jsons": files_2016 + files_2017 + files_2018,
+        "jsons": files_Run3,
         
         "filter" : {
             "samples": [
@@ -65,19 +65,19 @@ cfg = Configurator(
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
 	        #"WW", "WZ", "ZZ",
-                #"DYJetsToLL_FxFx",
-                "DYJetsToLL_MLM",
+                "DYJetsToLL_FxFx",
+                #"DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
             ],
             "samples_exclude" : [],
-            "year": ['2017']
+            #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
             #"year": ['2022_preEE','2022_postEE']
-            #"year": ['2023_preBPix']
+            "year": ['2023_preBPix','2023_postBPix']
         },
 
         "subsamples": {
@@ -155,8 +155,9 @@ cfg = Configurator(
         },
         "shape": {
             "common":{
-                "inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
                 #"inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+                "inclusive": [ "JES_Total_AK4PFPuppi"] # For Run3
             }
         }
     },

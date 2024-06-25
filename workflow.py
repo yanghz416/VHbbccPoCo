@@ -19,7 +19,7 @@ from pocket_coffea.lib.objects import (
 )
 
 def delta_phi(a, b):
-    """Compute difference in angle between two vectors
+    """Compute difference in angle two phi values
     Returns a value within [-pi, pi)
     """
     return (a - b + np.pi) % (2 * np.pi) - np.pi
