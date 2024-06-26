@@ -46,14 +46,18 @@ files_Run3 = [
     f"{localdir}/datasets/Run3_MC_VJets.json",
     f"{localdir}/datasets/Run3_MC_OtherBkg.json",
     f"{localdir}/datasets/Run3_DATA.json",
-
     f"{localdir}/datasets/Run3_MC_Sig.json",
 ]
 
 parameters["proc_type"] = "ZLL"
 parameters["save_arrays"] = False
 parameters["LightGBM_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/model_DY.txt"
-
+parameters["DNN_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/dnn_model.h5"
+parameters["separate_models"] = True
+parameters["LigtGBM_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/model_DY.txt"
+parameters["LigtGBM_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/model_DY.txt"
+parameters["DNN_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/dnn_model_DY.h5"
+parameters["DNN_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/dnn_model_DY.h5"
 
 cfg = Configurator(
     parameters = parameters,
@@ -81,7 +85,6 @@ cfg = Configurator(
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
-
             "year": ['2022_preEE','2022_postEE']
             #"year": ['2023_preBPix']
         },
@@ -93,19 +96,6 @@ cfg = Configurator(
         #        'ZJets_LL': [ZJets_LL],
         #    }
         #}
-
-            #"year": ['2022_preEE','2022_postEE']
-            "year": ['2023_preBPix']
-        },
-
-        "subsamples": {
-            'DYJetsToLL_MLM': {
-                'ZJets_BX': [ZJets_BX],
-                'ZJets_CX': [ZJets_CX],
-                'ZJets_LL': [ZJets_LL],
-            }
-        }
-
     },
 
     workflow = VHccBaseProcessor,
@@ -165,21 +155,12 @@ cfg = Configurator(
             },
             "bysample": { }
         },
-
         #"shape": {
         #    "common":{
         #        #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
         #        "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
         #    }
         #}
-
-        "shape": {
-            "common":{
-                #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
-                "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
-            }
-        }
-
     },
 
     variables = {
@@ -214,6 +195,12 @@ cfg = Configurator(
         "dijet_dr" : HistConf( [Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_deltaPhi": HistConf( [Axis(field="dijet_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi_{jj}$")] ),
         "dijet_deltaEta": HistConf( [Axis(field="dijet_deltaEta", bins=50, start=0, stop=4, label=r"$\Delta \eta_{jj}$")] ),
+        "dijet_pt_j1" : HistConf( [Axis(field="dijet_pt_max", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_pt_j2" : HistConf( [Axis(field="dijet_pt_min", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_CvsL_j1" : HistConf( [Axis(field="dijet_CvsL_max", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
         
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
@@ -225,7 +212,10 @@ cfg = Configurator(
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=50, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-
+                         only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
+        "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
+        
         
         # 2D histograms:
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
