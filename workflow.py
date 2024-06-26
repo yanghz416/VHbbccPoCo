@@ -27,7 +27,7 @@ from pocket_coffea.lib.objects import (
 )
 
 def delta_phi(a, b):
-    """Compute difference in angle between two vectors    
+    """Compute difference in angle two phi values
     Returns a value within [-pi, pi)
     """
     return (a - b + np.pi) % (2 * np.pi) - np.pi
@@ -39,10 +39,10 @@ class VHccBaseProcessor(BaseProcessorABC):
 
         self.proc_type   = self.params["proc_type"]
         self.save_arrays = self.params["save_arrays"]
-                
+
     def apply_object_preselection(self, variation):
         '''
-        
+
         '''
         # Include the supercluster pseudorapidity variable
         electron_etaSC = self.events.Electron.eta + self.events.Electron.deltaEtaSC
@@ -65,14 +65,14 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.events["ll"] = get_dilepton(
             self.events.ElectronGood, self.events.MuonGood
         )
-        
-        
+
+
         self.events["JetGood"], self.jetGoodMask = jet_selection(
             self.events, "Jet", self.params, "LeptonGood"
         )
         self.events["BJetGood"] = btagging(
             self.events["JetGood"], self.params.btagging.working_point[self._year], wp=self.params.object_preselection.bJetWP)
-            
+
     def count_objects(self, variation):
         self.events["nMuonGood"] = ak.num(self.events.MuonGood)
         self.events["nElectronGood"] = ak.num(self.events.ElectronGood)
@@ -123,6 +123,7 @@ class VHccBaseProcessor(BaseProcessorABC):
         model = model = load_model(self.params.DNN_model)
         dnn_score =  model.predict(data).ravel()
 
+
         return dnn_score
     
     def evaluateseparateDNNs(self, data):
@@ -151,39 +152,45 @@ class VHccBaseProcessor(BaseProcessorABC):
 
         return dnn_score
     
+
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
 
     def define_common_variables_after_presel(self, variation):
         self.events["dijet"] = get_dijet(self.events.JetGood)
+
         
         self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], self.params.ctagging.working_point[self._year])
         
         self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = True)
                 
         #self.events["dijet_pt"] = self.events.dijet.pt
-        
+
+
+        ### General
+        self.events["dijet_m"] = self.events.dijet_csort.mass
+        self.events["dijet_pt"] = self.events.dijet_csort.pt
+        self.events["dijet_dr"] = self.events.dijet_csort.deltaR
+        self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
+        self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
+        self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
+        self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
+        self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
+        self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
+        self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
+        self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
+
+
         if self.proc_type=="ZLL":
 
-            ### General
-            self.events["dijet_m"] = self.events.dijet_csort.mass
-            self.events["dijet_pt"] = self.events.dijet_csort.pt
-            self.events["dijet_dr"] = self.events.dijet_csort.deltaR
-            self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
-            self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
-            self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
-            self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
-            self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
-            self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
-            self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
-            self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
 
             self.events["dilep_m"] = self.events.ll.mass
             self.events["dilep_pt"] = self.events.ll.pt
             self.events["dilep_dr"] = self.events.ll.deltaR
             self.events["dilep_deltaPhi"] = self.events.ll.deltaPhi
             self.events["dilep_deltaEta"] = self.events.ll.deltaEta
+
             
             self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.ll.pt
             self.events["ZH_deltaPhi"] = np.abs(self.events.ll.delta_phi(self.events.dijet_csort))
@@ -239,7 +246,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
             self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
         
-        
 
         #print("Pt sort pt:", self.events["JetGood"][self.events["nJetGood"]>=3].pt)
         #print("CvsL sort pt:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].pt)
@@ -247,9 +253,13 @@ class VHccBaseProcessor(BaseProcessorABC):
         #print("Pt sort CvsL:", self.events["JetGood"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
         #print("CvsL sort CvsL:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
 
-        
-
-
+        elif self.proc_type=="WLNu":
+            "TODO. Create arrays for WLNu channel"
+            pass
+        elif self.proc_type=="ZNuNu":
+            "TODO. Create arrays for ZNuNu channel"
+            pass
+                    
 
         if self.save_arrays:
             mask = ((self.events.nJetGood >= 2) & (self.events.nLeptonGood>=2)) & (self.events.ll.pt > 60) & (self.events.ll.mass > 75) & (self.events.ll.mass < 115) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4))
@@ -285,15 +295,17 @@ class VHccBaseProcessor(BaseProcessorABC):
             with warnings.catch_warnings():
                 # Suppress FutureWarning
                 warnings.filterwarnings("ignore", category=FutureWarning)
-                
+
                 # Check if the directory exists
                 if not os.path.exists(f"Saved_root_files/{self.events.metadata['dataset']}"):
                     # If not, create it
                     os.system(f"mkdir -p Saved_root_files/{self.events.metadata['dataset']}")
-                    
+
                 # Write the events to a ROOT file
+
                 #with uproot.recreate(f"Saved_root_files/{self.events.metadata['dataset']}/{self.events.metadata['filename'].split('/')[-1].replace('.root','')}_{int(self.events.metadata['entrystart'])}_{int(self.events.metadata['entrystop'])}.root") as f: 
                 #    f["variables"] = ak.to_pandas(variables_to_save)
+
 
                 # Write the events to a Parquet file
                 ak.to_pandas(variables_to_save).to_parquet(f"Saved_root_files/{self.events.metadata['dataset']}/{self.events.metadata['filename'].split('/')[-1].replace('.root','')}_{int(self.events.metadata['entrystart'])}_{int(self.events.metadata['entrystop'])}_vars.parquet")

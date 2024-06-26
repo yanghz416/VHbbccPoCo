@@ -25,6 +25,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
+                                                  f"{localdir}/params/xgboost.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -42,12 +43,21 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
+files_Run3 = [
+    f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+    f"{localdir}/datasets/Run3_DATA.json",
+]
 
 parameters["proc_type"] = "ZNuNu"
+parameters["save_arrays"] = False
+
 cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
+        #"jsons": files_Run3,
+
 
         "filter" : {
             "samples": [
@@ -62,9 +72,30 @@ cfg = Configurator(
                 "TTToHadrons"
             ],
             "samples_exclude" : [],
-            #"year": ['2017']
-            "year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
+            "year": ['2017']
+            #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
         },
+
+        "subsamples": {
+            'DYJetsToLL_MLM': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'WJetsToLNu_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+		'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            }
+        }
     },
 
     workflow = VHccBaseProcessor,
@@ -79,7 +110,14 @@ cfg = Configurator(
         "presel_Met_2J_ctag": [passthrough],
         "presel_Met_2J_ctag_calib": [passthrough],
         "baseline_Met_2J_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
-        "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1],
+        
+        "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
+
+        "CR_ZNuNu_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
+	"CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+        "CR_ZNuNu_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
+        "CR_ZNuNu_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
+
     },
 
     weights = {
@@ -109,8 +147,8 @@ cfg = Configurator(
                 "bycategory" : {
                 }
             },
-        "bysample": {
-        }
+            "bysample": {
+            }
         },
     },
 
@@ -144,6 +182,11 @@ cfg = Configurator(
         "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
 
+
+        "BDT": HistConf( [Axis(field="BDT", bins=20, start=-1, stop=1, label="BDT")],
+                         only_categories = ['SR_ZNuNu_2J_cJ']),
+
+
         # 2D plots
 	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
                                    type="variable",   label="N. Jets (good)"),
@@ -154,26 +197,3 @@ cfg = Configurator(
 
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 20,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 10) &&'
-        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
-        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
-        ),
-
-    }
