@@ -15,7 +15,7 @@
     ```
 	conda install conda-forge::xrootd
 	conda install -c conda-forge lightgbm
-        conda install conda-forge::tensorflow
+    conda install conda-forge::tensorflow
     ```
 5. Checkout *this* repo:
     ```
