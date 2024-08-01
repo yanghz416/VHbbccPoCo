@@ -114,7 +114,7 @@ cfg = Configurator(
         "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_ZNuNu_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	"CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+	    "CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_ZNuNu_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_ZNuNu_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
@@ -211,26 +211,3 @@ cfg = Configurator(
 
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 20,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 10) &&'
-        '( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
-        '( Machine != "lx3b80.physik.rwth-aachen.de" )'
-        ),
-
-    }

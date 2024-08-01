@@ -44,6 +44,12 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
 
+files_Run3 = [
+    f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+    f"{localdir}/datasets/Run3_DATA.json",
+]
+
 parameters["proc_type"] = "WLNu"
 parameters["save_arrays"] = False
 parameters["LightGBM_model"] = f"{localdir}/Models/signalCombo_WminusH_HToCC_WToLNu_2017/_WplusH_HToCC_WToLNu_2017/model_QCD.txt"
@@ -74,6 +80,27 @@ cfg = Configurator(
             "year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
         },
+        "subsamples": {
+            'DYJetsToLL_MLM': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'WJetsToLNu_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            }
+        },
+
     },
 
     workflow = VHccBaseProcessor,
@@ -90,14 +117,14 @@ cfg = Configurator(
         #"baseline_1L2J_ctag_calib": [passthrough],
         "presel_Wlnu_2J": [wlnu_plus_2j],
         
-        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j,ctag_j1, dijet_mass_cut],
-        "SR_Wmunu_2J_cJ": [wmunu_plus_2j,ctag_j1, dijet_mass_cut],
-        "SR_Welnu_2J_cJ": [welnu_plus_2j,ctag_j1, dijet_mass_cut],
+        "SR_Wlnu_2J_cJ":  [wlnu_plus_2j, ctag_j1, dijet_mass_cut],
+        "SR_Wmunu_2J_cJ": [wmunu_plus_2j, ctag_j1, dijet_mass_cut],
+        "SR_Welnu_2J_cJ": [welnu_plus_2j, ctag_j1, dijet_mass_cut],
 
-        "CR_Wlnu_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
-        "CR_Wlnu_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
-        "CR_Wlnu_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
-        "CR_Wlnu_4J_TT": [ll_antiZ_4j, btag_j1]
+        "CR_Wlnu_2J_LF": [wlnu_plus_2j, antictag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_HF": [wlnu_plus_2j, btag_j1, dijet_mass_cut],
+        "CR_Wlnu_2J_CC": [wlnu_plus_2j, ctag_j1, dijet_invmass_cut],
+        "CR_Wlnu_4J_TT": [wlnu_plus_2j, four_jets, btag_j1, dijet_mass_cut]
 
         
     },
