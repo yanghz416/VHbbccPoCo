@@ -25,6 +25,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection_run2.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
+                                                  f"{localdir}/params/trainings.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -232,26 +233,3 @@ cfg = Configurator(
 
     }
 )
-
-
-run_options = {
-    "executor"       : "parsl/condor",
-    "env"            : "conda",
-    "workers"        : 1,
-    "scaleout"       : 10,
-    "walltime"       : "00:60:00",
-    "mem_per_worker" : 2, # For Parsl
-    #"mem_per_worker" : "2GB", # For Dask
-    "exclusive"      : False,
-    "skipbadfiles"   : False,
-    "chunk"          : 500000,
-    "retries"        : 10,
-    "treereduction"  : 20,
-    "adapt"          : False,
-    "requirements": (
-        '( TotalCpus >= 8) &&'
-	'( Machine != "lx3a44.physik.rwth-aachen.de" ) && '
-	'( Machine != "lx3b80.physik.rwth-aachen.de" )'
-        ),
-
-    }

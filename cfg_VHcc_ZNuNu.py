@@ -25,7 +25,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
-                                                  f"{localdir}/params/xgboost.yaml",
+                                                  f"{localdir}/params/trainings.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -92,7 +92,7 @@ cfg = Configurator(
             'WJetsToLNu_FxFx': {
                 'DiJet_incl': [passthrough],
                 'DiJet_bx': [DiJet_bx],
-		'DiJet_cx': [DiJet_cx],
+		        'DiJet_cx': [DiJet_cx],
                 'DiJet_ll': [DiJet_ll],
             }
         }
