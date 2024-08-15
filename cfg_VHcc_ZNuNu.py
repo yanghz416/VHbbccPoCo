@@ -44,6 +44,11 @@ files_2018 = [
     f"{localdir}/datasets/Run2UL2018_MC_OtherBkg.json",
     f"{localdir}/datasets/Run2UL2018_DATA.json",
 ]
+files_Run3 = [
+    f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_OtherBkg.json",
+    f"{localdir}/datasets/Run3_DATA.json",
+]
 
 parameters["proc_type"] = "ZNuNu"
 parameters["save_arrays"] = False
@@ -55,6 +60,7 @@ cfg = Configurator(
     parameters = parameters,
     datasets = {
         "jsons": files_2016 + files_2017 + files_2018,
+        #"jsons": files_Run3,
 
         "filter" : {
             "samples": [
