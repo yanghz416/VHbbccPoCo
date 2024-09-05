@@ -25,7 +25,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
-                                                  f"{localdir}/params/trainings.yaml",
+                                                  f"{localdir}/params/xgboost.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -48,6 +48,7 @@ files_Run3 = [
     f"{localdir}/datasets/Run3_MC_VJets.json",
     f"{localdir}/datasets/Run3_MC_OtherBkg.json",
     f"{localdir}/datasets/Run3_DATA.json",
+    f"{localdir}/datasets/Run3_MC_Sig.json",
 ]
 
 parameters["proc_type"] = "ZNuNu"
@@ -59,28 +60,36 @@ parameters["separate_models"] = False
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016 + files_2017 + files_2018,
-        #"jsons": files_Run3,
+        #"jsons": files_2016 + files_2017 + files_2018,
+        "jsons": files_Run3,
 
         "filter" : {
             "samples": [
-                "DATA_MET",
-                "WW", 
-                #"WZ", 
-                "ZZ",
-                "QCD", 
-                "QCD_Mu", "QCD_EM",
+                #"DATA_SingleMuon",
+                #"DATA_SingleElectron", # For 2017
+                #"DATA_EGamma",          # For 2018
+                #"WW", 
+                "WZ",
+                #"ZZ", 
+                #"QCD",
+                #"WJetsToLNu_MLM",
+                #"WJetsToQQ_MLM",
                 #"DYJetsToLL_FxFx",
-                #"ZJetsToNuNu_FxFx",
-                "WJetsToLNu_FxFx",
-                "WJetsToQQ", "ZJetsToQQ",
-                "TTToSemiLeptonic", "TTTo2L2Nu",
-                "TTToHadrons",
-                "ZH_HToCC_ZToNuNu"
+                #"WJetsToLNu_FxFx",
+                #"TTToSemiLeptonic", 
+                #"TTTo2L2Nu",
+                #"TTToHadrons",
+                #"WminusH_HToCC_WToLNu", 
+                #"WminusH_Hto2C_WtoLNu",
+                #"WplusH_HToCC_WToLNu",
+                #"WplusH_Hto2C_WtoLNu",
+                #"ZH_Hto2C_Zto2Nu"
             ],
             "samples_exclude" : [],
-            "year": ['2017'],
+            #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
+            
+            "year": ['2022_preEE','2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
@@ -133,10 +142,10 @@ cfg = Configurator(
                           "sf_mu_id","sf_mu_iso",
                           "sf_ele_reco","sf_ele_id",
                           ],
-            "bycategory" : {
-                "presel_Met_2J_ctag" : ["sf_ctag"],
-                "presel_Met_2J_ctag_calib" : ["sf_ctag", "sf_ctag_calib"],
-            }
+            #"bycategory" : {
+            #    "presel_Met_2J_ctag" : ["sf_ctag"],
+            #    "presel_Met_2J_ctag_calib" : ["sf_ctag", "sf_ctag_calib"],
+            #}
         },
         "bysample": {
         }

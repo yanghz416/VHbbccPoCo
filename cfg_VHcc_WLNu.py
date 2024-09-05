@@ -22,10 +22,10 @@ default_parameters = defaults.get_default_parameters()
 defaults.register_configuration_dir("config_dir", localdir+"/params")
 
 parameters = defaults.merge_parameters_from_files(default_parameters,
-                                                  f"{localdir}/params/object_preselection_run2.yaml",
+                                                  f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
-                                                  f"{localdir}/params/trainings.yaml",
+                                                  f"{localdir}/params/xgboost.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -49,6 +49,7 @@ files_Run3 = [
     f"{localdir}/datasets/Run3_MC_VJets.json",
     f"{localdir}/datasets/Run3_MC_OtherBkg.json",
     f"{localdir}/datasets/Run3_DATA.json",
+    f"{localdir}/datasets/Run3_MC_Sig.json",
 ]
 
 parameters["proc_type"] = "WLNu"
@@ -60,26 +61,37 @@ parameters["separate_models"] = False
 cfg = Configurator(
     parameters = parameters,
     datasets = {
-        "jsons": files_2016 + files_2017 + files_2018,
+        #"jsons": files_2016 + files_2017 + files_2018,
         #"jsons": files_2017,
         #"jsons": files_2018,
+        "jsons": files_Run3,
 
         "filter" : {
             "samples": [
                 "DATA_SingleMuon",
                 #"DATA_SingleElectron", # For 2017
-                #"DATA_EGamma",          # For 2018
-                #"WW", "WZ", "ZZ", 
-                "QCD",
+                "DATA_EGamma",          # For 2018
+                #"WW", 
+                #"WZ",
+                #"ZZ", 
+                #"QCD",
+                #"WJetsToLNu_MLM",
+                #"WJetsToQQ_MLM",
                 #"DYJetsToLL_FxFx",
-                "WJetsToLNu_FxFx",
-                "TTToSemiLeptonic", "TTTo2L2Nu",
-                "WminusH_HToCC_WToLNu", 
-                "WplusH_HToCC_WToLNu",
+                #"WJetsToLNu_FxFx",
+                #"TTToSemiLeptonic", 
+                #"TTTo2L2Nu",
+                #"TTToHadrons",
+                #"WminusH_HToCC_WToLNu", 
+                #"WminusH_Hto2C_WtoLNu",
+                #"WplusH_HToCC_WToLNu",
+                "WplusH_Hto2C_WtoLNu"
             ],
-            "samples_exclude" : [],
-            "year": ['2017']
+            "samples_exclude" : ["DATA_EGamma_2022_preEE_EraC"],
+            #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
+            #"year": ['2022_preEE','2022_postEE']
+            "year": ['2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
