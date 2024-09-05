@@ -1,0 +1,56 @@
+plotting_style:
+#  exclude_samples:
+    #- DYJetsToLL_MLM
+    #- DYJetsToLL_FxFx
+    #- DYJetsToLL_MiNNLO
+    #- DYJetsToLL_MiNNLO_ZptWei
+
+
+  rescale_samples:
+    DYJetsToLL_MLM: 1.33
+
+      
+  labels_mc:
+    DYJetsToLL_MLM: DY (LO)
+    DYJetsToLL_FxFx: DY (FxFx)
+    DYJetsToLL_MiNNLO: DY (MiNNLO)
+    WJetsToLNu_FxFx: W+jets
+    ZJetsToNuNu_FxFx: ZNuNu
+
+    
+  colors_mc:
+    DYJetsToLL_MLM: CMS_blue
+    DYJetsToLL_FxFx: CMS_orange
+    #DYJetsToLL_MiNNLO: "#ADFF2F"
+    #WJetsToLNu_FxFx: "#F6D608"
+    #ZJetsToNuNu_FxFx: "#ADFF2F"
+ 
+  blind_hists:
+    categories: [SR_ll_2J_cJ, SR_ee_2J_cJ, SR_mumu_2J_cJ]
+    histograms:
+      dijet_m: [100, 150]
+      BDT: [0.7, 1]
+      DNN: [0.7, 1]
+
+  compare:
+    #ref: data_sum
+    ref: DYJetsToLL_FxFx
+    
+  opts_ratios:
+    elinewidth: 1
+    linestyle: solid
+    linewidth: 0
+    marker: o
+    markersize: 4.0
+
+  print_info:
+    category: True
+    year: True
+
+  opts_sig:
+    histtype: "step"
+    stack: false
+    flow: "sum"
+    edges: true
+    linestyle: solid
+    linewidth: 1

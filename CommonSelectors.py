@@ -221,6 +221,11 @@ one_jet = Cut(
     function=NJets,
     params={'nj': 1}
 )
+two_jets = Cut(
+    name="two_jets",
+    function=NJets,
+    params={'nj': 2}
+)
 four_jets = Cut(
     name="four_jets",
     function=NJets,

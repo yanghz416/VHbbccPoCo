@@ -3,14 +3,14 @@ from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
-import workflow
-from workflow import VHccBaseProcessor
+import workflow_VHcc
+from workflow_VHcc import VHccBaseProcessor
 
 import CommonSelectors
 from CommonSelectors import *
 
 import cloudpickle
-cloudpickle.register_pickle_by_value(workflow)
+cloudpickle.register_pickle_by_value(workflow_VHcc)
 cloudpickle.register_pickle_by_value(CommonSelectors)
 
 import os
@@ -67,7 +67,7 @@ cfg = Configurator(
         
         "filter" : {
             "samples": [
-                #"DATA_DoubleMuon",
+                "DATA_DoubleMuon",
                 #"DATA_DoubleEG", # in 2016/2017
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
@@ -86,7 +86,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_postEE']
             #"year": ['2023_preBPix']
         },
 

@@ -34,6 +34,9 @@ plotting_style:
     
 #  rescale_samples:
 #    DYJetsToLL_MLM: 1.33
+
+  signal_samples:
+    ZH_Hto2C_Zto2L: 10000
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
@@ -56,6 +59,8 @@ plotting_style:
     WJetsToLNu_FxFx__DiJet_bx: W+bj
     WJetsToLNu_FxFx__DiJet_cx: W+cj
     WJetsToLNu_FxFx__DiJet_ll: W+jj
+
+    ZH_Hto2C_Zto2L: "$H\\to cc$"
     
   colors_mc:
     Top: "#00BFFF"
@@ -70,3 +75,29 @@ plotting_style:
     DYJetsToLL_MLM__ZJets_BX:  "#196f3d"
     DYJetsToLL_MLM__ZJets_CX:  "#52be80"
     DYJetsToLL_MLM__ZJets_LL:  "#ADFF2F"
+
+  blind_hists:
+    categories: [SR_ll_2J_cJ, SR_ee_2J_cJ, SR_mumu_2J_cJ]
+    histograms:
+      dijet_m: [100, 150]
+      BDT: [0.7, 1]
+      DNN: [0.7, 1]
+
+  opts_sig:
+    histtype: "step"
+    stack: false
+    flow: "sum"
+    edges: true
+    linestyle: solid
+    linewidth: 1
+
+  opts_ratios:
+    elinewidth: 1
+    linestyle: solid
+    linewidth: 0
+    marker: o
+    markersize: 4.0
+
+  print_info:
+    category: True
+    year: True
