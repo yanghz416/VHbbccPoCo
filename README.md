@@ -14,12 +14,13 @@
         alter the environment leading to conflicts.
     ```
 	conda install conda-forge::xrootd
-	conda install -c conda-forge lightgbm
+	conda install conda-forge::lightgbm
     conda install conda-forge::tensorflow
+    conda install setuptools==70.*
     ```
 5. Checkout *this* repo:
     ```
-    git@github.com:cms-rwth/VHccPoCo.git
+	git clone git@github.com:cms-rwth/VHccPoCo.git
     ```
 3. (If your local username is different from your CERN username) Setup your CERN username variable:
     ```
@@ -27,7 +28,10 @@
     ```
 5. Follow [examples](https://pocketcoffea.readthedocs.io/en/latest/analysis_example.html) to create dataset input files:
     ```
+	cd VHccPoCo
+	mkdir datasets
     build_datasets --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+	cd ../
     ```
 6. Run with the `futures` executor (test before large submission):
     ```

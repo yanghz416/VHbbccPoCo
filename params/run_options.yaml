@@ -1,5 +1,5 @@
-retries: 10
-chunksize: 400000
+retries: 2
+chunksize: 500000
 requirements: >
   ( TotalCpus >= 8) && 
   ( Machine != "lx3a44.physik.rwth-aachen.de" ) &&  

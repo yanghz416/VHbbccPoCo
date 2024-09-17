@@ -1,0 +1,41 @@
+plotting_style:
+#  exclude_samples:
+    #- DYJetsToLL_MLM
+    #- DYJetsToLL_FxFx
+    #- DYJetsToLL_MiNNLO
+    #- DYJetsToLL_MiNNLO_ZptWei
+
+
+  rescale_samples:
+    DYJetsToLL_MLM: 1.33
+
+      
+  labels_mc:
+    DYJetsToLL_MLM: DY (LO)
+    DYJetsToLL_FxFx: DY (FxFx)
+    DYJetsToLL_MiNNLO: DY (MiNNLO)
+    WJetsToLNu_FxFx: W+jets
+    ZJetsToNuNu_FxFx: ZNuNu
+
+    
+  colors_mc:
+    DYJetsToLL_MLM: CMS_blue
+    DYJetsToLL_FxFx: CMS_orange
+    #DYJetsToLL_MiNNLO: "#ADFF2F"
+    #WJetsToLNu_FxFx: "#F6D608"
+    #ZJetsToNuNu_FxFx: "#ADFF2F"
+ 
+  compare:
+    #ref: data_sum
+    ref: DYJetsToLL_FxFx
+    
+  print_info:
+    category: True
+    year: True
+
+
+  opts_figure:
+    datamc_ratio:
+      figsize: [6,6]
+  fontsize: 10
+  fontsize_legend_ratio: 6
