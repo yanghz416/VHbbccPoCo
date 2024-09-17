@@ -23,3 +23,11 @@ object_preselection:
       maxpt: 50
 
   bJetWP: M
+
+  GEN_Lep:
+    pt: 25
+    eta: 2.4
+
+  GEN_Jet:
+    pt: 25
+    eta: 2.4

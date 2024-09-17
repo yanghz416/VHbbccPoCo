@@ -155,8 +155,8 @@ cfg = Configurator(
         "dijet_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
 
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=800, label=r"Jet HT [GeV]")] ),
-        #"met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
-        #"met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
+        "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
+        "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
         "j1_l1_dr" : HistConf( [Axis(field="j1_l1_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{j_1 l_1}$")] ),
         "j1_l2_dr" : HistConf( [Axis(field="j1_l2_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{j_1 l_2}$")] ),

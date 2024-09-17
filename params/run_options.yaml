@@ -1,4 +1,4 @@
-retries: 10
+retries: 2
 chunksize: 500000
 requirements: >
   ( TotalCpus >= 8) && 

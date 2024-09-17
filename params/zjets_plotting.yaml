@@ -25,32 +25,17 @@ plotting_style:
     #WJetsToLNu_FxFx: "#F6D608"
     #ZJetsToNuNu_FxFx: "#ADFF2F"
  
-  blind_hists:
-    categories: [SR_ll_2J_cJ, SR_ee_2J_cJ, SR_mumu_2J_cJ]
-    histograms:
-      dijet_m: [100, 150]
-      BDT: [0.7, 1]
-      DNN: [0.7, 1]
-
   compare:
     #ref: data_sum
     ref: DYJetsToLL_FxFx
     
-  opts_ratios:
-    elinewidth: 1
-    linestyle: solid
-    linewidth: 0
-    marker: o
-    markersize: 4.0
-
   print_info:
     category: True
     year: True
 
-  opts_sig:
-    histtype: "step"
-    stack: false
-    flow: "sum"
-    edges: true
-    linestyle: solid
-    linewidth: 1
+
+  opts_figure:
+    datamc_ratio:
+      figsize: [6,6]
+  fontsize: 10
+  fontsize_legend_ratio: 6
