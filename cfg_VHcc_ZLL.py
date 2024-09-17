@@ -53,7 +53,7 @@ parameters["proc_type"] = "ZLL"
 parameters["save_arrays"] = False
 parameters["LightGBM_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/model_DY.txt"
 parameters["DNN_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/dnn_model.h5"
-parameters["separate_models"] = True
+parameters["separate_models"] = False
 parameters["LigtGBM_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/model_DY.txt"
 parameters["LigtGBM_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/model_DY.txt"
 parameters["DNN_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/dnn_model_DY.h5"
@@ -205,12 +205,12 @@ cfg = Configurator(
         "dijet_dr" : HistConf( [Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_deltaPhi": HistConf( [Axis(field="dijet_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi_{jj}$")] ),
         "dijet_deltaEta": HistConf( [Axis(field="dijet_deltaEta", bins=50, start=0, stop=4, label=r"$\Delta \eta_{jj}$")] ),
-        "dijet_pt_j1" : HistConf( [Axis(field="dijet_pt_max", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_pt_j2" : HistConf( [Axis(field="dijet_pt_min", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_CvsL_j1" : HistConf( [Axis(field="dijet_CvsL_max", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
-        "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$p_T{jj}$ [GeV]")] ),
+        "dijet_pt_j1" : HistConf( [Axis(field="dijet_pt_max", bins=100, start=0, stop=400, label=r"$p_T{j1}$ [GeV]")] ),
+        "dijet_pt_j2" : HistConf( [Axis(field="dijet_pt_min", bins=100, start=0, stop=400, label=r"$p_T{j2}$ [GeV]")] ),
+        "dijet_CvsL_j1" : HistConf( [Axis(field="dijet_CvsL_max", bins=24, start=0, stop=1, label=r"$CvsL_{j1}$ [GeV]")] ),
+        "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
+        "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
+        "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
         
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
