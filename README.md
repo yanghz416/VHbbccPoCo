@@ -7,7 +7,10 @@
     ```
 	conda create -n PocketCoffea python=3.10 -c conda-forge
 	conda activate PocketCoffea
-    pip install -e .
+        # install PocketCoffea
+        git clone git@github.com:PocketCoffea/PocketCoffea.git
+        cd PocketCoffea
+        pip install -e .
     ```
 	Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
         Afterwards please install the needed packages, that enable trainings and running the analysis smoothly. Please keep using conda, since using pip might 
@@ -26,13 +29,14 @@
     ```
     export CERN_USERNAME="YOURUSERNAME"
     ```
-5. Follow [examples](https://pocketcoffea.readthedocs.io/en/latest/analysis_example.html) to create dataset input files:
+5. Follow [examples](https://pocketcoffea.readthedocs.io/en/latest/analysis_example.html) to create dataset input files. First activate voms proxy. Then:
     ```
 	cd VHccPoCo
 	mkdir datasets
-    build_datasets --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+    pocket-coffea build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
+    Use `-p 12` with `build-datasets` to parallelizing with 12 cores, e.g.
 6. Run with the `futures` executor (test before large submission):
     ```
     runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_VHcc_Test --executor futures -s 10 -lf 1 -lc 1

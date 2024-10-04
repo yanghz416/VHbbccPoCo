@@ -251,10 +251,10 @@ class VHccBaseProcessor(BaseProcessorABC):
 
     def define_common_variables_after_presel(self, variation):
         self.events["dijet"] = get_dijet(self.events.JetGood)
+        tagger = self.params.ctagging.working_point[self._year]["tagger"]
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger)
         
-        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], self.params.ctagging.working_point[self._year])
-        
-        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = True)
+        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = tagger)
                 
         #self.events["dijet_pt"] = self.events.dijet.pt
         
