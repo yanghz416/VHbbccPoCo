@@ -6,15 +6,15 @@ ctagging:
     wp: None
     
   '2016_PostVFP':
-    tagger: PNet
+    tagger: DeepFlav
     wp: None
     
   '2017':
-    tagger: PNet
+    tagger: DeepFlav
     wp: None
 
   '2018':
-    tagger: PNet
+    tagger: DeepFlav
     wp: None
     
   '2022_preEE':

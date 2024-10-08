@@ -11,8 +11,8 @@ from pocket_coffea.workflows.base import BaseProcessorABC
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.hist_manager import Axis
 from pocket_coffea.lib.objects import (
-    Gen_leptons,
-    Gen_jets,
+    getGenLeptons,
+    getGenJets,
     get_dilepton,
     get_dijet
 )
@@ -23,17 +23,17 @@ class ZjetsBaseProcessor(BaseProcessorABC):
 
     def apply_object_preselection(self, variation):
 
-        self.events["MyGenLeptons"] = Gen_leptons(
+        self.events["MyGenLeptons"] = getGenLeptons(
             self.events, "Both", self.params
         )
         self.events["MyGenLeptons","charge"] = np.sign(self.events["MyGenLeptons"]["pdgId"])
 
         self.events["ll"] = get_dilepton(self.events.MyGenLeptons, None)
 
-        self.events["MyGenJets"] =  Gen_jets(self.events, "MyGenLeptons", self.params)
+        self.events["MyGenJets"] =  getGenJets(self.events, "MyGenLeptons", self.params)
         self.events["MyGenJets", "pdgId"] = self.events.MyGenJets.partonFlavour
         
-        self.events["dijet"] = get_dijet(self.events.MyGenJets)
+        self.events["dijet"] = get_dijet(self.events.MyGenJets, tagger=None)
 
 
     def count_objects(self, variation):

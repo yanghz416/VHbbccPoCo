@@ -130,8 +130,8 @@ cfg = Configurator(
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
 
-        "SR_ll_2J_cJ_low":  [Zll_2j, dijet_mass_cut, dilep_pt60to150],
-        "SR_ll_2J_cJ_high": [Zll_2j, dijet_mass_cut, dilep_pt150to2000],
+        "SR_ll_2J_cJ_low":  [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt60to150],
+        "SR_ll_2J_cJ_high": [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt150to2000],
 
 
 

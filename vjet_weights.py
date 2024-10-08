@@ -8,7 +8,7 @@ def weight_vjets(events, params, metadata):
     wei = np.ones_like(LHE_Njets, dtype=float)
 
     #wei[(dr>0.01) & (dr<1.0)] = 1.3
-    wei[(LHE_Njets==3)] = 1.6
+    wei[(LHE_Njets==3)] = 1.52
 
     return wei
 

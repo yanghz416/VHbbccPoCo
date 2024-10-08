@@ -266,8 +266,12 @@ class VHccBaseProcessor(BaseProcessorABC):
             B   = "btagDeepFlavB"
             CvL = "btagDeepFlavCvL"
             CvB = "btagDeepFlavCvB"
+        elif self.myJetTagger == "RobustParT":
+            B   = "btagRobustParTAK4B"
+            CvL = "btagRobustParTAK4CvL"
+            CvB = "btagRobustParTAK4CvB"
         else:
-            raise("This tagger is not implemented:", self.myJetTagger)
+            raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
 
         #self.events["dijet_pt"] = self.events.dijet.pt
 
