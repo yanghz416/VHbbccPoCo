@@ -15,10 +15,10 @@ from keras.models import load_model
 import CommonSelectors
 from CommonSelectors import *
 
-
 from pocket_coffea.workflows.base import BaseProcessorABC
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.hist_manager import Axis
+from pocket_coffea.lib.deltaR_matching import delta_phi
 from pocket_coffea.lib.objects import (
     jet_correction,
     lepton_selection,
@@ -28,13 +28,6 @@ from pocket_coffea.lib.objects import (
     get_dilepton,
     get_dijet
 )
-
-def delta_phi(a, b):
-    """Compute difference in angle between two phi values
-    Returns a value within [-pi, pi)
-    """
-    return (a - b + np.pi) % (2 * np.pi) - np.pi
-
 import awkward as ak
 import numpy as np
 
