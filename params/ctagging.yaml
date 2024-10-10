@@ -1,31 +1,32 @@
 
 ctagging:
-  working_point:
-    '2016_PreVFP':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
+  # Note tagger string must be either PNet, RobustParT, or DeepFlav
+  '2016_PreVFP':
+    tagger: DeepFlav
+    wp: None
+    
+  '2016_PostVFP':
+    tagger: DeepFlav
+    wp: None
+    
+  '2017':
+    tagger: DeepFlav
+    wp: None
 
-    '2016_PostVFP':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-
-    '2017':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-
-    '2018':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-
-    '2022_preEE':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-    '2022_postEE':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-    '2023_preBPix':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
-    '2023_postBPix':
-      tagger: btagDeepFlavCvL
-      wp: 0.20
+  '2018':
+    tagger: DeepFlav
+    wp: None
+    
+  '2022_preEE':
+    #tagger: btagPNetCvL
+    tagger: PNet
+    wp: None
+  '2022_postEE':
+    tagger: RobustParT
+    wp: None
+  '2023_preBPix':
+    tagger: RobustParT
+    wp: None
+  '2023_postBPix':
+    tagger: PNet
+    wp: None

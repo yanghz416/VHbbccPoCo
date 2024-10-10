@@ -62,8 +62,8 @@ cfg = Configurator(
     parameters = parameters,
     weights_classes = common_weights + [custom_weight_vjet],
     datasets = {
-        #"jsons": files_2017 + files_2018,
-        "jsons": files_Run3,
+        "jsons": files_2017 + files_2018,
+        #"jsons": files_Run3,
 
         "filter" : {
             "samples": [
@@ -72,14 +72,15 @@ cfg = Configurator(
                 "DATA_EGamma",
                 #"DATA_SingleMuon",
                 #"DATA_SingleElectron",
-                #"DYJetsToLL_MLM",
-                #"DYJetsToLL_FxFx",
+                "DYJetsToLL_MLM",
+                "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MiNNLO_MuMu",
                 #"DYJetsToLL_MiNNLO_EE",
                 #"TTTo2L2Nu"
             ],
             "samples_exclude" : [],
-            "year": ['2022_postEE']
+            "year": ['2017','2018']
+            #"year": ['2022_postEE']
         }
     },
 
@@ -110,9 +111,7 @@ cfg = Configurator(
             }
         },
         "bysample": {
-            #"DYJetsToLL_FxFx": {
-            #    "inclusive": ["weight_vjet"]
-            #}
+            "DYJetsToLL_FxFx": { "inclusive": ["weight_vjet"] }
         }
     },
     

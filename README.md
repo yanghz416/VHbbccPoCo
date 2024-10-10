@@ -30,7 +30,7 @@
     ```
 	cd VHccPoCo
 	mkdir datasets
-    build_datasets --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+	build-datasets --cfg samples_Run2UL_2017.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
 6. Run with the `futures` executor (test before large submission):
@@ -43,5 +43,5 @@
     ```
 8. Make some plots:
    ```
-   make_plots output_VHcc_v01
+   make-plots output_VHcc_v01
    ```

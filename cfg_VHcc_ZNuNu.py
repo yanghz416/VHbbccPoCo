@@ -129,7 +129,7 @@ cfg = Configurator(
         "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_ZNuNu_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	    "CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+	"CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_ZNuNu_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_ZNuNu_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
