@@ -83,8 +83,7 @@ def get_nu_4momentum(Lepton, MET):
 class VHccBaseProcessor(BaseProcessorABC):
     def __init__(self, cfg: Configurator):
         super().__init__(cfg)
-        print("Something")
-
+        
         self.proc_type   = self.params["proc_type"]
         self.save_arrays = self.params["save_arrays"]
         #self.bdt_model = lgb.Booster(model_file=self.params.LightGBM_model)
@@ -479,9 +478,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             mask = ((self.events.nJetGood >= 2) & (self.events.dijet_csort.pt > 120)) &  ( (self.events.deltaPhi_jet1_MET > 0.6) & (self.events.deltaPhi_jet2_MET > 0.6)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4)) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200))
             selection_ZNuNu = ak.where(ak.is_none(mask), False, mask)
             
-            
-
-
 
         if self.save_arrays:
             if self.proc_type=="WLNu":

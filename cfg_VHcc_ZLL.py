@@ -50,7 +50,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["LightGBM_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/model_DY.txt"
 parameters["DNN_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/dnn_model.h5"
 parameters["separate_models"] = False
@@ -72,7 +72,7 @@ cfg = Configurator(
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
-	        #"WW", "WZ", "ZZ",
+	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
@@ -86,24 +86,24 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_postEE']
+            "year": ['2022_preEE']
             #"year": ['2023_preBPix']
         },
 
-        #"subsamples": {
+        "subsamples": {
         #    'DYJetsToLL_MLM': {
         #        'DiJet_incl': [passthrough],
         #        'DiJet_bx': [DiJet_bx],
         #        'DiJet_cx': [DiJet_cx],
         #        'DiJet_ll': [DiJet_ll],
         #    },
-        #    'DYJetsToLL_FxFx': {
-        #        'DiJet_incl': [passthrough],
-        #        'DiJet_bx': [DiJet_bx],
-        #        'DiJet_cx': [DiJet_cx],
-        #        'DiJet_ll': [DiJet_ll],
-        #    }
-        #}
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            }
+        }
 
     },
 

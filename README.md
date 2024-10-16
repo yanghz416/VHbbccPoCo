@@ -3,7 +3,7 @@
 1. Install Miniconda
    * At RWTH it should be at your `/net/scratch_cms3a/<username>` area
    * At lxplus CERN, it should be in your `/eos/user/u/username` area
-3. Create a dedicated environment for PocketCoffea, install the packages, and compile:
+2. Create a dedicated environment for PocketCoffea, install the packages, and compile:
     ```
 	conda create -n PocketCoffea python=3.10 -c conda-forge
 	conda activate PocketCoffea
@@ -21,11 +21,12 @@
     conda install conda-forge::tensorflow
     conda install setuptools==70.*
     ```
-5. Checkout *this* repo:
+    For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
+3. Checkout *this* repo:
     ```
 	git clone git@github.com:cms-rwth/VHccPoCo.git
     ```
-3. (If your local username is different from your CERN username) Setup your CERN username variable:
+4. (If your local username is different from your CERN username) Setup your CERN username variable:
     ```
     export CERN_USERNAME="YOURUSERNAME"
     ```
@@ -33,7 +34,7 @@
     ```
 	cd VHccPoCo
 	mkdir datasets
-    pocket-coffea build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+    build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
     Use `-p 12` with `build-datasets` to parallelizing with 12 cores, e.g.
@@ -47,5 +48,6 @@
     ```
 8. Make some plots:
    ```
-   make_plots output_VHcc_v01
+   make-plots -inp output_VHcc_v01 -op params/plotting.yaml
    ```
+   The plot parameters can be changed by editing `params/plotting.yaml`.
