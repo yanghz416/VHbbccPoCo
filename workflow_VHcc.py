@@ -76,8 +76,7 @@ def get_nu_4momentum(Lepton, MET):
 class VHccBaseProcessor(BaseProcessorABC):
     def __init__(self, cfg: Configurator):
         super().__init__(cfg)
-        print("Something")
-
+        
         self.proc_type   = self.params["proc_type"]
         self.save_arrays = self.params["save_arrays"]
         #self.bdt_model = lgb.Booster(model_file=self.params.LightGBM_model)
@@ -246,7 +245,6 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.myJetTagger = self.params.ctagging[self._year]["tagger"]
 
         self.events["dijet"] = get_dijet(self.events.JetGood)
-
         self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
 
         self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
@@ -265,7 +263,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             CvB = "btagRobustParTAK4CvB"
         else:
             raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
-
         #self.events["dijet_pt"] = self.events.dijet.pt
 
         if self.proc_type=="ZLL":
@@ -483,8 +480,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["DNN"] = self.evaluateDNN(df)
             mask = ((self.events.nJetGood >= 2) & (self.events.dijet_csort.pt > 120)) &  ( (self.events.deltaPhi_jet1_MET > 0.6) & (self.events.deltaPhi_jet2_MET > 0.6)) & ((self.events.JetsCvsL[CvL][:,0]>0.2) & (self.events.JetsCvsL[CvB][:,0]>0.4)) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200))
             selection_ZNuNu = ak.where(ak.is_none(mask), False, mask)
-
-
 
 
 
