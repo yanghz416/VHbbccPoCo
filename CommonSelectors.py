@@ -109,18 +109,31 @@ def WLNuTwoJets(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def jettag(events, params, **kwargs):
-    #print(events.JetsCvsL.btagDeepFlavCvL[:, 0]>0.2)
-    if params["ctag"]:
-        CvL = (events.JetsCvsL.btagDeepFlavCvL[:,0]>params["cut_CvL"])
+    if params['tagger'] == "PNet":
+        CvL = "btagPNetCvL"
+        CvB = "btagPNetCvB"
+    elif params['tagger'] == "DeepFlav":
+        CvL = "btagDeepFlavCvL"
+        CvB = "btagDeepFlavCvB"
+    elif params['tagger'] == "RobustParT":
+        CvL = "btagRobustParTAK4CvL"
+        CvB = "btagRobustParTAK4CvB"
     else:
-        CvL = (events.JetsCvsL.btagDeepFlavCvL[:,0]<params["cut_CvL"])
+        raise NotImplementedError(f"This tagger is not implemented: {params['tagger']}")
+
+    #print(events.JetsCvsL.[ctag][:, 0]>0.2)
+
+    if params["ctag"]:
+        mask_CvL = (events.JetsCvsL[CvL][:,0]>params["cut_CvL"])
+    else:
+        mask_CvL = (events.JetsCvsL[CvL][:,0]<params["cut_CvL"])
 
     if params["btag"]:
-        CvB = (events.JetsCvsL.btagDeepFlavCvB[:,0]<params["cut_CvB"])
+        mask_CvB = (events.JetsCvsL[CvB][:,0]<params["cut_CvB"])
     else:
-        CvB = (events.JetsCvsL.btagDeepFlavCvB[:,0]>params["cut_CvB"])
+        mask_CvB = (events.JetsCvsL[CvB][:,0]>params["cut_CvB"])
 
-    mask = CvL & CvB
+    mask = mask_CvL & mask_CvB
     
     return ak.where(ak.is_none(mask), False, mask)
 
@@ -236,6 +249,7 @@ ctag_j1 = Cut(
     name="ctag_j1",
     function=jettag,
     params={
+        "tagger": 'RobustParT',
         "ctag": True,
         "btag": False,
         "cut_CvL": 0.2,
@@ -246,6 +260,7 @@ antictag_j1 = Cut(
     name="antictag_j1",
     function=jettag,
     params={
+        "tagger": 'RobustParT',
         "ctag": False,
         "btag": False,
         "cut_CvL": 0.2,
@@ -256,6 +271,7 @@ btag_j1 = Cut(
     name="btag_j1",
     function=jettag,
     params={
+        "tagger": 'RobustParT',
         "ctag": True,
         "btag": True,
         "cut_CvL": 0.2,

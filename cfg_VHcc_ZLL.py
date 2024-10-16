@@ -3,15 +3,18 @@ from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
+from pocket_coffea.lib.weights.common.common import common_weights
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
-
+import vjet_weights
+from vjet_weights import *
 import CommonSelectors
 from CommonSelectors import *
 
 import cloudpickle
 cloudpickle.register_pickle_by_value(workflow_VHcc)
 cloudpickle.register_pickle_by_value(CommonSelectors)
+cloudpickle.register_pickle_by_value(vjet_weights)
 
 import os
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -61,10 +64,11 @@ parameters["DNN_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/dn
 
 cfg = Configurator(
     parameters = parameters,
+    weights_classes = common_weights + [custom_weight_vjet],
     datasets = {
         #"jsons": files_2016 + files_2017 + files_2018,
         "jsons": files_Run3,
-        
+
         "filter" : {
             "samples": [
                 "DATA_DoubleMuon",
@@ -121,15 +125,15 @@ cfg = Configurator(
         #"baseline_2L2J_ctag_calib": [passthrough],
         "presel_mumu_2J": [mumu_2j],
         "presel_ee_2J": [ee_2j],
-        
+
         "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
         "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
 
-        "SR_ll_2J_cJ_low":  [Zll_2j, dijet_mass_cut, dilep_pt60to150],
-        "SR_ll_2J_cJ_high": [Zll_2j, dijet_mass_cut, dilep_pt150to2000],
+        "SR_ll_2J_cJ_low":  [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt60to150],
+        "SR_ll_2J_cJ_high": [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt150to2000],
 
-        
+
 
         "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
         "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
@@ -150,9 +154,13 @@ cfg = Configurator(
                 #"baseline_2L2J_ctag_calib": ["sf_ctag","sf_ctag_calib"]
             }
         },
-        #"bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
+        "bysample": {
+            "DYJetsToLL_FxFx": {"inclusive": ["weight_vjet"] },
+            #"DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] }
+            
+        },
     },
-    
+
     variations = {
         "weights": {
             "common": {
@@ -187,7 +195,7 @@ cfg = Configurator(
 	**jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
-        
+
         "dilep_m" : HistConf( [Axis(coll="ll", field="mass", bins=100, start=0, stop=200, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_m_zoom" : HistConf( [Axis(coll="ll", field="mass", bins=40, start=70, stop=110, label=r"$M_{\ell\ell}$ [GeV]")] ),
         "dilep_pt" : HistConf( [Axis(coll="ll", field="pt", bins=100, start=0, stop=400, label=r"$p_T{\ell\ell}$ [GeV]")] ),
@@ -211,7 +219,7 @@ cfg = Configurator(
         "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
         "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
         "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
-        
+
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
         "dijet_csort_dr" : HistConf( [Axis(coll="dijet_csort", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
@@ -225,8 +233,8 @@ cfg = Configurator(
                          only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
-        
-        
+
+
         # 2D histograms:
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
                                    type="variable",   label="N. Jets (good)"),
@@ -234,7 +242,7 @@ cfg = Configurator(
                                    bins=[0,80,150,200,300,450,700],
                                    type="variable",
                                    label="Jets $H_T$ [GeV]")]),
-        
+
         "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$"),
                                     Axis(field="dijet_deltaPhi", bins=50, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")]),
     }

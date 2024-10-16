@@ -34,7 +34,7 @@
     ```
 	cd VHccPoCo
 	mkdir datasets
-    build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+        build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
     Use `-p 12` with `build-datasets` to parallelizing with 12 cores, e.g.
