@@ -29,6 +29,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
                                                   f"{localdir}/params/xgboost.yaml",
+                                                  f"{localdir}/params/trainings.yaml",
                                                   update=True)
 files_2016 = [
     f"{localdir}/datasets/Run2UL2016_MC_VJets.json",
@@ -54,13 +55,8 @@ files_Run3 = [
 
 parameters["proc_type"] = "ZLL"
 parameters["save_arrays"] = True
-parameters["LightGBM_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/model_DY.txt"
-parameters["DNN_model"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/dnn_model.h5"
 parameters["separate_models"] = False
-parameters["LigtGBM_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/model_DY.txt"
-parameters["LigtGBM_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/model_DY.txt"
-parameters["DNN_low"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_low/dnn_model_DY.h5"
-parameters["DNN_high"] = f"{localdir}/Models/ZH_Hto2C_Zto2L_2022_postEE/_high/dnn_model_DY.h5"
+parameters['run_dnn'] = False
 
 cfg = Configurator(
     parameters = parameters,
