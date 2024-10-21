@@ -348,13 +348,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             columns_to_exclude = ['dilep_m']
             df = df.drop(columns=columns_to_exclude, errors='ignore')
             print("variables selected", df.columns)
-            if not self.params.separate_models:
-                self.events["BDT"] = self.evaluateBDT(df)
-                self.events["DNN"] = self.evaluateDNN(df)
-            else:
-                self.events["BDT"] = self.evaluateseparateBDTs(df)
-                self.events["DNN"] = self.evaluateseparateDNNs(df)
-            mask = ((self.events.nJetGood >= 2) & (self.events.nLeptonGood>=2)) & (self.events.ll.pt > 60) & (self.events.ll.mass > 75) & (self.events.ll.mass < 115) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200)) & ((self.events.JetsCvsL[CvL][:,0]>0.2) & (self.events.JetsCvsL[CvB][:,0]>0.4))
             self.channel = "2L"
             if not self.params.separate_models: 
                 df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
