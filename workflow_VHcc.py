@@ -423,9 +423,9 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l1_b"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.b_jet.phi))
             self.events["deltaEta_l1_b"] = np.abs(self.events.lead_lep.eta - self.events.b_jet.eta)
             self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
-            self.events["b_CvsL"] = self.events.b_jet.btagDeepFlavCvL
-            self.events["b_CvsB"] = self.events.b_jet.btagDeepFlavCvB
-            self.events["b_Btag"] = self.events.b_jet.btagDeepFlavB
+            self.events["b_CvsL"] = self.events.b_jet[CvL]
+            self.events["b_CvsB"] = self.events.b_jet[CvB]
+            self.events["b_Btag"] = self.events.b_jet[B]
             self.events["neutrino_from_W"] = get_nu_4momentum(self.events.lead_lep, self.events.MET_used)
             self.events["top_candidate"] = self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
