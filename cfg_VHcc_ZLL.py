@@ -1,6 +1,7 @@
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
+from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.weights.common.common import common_weights
@@ -110,7 +111,8 @@ cfg = Configurator(
 
     #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
-            get_nObj_min(4, 18., "Jet")],
+            get_nObj_min(4, 18., "Jet"),
+            get_nPVgood(1), eventFlags, goldenJson],
 
     preselections = [ll_2j],
     categories = {

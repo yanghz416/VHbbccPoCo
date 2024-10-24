@@ -1,11 +1,6 @@
 import awkward as ak
 from pocket_coffea.lib.cut_definition import Cut
 
-def CvsLsorted(jets, ctag):
-    # This returns Jets sorted by CvL score (or other tagger defined in params/ctagging.yaml )
-    return jets[ak.argsort(jets[ctag["tagger"]], axis=1, ascending=False)]
-
-
 def diLepton(events, params, year, sample, **kwargs):
 
     # Masks for same-flavor (SF) and opposite-sign (OS)
