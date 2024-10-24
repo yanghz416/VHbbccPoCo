@@ -26,7 +26,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
-                                                  f"{localdir}/params/xgboost.yaml",
+                                                  f"{localdir}/params/trainings.yaml",
                                                   update=True)
 
 files_2016 = [
@@ -54,9 +54,8 @@ files_Run3 = [
 
 parameters["proc_type"] = "ZNuNu"
 parameters["save_arrays"] = False
-parameters["LightGBM_model"] = f"{localdir}/Models/ZH_HToCC_ZToNuNu_2017/model_QCD.txt"
-parameters["DNN_model"] = f"{localdir}/Models/ZH_HToCC_ZToNuNu_2017/dnn_model_QCD.h5"
 parameters["separate_models"] = False
+parameters['run_dnn'] = False
 
 cfg = Configurator(
     parameters = parameters,
