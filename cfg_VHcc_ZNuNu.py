@@ -1,6 +1,7 @@
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
+from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 import workflow_VHcc
@@ -115,7 +116,8 @@ cfg = Configurator(
     workflow = VHccBaseProcessor,
 
     skim = [get_HLTsel(primaryDatasets=["MET"]),
-            get_nObj_min(2, 32., "Jet")],
+            get_nObj_min(2, 32., "Jet"),
+            get_nPVgood(1), eventFlags, goldenJson],
 
     preselections = [met_2jets_0lep],
 
