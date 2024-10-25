@@ -1,20 +1,20 @@
 # PocketCoffea VHcc setup
 
-1. Install Miniconda
+1. Install Miniconda or Micromamba
    * At RWTH it should be at your `/net/scratch_cms3a/<username>` area
    * At lxplus CERN, it should be in your `/eos/user/u/username` area
-2. Create a dedicated environment for PocketCoffea, install the packages, and compile:
+2. Create a dedicated environment for `PocketCoffea`, install the packages, and compile:
     ```
 	conda create -n PocketCoffea python=3.10 -c conda-forge
 	conda activate PocketCoffea
-        # install PocketCoffea
-        git clone git@github.com:PocketCoffea/PocketCoffea.git
-        cd PocketCoffea
-        pip install -e .
+	# install PocketCoffea
+	git clone git@github.com:PocketCoffea/PocketCoffea.git
+	cd PocketCoffea
+	pip install -e .
     ```
 	Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
-        Afterwards please install the needed packages, that enable trainings and running the analysis smoothly. Please keep using conda, since using pip might 
-        alter the environment leading to conflicts.
+	Afterwards install additional packages needed for BDT/DNN training and evaluation. Keep using conda, since using pip might 
+	alter the environment, leading to conflicts.
     ```
 	conda install conda-forge::xrootd
 	conda install conda-forge::lightgbm
@@ -34,7 +34,7 @@
     ```
 	cd VHccPoCo
 	mkdir datasets
-        build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
+	build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
     Use `-p 12` with `build-datasets` to parallelizing with 12 cores, e.g.
