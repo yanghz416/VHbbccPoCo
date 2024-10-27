@@ -48,6 +48,7 @@ files_2018 = [
 ]
 files_Run3 = [
     f"{localdir}/datasets/Run3_MC_VJets.json",
+    f"{localdir}/datasets/Run3_MC_TOP.json",
     f"{localdir}/datasets/Run3_MC_OtherBkg.json",
     f"{localdir}/datasets/Run3_DATA.json",
     f"{localdir}/datasets/Run3_MC_Sig.json",
