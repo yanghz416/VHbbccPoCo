@@ -388,37 +388,38 @@ class VHbbBaseProcessor(BaseProcessorABC):
         
         odd_event_mask = (self.events.EventNr % 2 == 1)
         
-        self.events["nGenPart"] = ak.num(self.events.GenPart)
-        self.events["GenPart_eta"] = self.events.GenPart.eta
-        self.events["GenPart_genPartIdxMother"] = self.events.GenPart.genPartIdxMother
-        self.events["GenPart_mass"] = self.events.GenPart.mass
-        self.events["GenPart_pdgId"] = self.events.GenPart.pdgId
-        self.events["GenPart_phi"] = self.events.GenPart.phi
-        self.events["GenPart_pt"] = self.events.GenPart.pt
-        self.events["GenPart_status"] = self.events.GenPart.status
-        self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
-        
-        self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
-        self.events["LHE_HT"] = self.events.LHE.HT
-        self.events["LHE_HTIncoming"] = self.events.LHE.HTIncoming
-        self.events["LHE_Nb"] = self.events.LHE.Nb
-        self.events["LHE_Nc"] = self.events.LHE.Nc
-        self.events["LHE_Nglu"] = self.events.LHE.Nglu
-        self.events["LHE_Njets"] = self.events.LHE.Njets
-        self.events["LHE_NpLO"] = self.events.LHE.NpLO
-        self.events["LHE_NpNLO"] = self.events.LHE.NpNLO
-        self.events["LHE_Nuds"] = self.events.LHE.Nuds
-        self.events["LHE_Vpt"] = self.events.LHE.Vpt
+#         if self.events.metadata["samples"]['isMC'] == "True":
+#             self.events["nGenPart"] = ak.num(self.events.GenPart)
+#             self.events["GenPart_eta"] = self.events.GenPart.eta
+#             self.events["GenPart_genPartIdxMother"] = self.events.GenPart.genPartIdxMother
+#             self.events["GenPart_mass"] = self.events.GenPart.mass
+#             self.events["GenPart_pdgId"] = self.events.GenPart.pdgId
+#             self.events["GenPart_phi"] = self.events.GenPart.phi
+#             self.events["GenPart_pt"] = self.events.GenPart.pt
+#             self.events["GenPart_status"] = self.events.GenPart.status
+#             self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
 
-        self.events["LHEPart_eta"] = self.events.LHEPart.eta
-        self.events["LHEPart_incomingpz"] = self.events.LHEPart.incomingpz
-        self.events["LHEPart_mass"] = self.events.LHEPart.mass
-        self.events["LHEPart_pdgId"] = self.events.LHEPart.pdgId
-        self.events["LHEPart_phi"] = self.events.LHEPart.phi
-        self.events["LHEPart_pt"] = self.events.LHEPart.pt
-        self.events["LHEPart_spin"] = self.events.LHEPart.spin
-        self.events["LHEPart_status"] = self.events.LHEPart.status
-        self.events["nLHEPart"] = ak.num(self.events.LHEPart)
+#             self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
+#             self.events["LHE_HT"] = self.events.LHE.HT
+#             self.events["LHE_HTIncoming"] = self.events.LHE.HTIncoming
+#             self.events["LHE_Nb"] = self.events.LHE.Nb
+#             self.events["LHE_Nc"] = self.events.LHE.Nc
+#             self.events["LHE_Nglu"] = self.events.LHE.Nglu
+#             self.events["LHE_Njets"] = self.events.LHE.Njets
+#             self.events["LHE_NpLO"] = self.events.LHE.NpLO
+#             self.events["LHE_NpNLO"] = self.events.LHE.NpNLO
+#             self.events["LHE_Nuds"] = self.events.LHE.Nuds
+#             self.events["LHE_Vpt"] = self.events.LHE.Vpt
+
+#             self.events["LHEPart_eta"] = self.events.LHEPart.eta
+#             self.events["LHEPart_incomingpz"] = self.events.LHEPart.incomingpz
+#             self.events["LHEPart_mass"] = self.events.LHEPart.mass
+#             self.events["LHEPart_pdgId"] = self.events.LHEPart.pdgId
+#             self.events["LHEPart_phi"] = self.events.LHEPart.phi
+#             self.events["LHEPart_pt"] = self.events.LHEPart.pt
+#             self.events["LHEPart_spin"] = self.events.LHEPart.spin
+#             self.events["LHEPart_status"] = self.events.LHEPart.status
+#             self.events["nLHEPart"] = ak.num(self.events.LHEPart)
                 
         if self.proc_type=="ZLL":
 
@@ -698,8 +699,8 @@ class VHbbBaseProcessor(BaseProcessorABC):
             if self.proc_type=="ZLL":
                 SR_Data = self.events[selection_ZLL]
                 variables_to_save = ak.zip({
-                    "nGenPart": SR_Data["nGenPart"],
-#                     "GenPart_eta": SR_Data["GenPart_eta"],
+                    # "nGenPart": SR_Data["nGenPart"],
+                    # "GenPart_eta": SR_Data["GenPart_eta"],
 #                     "GenPart_genPartIdxMother": SR_Data["GenPart_genPartIdxMother"],
 #                     "GenPart_mass": SR_Data["GenPart_mass"],
 #                     "GenPart_pdgId": SR_Data["GenPart_pdgId"],
