@@ -16,7 +16,7 @@ import CommonSelectors
 from CommonSelectors import *
 
 import cloudpickle
-cloudpickle.register_pickle_by_value(workflow_VHbb_editing)
+cloudpickle.register_pickle_by_value(workflow_VHbb)
 cloudpickle.register_pickle_by_value(CommonSelectors)
 cloudpickle.register_pickle_by_value(vjet_weights)
 
