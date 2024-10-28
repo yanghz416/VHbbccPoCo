@@ -51,3 +51,5 @@
    make-plots -inp output_VHcc_v01 -op params/plotting.yaml
    ```
    The plot parameters can be changed by editing `params/plotting.yaml`.
+
+**A similar VHbb setup can be found [here](https://github.com/De-Cristo/VHccPoCo/tree/dev-licheng/cfg_Hbb#readme)**
