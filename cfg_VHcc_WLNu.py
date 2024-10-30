@@ -5,6 +5,7 @@ from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.columns_manager import ColOut
+import click
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
 
@@ -58,6 +59,8 @@ parameters["proc_type"] = "WLNu"
 parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
+ctx = click.get_current_context()
+outputdir = ctx.params.get('outputdir')
 
 cfg = Configurator(
     parameters = parameters,
@@ -118,7 +121,7 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
-    workflow_options = {"dump_columns_as_arrays_per_chunk": "./Saved_columnar_arrays_WLNu"},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"} if parameters["save_arrays"] else {},
 
     skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
             get_nObj_min(3, 20., "Jet"),
@@ -164,14 +167,7 @@ cfg = Configurator(
                     ]
                 }
         },
-        #"bysample":{
-        #    "ttHTobb":{
-        #        "bycategory": {
-        #            "semilep_LHE": [ColOut("HiggsParton",
-        #                                   ["pt","eta","phi","mass","pdgId"], pos_end=1, store_size=False, flatten=False)]
-        #        }
-        #    }
-        #}
+        
     },
 
     weights = {

@@ -6,6 +6,8 @@ from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.weights.common.common import common_weights
 import workflow_VHcc
+from pocket_coffea.lib.columns_manager import ColOut
+import click
 from workflow_VHcc import VHccBaseProcessor
 import vjet_weights
 from vjet_weights import *
@@ -57,6 +59,8 @@ parameters["proc_type"] = "ZLL"
 parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
+ctx = click.get_current_context()
+outputdir = ctx.params.get('outputdir')
 
 cfg = Configurator(
     parameters = parameters,
@@ -90,30 +94,31 @@ cfg = Configurator(
             #"year": ['2023_preBPix']
         },
 
-        #"subsamples": {
+        "subsamples": {
         #    'DYJetsToLL_MLM': {
         #        'DiJet_incl': [passthrough],
         #        'DiJet_bx': [DiJet_bx],
         #        'DiJet_cx': [DiJet_cx],
         #        'DiJet_ll': [DiJet_ll],
         #    },
-        #    'DYJetsToLL_FxFx': {
-        #        'DiJet_incl': [passthrough],
-        #        'DiJet_bx': [DiJet_bx],
-        #        'DiJet_cx': [DiJet_cx],
-        #        'DiJet_ll': [DiJet_ll],
-        #    }
-        #}
+            'DYJetsToLL_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+                'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            }
+        }
 
     },
 
     workflow = VHccBaseProcessor,
     
-    workflow_options = {"dump_columns_as_arrays_per_chunk": "./Saved_columnar_arrays_ZLL"},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"} if parameters["save_arrays"] else {},
 
     #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
-            get_nObj_min(4, 18., "Jet")],
+            get_nObj_min(4, 18., "Jet"),
+            get_nPVgood(1), eventFlags, goldenJson],
 
     preselections = [ll_2j],
     categories = {
@@ -156,14 +161,7 @@ cfg = Configurator(
                     ]
                 }
         },
-        #"bysample":{
-        #    "ttHTobb":{
-        #        "bycategory": {
-        #            "semilep_LHE": [ColOut("HiggsParton",
-        #                                   ["pt","eta","phi","mass","pdgId"], pos_end=1, store_size=False, flatten=False)]
-        #        }
-        #    }
-        #}
+        
     },
 
     weights = {
@@ -179,7 +177,11 @@ cfg = Configurator(
                 #"baseline_2L2J_ctag_calib": ["sf_ctag","sf_ctag_calib"]
             }
         },
-        #"bysample": { "DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] } }
+        "bysample": {
+            "DYJetsToLL_FxFx": {"inclusive": ["weight_vjet"] },
+            #"DYJetsToLL_MiNNLO_ZptWei": {"inclusive": ["genWeight"] }
+            
+        },
     },
     
     variations = {
