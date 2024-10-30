@@ -4,6 +4,8 @@ from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
 from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
+from pocket_coffea.lib.columns_manager import ColOut
+import click
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
 
@@ -54,9 +56,11 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
+ctx = click.get_current_context()
+outputdir = ctx.params.get('outputdir')
 
 cfg = Configurator(
     parameters = parameters,
@@ -117,6 +121,7 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"} if parameters["save_arrays"] else {},
 
     skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
             get_nObj_min(3, 20., "Jet"),
@@ -140,6 +145,28 @@ cfg = Configurator(
         "CR_Wlnu_2J_CC": [wlnu_plus_2j, ctag_j1, dijet_invmass_cut],
         "CR_Wlnu_4J_TT": [wlnu_plus_2j, four_jets, btag_j1, dijet_mass_cut]
 
+        
+    },
+    
+    columns = {
+        "common": {
+            "bycategory": {
+                    "SR_Wlnu_2J_cJ": [
+                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                          "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
+                                          "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
+                                          "b_CvsL", "b_CvsB", "b_Btag", "top_mass"], flatten=False),
+                    ],
+                    "baseline_1L2j": [
+                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                          "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
+                                          "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
+                                          "b_CvsL", "b_CvsB", "b_Btag", "top_mass"], flatten=False),
+                    ]
+                }
+        },
         
     },
 

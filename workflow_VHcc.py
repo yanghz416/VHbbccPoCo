@@ -252,10 +252,6 @@ class VHccBaseProcessor(BaseProcessorABC):
 
     def define_common_variables_after_presel(self, variation):
         self.myJetTagger = self.params.ctagging[self._year]["tagger"]
-
-        
-        print("After presel len(events_nr)", len(self.events.EventNr), self.events.EventNr)
-        print()
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
         self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
@@ -311,7 +307,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l2_j1"] = np.abs(delta_phi(self.events.ll.l2phi, self.events.dijet_csort.j1Phi))
 
             
-                
             odd_events = self.events[odd_event_mask]
             # Create a record of variables to be dumped as root/parquete file:
             variables_to_process = ak.zip({
@@ -342,7 +337,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             df = ak.to_pandas(variables_to_process)
             columns_to_exclude = ['dilep_m']
             df = df.drop(columns=columns_to_exclude, errors='ignore')
-            print("variables selected", df.columns)
             self.channel = "2L"
             if not self.params.separate_models: 
                 df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
@@ -370,9 +364,6 @@ class VHccBaseProcessor(BaseProcessorABC):
                     self.events["DNN"] = self.evaluateseparateDNNs(df_final)
                 else:
                     self.events["DNN"] = np.zeros_like(self.events["BDT"])
-            mask = ((self.events.nJetGood >= 2) & (self.events.nLeptonGood>=2)) & (self.events.ll.pt > 60) & (self.events.ll.mass > 75) & (self.events.ll.mass < 115) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4))
-            selection_ZLL = ak.where(ak.is_none(mask), False, mask)
-
                 
         if self.proc_type=="WLNu":
             self.events["MET_used"] = ak.zip({
@@ -476,18 +467,10 @@ class VHccBaseProcessor(BaseProcessorABC):
             bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
             self.events["BDT"] = bdt_predictions
             
-            print("BDT", self.events["BDT"], len(self.events["BDT"]))
-            print()
-            
-            print()
-            print("BDT values not None", len([x for x in self.events["BDT"] if x is not None]))
-            print()
             if self.run_dnn:
                 self.events["DNN"] = self.evaluateDNN(df_final)
             else:
                 self.events["DNN"] = np.zeros_like(self.events["BDT"])
-            mask = (self.events.nJetGood >= 2) & (self.events.W_pt > 100) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4))
-            selection_WLNu = ak.where(ak.is_none(mask), False, mask)
 
 
         if self.proc_type=="ZNuNu":
@@ -553,113 +536,5 @@ class VHccBaseProcessor(BaseProcessorABC):
                 self.events["DNN"] = self.evaluateDNN(df_final)
             else:
                 self.events["DNN"] = np.zeros_like(self.events["BDT"])
-            mask = ((self.events.nJetGood >= 2) & (self.events.dijet_csort.pt > 120)) &  ( (self.events.deltaPhi_jet1_MET > 0.6) & (self.events.deltaPhi_jet2_MET > 0.6)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4)) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200))
-            selection_ZNuNu = ak.where(ak.is_none(mask), False, mask)
             
-            
-
-
-
-        if self.save_arrays:
-            if self.proc_type=="WLNu":
-                print("Odd mask length", len(odd_event_mask))
-                print()
-                print("Selection length", len(selection_WLNu))
-                print()
-                
-                SR_Data = self.events[~odd_event_mask & selection_WLNu & bjet_mask]
-                print("SR_Data", SR_Data)
-                print(len(SR_Data))
-                print()
-                #SR_Data = SR_Data[selection_ZNuNu]
-                #print("SR_Data", SR_Data)
-                #print(len(SR_Data))
-                #print()
-                variables_to_save = ak.zip({
-                    "dijet_m": SR_Data["dijet_m"],
-                    "dijet_pt": SR_Data["dijet_pt"],
-                    "dijet_dr": SR_Data["dijet_dr"],
-                    "dijet_deltaPhi": SR_Data["dijet_deltaPhi"],
-                    "dijet_deltaEta": SR_Data["dijet_deltaEta"],
-                    "dijet_CvsL_max": SR_Data["dijet_CvsL_max"],
-                    "dijet_CvsL_min": SR_Data["dijet_CvsL_min"],
-                    "dijet_CvsB_max": SR_Data["dijet_CvsB_max"],
-                    "dijet_CvsB_min": SR_Data["dijet_CvsB_min"],
-                    "dijet_pt_max": SR_Data["dijet_pt_max"],
-                    "dijet_pt_min": SR_Data["dijet_pt_min"],
-                    "W_mt": SR_Data["W_mt"],
-                    "W_pt": SR_Data["W_pt"],
-                    "pt_miss": SR_Data["pt_miss"],
-                    "WH_deltaPhi": SR_Data["WH_deltaPhi"],
-                    "deltaPhi_l1_j1": SR_Data["deltaPhi_l1_j1"],
-                    "deltaPhi_l1_MET": SR_Data["deltaPhi_l1_MET"],
-                    "deltaPhi_l1_b": SR_Data["deltaPhi_l1_b"],
-                    "deltaEta_l1_b": SR_Data["deltaEta_l1_b"],
-                    "deltaR_l1_b": SR_Data["deltaR_l1_b"],
-                    "b_CvsL": SR_Data["b_CvsL"],
-                    "b_CvsB": SR_Data["b_CvsB"],
-                    "b_Btag": SR_Data["b_Btag"],
-                    "top_mass": SR_Data["top_mass"]})
-            if self.proc_type=="ZLL":
-                SR_Data = self.events[~odd_event_mask & selection_ZLL]
-                    
-                variables_to_save = ak.zip({
-                    "dilep_m": SR_Data["dilep_m"],
-                    "dilep_pt": SR_Data["dilep_pt"],
-                    "dilep_dr": SR_Data["dilep_dr"],
-                    "dilep_deltaPhi": SR_Data["dilep_deltaPhi"],
-                    "dilep_deltaEta": SR_Data["dilep_deltaEta"],
-                    
-                    "dijet_m": SR_Data["dijet_m"],
-                    "dijet_pt": SR_Data["dijet_pt"],
-                    "dijet_dr": SR_Data["dijet_dr"],
-                    "dijet_deltaPhi": SR_Data["dijet_deltaPhi"],
-                    "dijet_deltaEta": SR_Data["dijet_deltaEta"],
-                    "dijet_CvsL_max": SR_Data["dijet_CvsL_max"],
-                    "dijet_CvsL_min": SR_Data["dijet_CvsL_min"],
-                    "dijet_CvsB_max": SR_Data["dijet_CvsB_max"],
-                    "dijet_CvsB_min": SR_Data["dijet_CvsB_min"],
-                    "dijet_pt_max": SR_Data["dijet_pt_max"],
-                    "dijet_pt_min": SR_Data["dijet_pt_min"],
-                    
-                    "ZH_pt_ratio": SR_Data["ZH_pt_ratio"],
-                    "ZH_deltaPhi": SR_Data["ZH_deltaPhi"],
-                    "deltaPhi_l2_j1": SR_Data["deltaPhi_l2_j1"],
-                    "deltaPhi_l2_j2": SR_Data["deltaPhi_l2_j2"],
-                })
-                
-            if self.proc_type=="ZNuNu":
-                SR_Data = self.events[~odd_event_mask & selection_ZNuNu]
-                variables_to_save = ak.zip({
-                    "dijet_m": SR_Data["dijet_m"],
-                    "dijet_pt": SR_Data["dijet_pt"],
-                    "dijet_dr": SR_Data["dijet_dr"],
-                    "dijet_deltaPhi": SR_Data["dijet_deltaPhi"],
-                    "dijet_deltaEta": SR_Data["dijet_deltaEta"],
-                    "dijet_CvsL_max": SR_Data["dijet_CvsL_max"],
-                    "dijet_CvsL_min": SR_Data["dijet_CvsL_min"],
-                    "dijet_CvsB_max": SR_Data["dijet_CvsB_max"],
-                    "dijet_CvsB_min": SR_Data["dijet_CvsB_min"],
-                    "dijet_pt_max": SR_Data["dijet_pt_max"],
-                    "dijet_pt_min": SR_Data["dijet_pt_min"],
-                    "ZH_pt_ratio": SR_Data["ZH_pt_ratio"],
-                    "ZH_deltaPhi": SR_Data["ZH_deltaPhi"],
-                    "Z_pt": SR_Data["Z_pt"]
-                })
-            # Here we write to root  and parquete files
-
-            with warnings.catch_warnings():
-                # Suppress FutureWarning
-                warnings.filterwarnings("ignore", category=FutureWarning)
-                
-                # Check if the directory exists
-                # Define the directory path and subdirectories
-                base_dir = f"Saved_root_files_{self.proc_type}"
-                dataset_dir = self.events.metadata['dataset']
-                subdirs = [dataset_dir]
-
-                # Define the file name
-                file_name = f"{self.events.metadata['filename'].split('/')[-1].replace('.root', '')}_{int(self.events.metadata['entrystart'])}_{int(self.events.metadata['entrystop'])}_vars.parquet"
-
-                # Use dump_ak_array to save the array with subdirectories
-                dump_ak_array(variables_to_save, file_name, base_dir, subdirs)
+        

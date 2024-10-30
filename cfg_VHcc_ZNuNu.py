@@ -4,6 +4,8 @@ from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
 from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
+from pocket_coffea.lib.columns_manager import ColOut
+import click
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
 
@@ -53,9 +55,11 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZNuNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
+ctx = click.get_current_context()
+outputdir = ctx.params.get('outputdir')
 
 cfg = Configurator(
     parameters = parameters,
@@ -114,6 +118,9 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
+    
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZNuNu"} if parameters["save_arrays"] else {},
+
 
     skim = [get_HLTsel(primaryDatasets=["MET"]),
             get_nObj_min(2, 32., "Jet"),
@@ -130,10 +137,27 @@ cfg = Configurator(
         "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_ZNuNu_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	"CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+	    "CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_ZNuNu_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_ZNuNu_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
+    },
+    
+    columns = {
+        "common": {
+            "bycategory": {
+                    "SR_ZNuNu_2J_cJ": [
+                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt"], flatten=False),
+                    ],
+                    "presel_Met_2J_no_ctag": [
+                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt"], flatten=False),
+                    ]
+                }
+        },
     },
 
     weights = {
