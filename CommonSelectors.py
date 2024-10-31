@@ -33,6 +33,10 @@ def NJets(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def TwoLepTwoJets(events, params, **kwargs):
+    if params["lep_flav"] not in ['mu','el','both']:
+        print("This lepton flavor is not supported:", params["lep_flav"])
+        raise Exception("The lepton flavor is not supported")
+    
     mask = ( (events.nJetGood >= 2)
              & ( ( (params["lep_flav"]=="mu") & (events.nMuonGood>=2) ) |
                  ( (params["lep_flav"]=="el") & (events.nElectronGood>=2) )  |
@@ -46,6 +50,9 @@ def TwoLepTwoJets(events, params, **kwargs):
 
 def AntiZFourJets(events, params, **kwargs):
     # This mask is used for TTbar CR
+    if params["lep_flav"] not in ['mu','el','both']:
+        print("This lepton flavor is not supported:", params["lep_flav"])
+        raise Exception("The lepton flavor is not supported")
     mask = ( (events.nJetGood >= 4)
              & ( ( (params["lep_flav"]=="mu") & (events.nMuonGood>=2) ) |
                  ( (params["lep_flav"]=="el") & (events.nElectronGood>=2) )  |
@@ -389,83 +396,45 @@ ee_channel = Cut(
 )
 
 
-ll_2j = Cut(
-    name = 'll_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "both",
-            "pt_dilep": 60,
-            "mll": {'low': 50, 'high': 400}
-            }
-)
-mumu_2j = Cut(
-    name = 'mumu_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "mu",
-            "pt_dilep": 60,
-            "mll": {'low': 50, 'high': 400}
-        }
-)
-ee_2j = Cut(
-    name = 'ee_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "el",
-            "pt_dilep": 60,
-            "mll": {'low': 50, 'high': 400}
-        }
-)
+def ll_2j(lep_flav='both'):
+    return Cut(
+        name = 'll_2j_'+lep_flav,
+        function=TwoLepTwoJets,
+        params={"lep_flav": lep_flav,
+                "pt_dilep": 60,
+                "mll": {'low': 50, 'high': 400}
+                }
+    )
 
-Zll_2j = Cut(
-    name = 'Zll_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "both",
-            "pt_dilep": 60,
-            "mll": {'low': 75, 'high': 115}
-            }
-)
+def Zll_2j(lep_flav='both'):
+    return  Cut(
+        name = 'Zll_2j',
+        function=TwoLepTwoJets,
+        params={"lep_flav": lep_flav,
+                "pt_dilep": 60,
+                "mll": {'low': 75, 'high': 115}
+                }
+    )
 
 
-dilep_pt60to150 = Cut(
-    name="dilep_pt60to150",
-    function=DiLeptonPtCut,
-    params={
-	"ptll": {'low': 60, 'high': 150}
-    },
-)
-
-dilep_pt150to2000 = Cut(
-    name="dilep_pt150to2000",
-    function=DiLeptonPtCut,
-    params={
-	"ptll": {'low': 150, 'high': 2000}
-    },
-)
-
-Zmumu_2j = Cut(
-    name = 'Zmumu_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "mu",
-            "pt_dilep": 60,
-            "mll": {'low': 75, 'high': 115}
-        }
-)
-Zee_2j = Cut(
-    name = 'Zee_2j',
-    function=TwoLepTwoJets,
-    params={"lep_flav": "el",
-            "pt_dilep": 60,
-            "mll": {'low': 75, 'high': 115}
-        }
-)
-
+def dilep_pt(pt_min=60, pt_max=2000):
+    return Cut(
+        name="dilep_pt_cut",
+        function=DiLeptonPtCut,
+        params={
+	    "ptll": {'low': pt_min, 'high': pt_max}
+        },
+    )
 
 # Cuts for ttbar control region
-ll_antiZ_4j = Cut(
-    name = 'll_antiZ_4j',
-    function=AntiZFourJets,
-    params={"lep_flav": "both",
-            "pt_dilep": 60,
-            "mll": {'low': 75, 'high': 120}
-            }
-)
+def ll_antiZ_4j(lep_flav='both'):
+    return  Cut(
+        name = 'll_antiZ_4j',
+        function=AntiZFourJets,
+        params={"lep_flav": lep_flav,
+                "pt_dilep": 60,
+                "mll": {'low': 75, 'high': 120}
+                }
+    )
 
 

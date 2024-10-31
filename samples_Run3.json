@@ -4786,7 +4786,7 @@
         ]
     },
     "WminusH_Hto2C_WtoLNu": {
-        "sample": "WH_Hto2C_Wto2Q",
+        "sample": "WH_Hto2C_WtoLNu",
         "json_output": "datasets/Run3_MC_Sig.json",
         "files": [
             {
@@ -4878,7 +4878,7 @@
         ]
     },
     "WplusH_Hto2C_WtoLNu": {
-        "sample": "WH_Hto2C_Wto2Q",
+        "sample": "WH_Hto2C_WtoLNu",
         "json_output": "datasets/Run3_MC_Sig.json",
         "files": [
             {
