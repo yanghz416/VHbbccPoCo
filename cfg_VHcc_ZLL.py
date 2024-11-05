@@ -56,9 +56,9 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
-parameters['run_dnn'] = False
+parameters['run_dnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -76,14 +76,15 @@ cfg = Configurator(
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
-	        #"WW", "WZ", "ZZ",
+	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
-                "ZH_Hto2C_Zto2L"
+                "ZH_Hto2C_Zto2L",
+                #"ZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
@@ -120,28 +121,36 @@ cfg = Configurator(
             get_nObj_min(4, 18., "Jet"),
             get_nPVgood(1), eventFlags, goldenJson],
 
-    preselections = [ll_2j],
+    preselections = [ll_2j()],
     categories = {
         #"baseline_2L2J": [passthrough],
         "baseline_2L2J_no_ctag": [passthrough],
         #"baseline_2L2J_ctag": [passthrough],
         #"baseline_2L2J_ctag_calib": [passthrough],
-        "presel_mumu_2J": [mumu_2j],
-        "presel_ee_2J": [ee_2j],
+        "presel_mm_2J": [ll_2j('mu')],
+        "presel_ee_2J": [ll_2j('el')],
         
-        "SR_mumu_2J_cJ": [Zmumu_2j, ctag_j1, dijet_mass_cut],
-        "SR_ee_2J_cJ": [Zee_2j, ctag_j1, dijet_mass_cut],
-        "SR_ll_2J_cJ": [Zll_2j, ctag_j1, dijet_mass_cut],
-
-        "SR_ll_2J_cJ_low":  [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt60to150],
-        "SR_ll_2J_cJ_high": [Zll_2j, ctag_j1, dijet_mass_cut, dilep_pt150to2000],
-
+        "SR_mm_2J_cJ": [Zll_2j('mu'), ctag_j1, dijet_mass_cut],
+        "SR_ee_2J_cJ": [Zll_2j('el'), ctag_j1, dijet_mass_cut],
+        "SR_ll_2J_cJ": [Zll_2j(), ctag_j1, dijet_mass_cut],
         
+        "SR_ll_2J_cJ_loPT": [Zll_2j(), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "SR_ll_2J_cJ_hiPT": [Zll_2j(), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        
+        "CR_ee_2J_LF": [Zll_2j('el'), antictag_j1, dijet_mass_cut],
+        "CR_ee_2J_HF": [Zll_2j('el'), btag_j1, dijet_mass_cut],
+        "CR_ee_2J_CC": [Zll_2j('el'), ctag_j1, dijet_invmass_cut],
+        "CR_ee_4J_TT": [ll_antiZ_4j('el'), btag_j1, dijet_mass_cut],
+        
+        "CR_mm_2J_LF": [Zll_2j('mu'), antictag_j1, dijet_mass_cut],
+        "CR_mm_2J_HF": [Zll_2j('mu'), btag_j1, dijet_mass_cut],
+        "CR_mm_2J_CC": [Zll_2j('mu'), ctag_j1, dijet_invmass_cut],
+        "CR_mm_4J_TT": [ll_antiZ_4j('mu'), btag_j1, dijet_mass_cut],
 
-        "CR_ll_2J_LF": [Zll_2j, antictag_j1, dijet_mass_cut],
-        "CR_ll_2J_HF": [Zll_2j, btag_j1, dijet_mass_cut],
-        "CR_ll_2J_CC": [Zll_2j, ctag_j1, dijet_invmass_cut],
-        "CR_ll_4J_TT": [ll_antiZ_4j, btag_j1, dijet_mass_cut]
+        #"CR_ll_2J_LF": [Zll_2j('both'), antictag_j1, dijet_mass_cut],
+        #"CR_ll_2J_HF": [Zll_2j('both'), btag_j1, dijet_mass_cut],
+        #"CR_ll_2J_CC": [Zll_2j('both'), ctag_j1, dijet_invmass_cut],
+        #"CR_ll_4J_TT": [ll_antiZ_4j('both'), btag_j1, dijet_mass_cut],
     },
     
     columns = {
@@ -253,18 +262,17 @@ cfg = Configurator(
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=50, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
         
         
         # 2D histograms:
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
-                                   type="variable",   label="N. Jets (good)"),
+                                   type="variable", label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],
-                                   type="variable",
-                                   label="Jets $H_T$ [GeV]")]),
+                                   type="variable", label="Jets $H_T$ [GeV]")]),
         
         "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$"),
                                     Axis(field="dijet_deltaPhi", bins=50, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")]),

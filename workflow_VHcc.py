@@ -144,8 +144,8 @@ class VHccBaseProcessor(BaseProcessorABC):
 
 
     def evaluateBDT(self, data):
-        print(self.params.Models.BDT[self.channel][self.events.metadata["year"]].model_file)
-        print()
+        #print(self.params.Models.BDT[self.channel][self.events.metadata["year"]].model_file)
+        #print()
         # Read the model file
         model = lgb.Booster(model_file=self.params.Models.BDT[self.channel][self.events.metadata["year"]].model_file)
         #bdt_score = self.bdt_model.predict(data)
@@ -189,9 +189,9 @@ class VHccBaseProcessor(BaseProcessorABC):
     
     def evaluateDNN(self, data):
         
-        print("Evaluating DNN...")
-        print(self.params.Models.DNN[self.channel][self.events.metadata["year"]].model_file)
-        print()
+        #print("Evaluating DNN...")
+        #print(self.params.Models.DNN[self.channel][self.events.metadata["year"]].model_file)
+        #print()
         # Load the model on demand
         with tf.device('/CPU:0'):  # Use CPU to avoid GPU memory issues
             model = load_model(self.params.Models.DNN[self.channel][self.events.metadata["year"]].model_file)
@@ -200,7 +200,7 @@ class VHccBaseProcessor(BaseProcessorABC):
         tf.keras.backend.clear_session()
         del model
         gc.collect()
-        print("DNN evaluation completed.")
+        #print("DNN evaluation completed.")
         return dnn_score
     
     def evaluateseparateDNNs(self, data):
