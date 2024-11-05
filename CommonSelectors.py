@@ -90,6 +90,9 @@ def MetTwoJetsNoLep(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def WLNuTwoJets(events, params, **kwargs):
+    if params["lep_flav"] not in ['mu','el','both']:
+        print("This lepton flavor is not supported:", params["lep_flav"])
+        raise Exception("The lepton flavor is not supported")
 
     fields = {
         "pt": events.MET.pt,
