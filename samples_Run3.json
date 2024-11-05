@@ -276,7 +276,7 @@
         ]
     },
     "WtoLNu-4Jets_1J_MLM": {
-        "sample": "WJetsToLNu_MLM",
+        "sample": "WJetsToLNu_NJ_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -322,7 +322,7 @@
         ]
     },
     "WtoLNu-4Jets_2J_MLM": {
-        "sample": "WJetsToLNu_MLM",
+        "sample": "WJetsToLNu_NJ_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -368,7 +368,7 @@
         ]
     },
     "WtoLNu-4Jets_3J_MLM": {
-        "sample": "WJetsToLNu_MLM",
+        "sample": "WJetsToLNu_NJ_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -414,7 +414,7 @@
         ]
     },
     "WtoLNu-4Jets_4J_MLM": {
-        "sample": "WJetsToLNu_MLM",
+        "sample": "WJetsToLNu_NJ_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -506,7 +506,7 @@
         ]
     },
     "WtoLNu-2Jets_0J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJ_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -552,7 +552,7 @@
         ]
     },
     "WtoLNu-2Jets_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJ_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -598,7 +598,7 @@
         ]
     },
     "WtoLNu-2Jets_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJ_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -690,7 +690,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-100to200_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -736,7 +736,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-100to200_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -782,7 +782,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-200to400_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -828,7 +828,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-200to400_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -874,7 +874,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-400to600_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -920,7 +920,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-400to600_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -966,7 +966,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-40to100_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1012,7 +1012,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-40to100_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1058,7 +1058,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-600_1J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1104,7 +1104,7 @@
         ]
     },
     "WtoLNu-2Jets_PTLNu-600_2J_FxFx": {
-        "sample": "WJetsToLNu_FxFx",
+        "sample": "WJetsToLNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1150,7 +1150,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-100to200_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1196,7 +1196,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-1500to2500_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1242,7 +1242,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-200to400_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1288,7 +1288,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-2500_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1334,7 +1334,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-400to800_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1380,7 +1380,7 @@
         ]
     },
     "Zto2Nu-4Jets_HT-800to1500_MLM": {
-        "sample": "ZJetsToNuNu_MLM",
+        "sample": "ZJetsToNuNu_HT_MLM",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1426,7 +1426,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-100to200_1J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1472,7 +1472,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-100to200_2J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1518,7 +1518,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-200to400_1J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1564,7 +1564,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-200to400_2J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1610,7 +1610,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-400to600_1J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1656,7 +1656,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-400to600_2J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1702,7 +1702,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-40to100_1J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1748,7 +1748,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-40to100_2J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1794,7 +1794,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-600_1J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {
@@ -1840,7 +1840,7 @@
         ]
     },
     "Zto2Nu-2Jets_PTNuNu-600_2J_FxFx": {
-        "sample": "ZJetsToNuNu_FxFx",
+        "sample": "ZJetsToNuNu_NJPT_FxFx",
         "json_output": "datasets/Run3_MC_VJets.json",
         "files": [
             {

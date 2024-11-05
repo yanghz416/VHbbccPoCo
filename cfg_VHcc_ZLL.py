@@ -269,11 +269,10 @@ cfg = Configurator(
         
         # 2D histograms:
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
-                                   type="variable",   label="N. Jets (good)"),
+                                   type="variable", label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],
-                                   type="variable",
-                                   label="Jets $H_T$ [GeV]")]),
+                                   type="variable", label="Jets $H_T$ [GeV]")]),
         
         "dphi_jj_dr_jj": HistConf([ Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$"),
                                     Axis(field="dijet_deltaPhi", bins=50, start=-1, stop=3.5, label=r"$\Delta \phi_{jj}$")]),

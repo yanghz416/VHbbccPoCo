@@ -69,18 +69,20 @@ cfg = Configurator(
 
         "filter" : {
             "samples": [
-                "WW", 
+                #"MET"
+                "WW",
                 "WZ",
-                #"ZZ", 
+                #"ZZ",
                 #"QCD",
+                #"ZJetsToNuNu_HT_MLM",
+                "ZJetsToNuNu_NJPT_FxFx",
                 #"WJetsToLNu_MLM",
+                #"WJetsToLNu_FxFx",
                 #"WJetsToQQ_MLM",
-                #"DYJetsToLL_FxFx",
-                "WJetsToLNu_FxFx",
-                #"TTToSemiLeptonic", 
+                #"TTToSemiLeptonic",
                 #"TTTo2L2Nu",
                 #"TTToHadrons",
-                #"WminusH_HToCC_WToLNu", 
+                #"WminusH_HToCC_WToLNu",
                 #"WminusH_Hto2C_WtoLNu",
                 #"WplusH_HToCC_WToLNu",
                 #"WplusH_Hto2C_WtoLNu",
@@ -89,7 +91,7 @@ cfg = Configurator(
             "samples_exclude" : [],
             #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
-            
+
             "year": ['2022_preEE','2022_postEE']
         },
         "subsamples": {
@@ -115,7 +117,7 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
-    
+
     workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZNuNu"} if parameters["save_arrays"] else {},
 
 
@@ -130,7 +132,7 @@ cfg = Configurator(
         #"presel_Met_2J_ctag": [passthrough],
         #"presel_Met_2J_ctag_calib": [passthrough],
         "baseline_Met_2J_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
-        
+
         "SR_Znn_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_Znn_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
@@ -139,7 +141,7 @@ cfg = Configurator(
         "CR_Znn_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
     },
-    
+
     columns = {
         "common": {
             "bycategory": {
@@ -219,12 +221,12 @@ cfg = Configurator(
         "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
         "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
         "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
-        
+
         "Z_pt": HistConf( [Axis(field="Z_pt", bins=100, start=0, stop=400, label=r"$p_T{Z}$ [GeV]")] ),
         "dilep_dijet_ratio": HistConf( [Axis(field="ZH_pt_ratio", bins=100, start=0, stop=2, label=r"$\frac{p_T(jj)}{p_T(\ell\ell)}$")] ),
         "dilep_dijet_dphi": HistConf( [Axis(field="ZH_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi (\ell\ell, jj)$")] ),
-        
-        
+
+
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=900, label=r"Jet HT [GeV]")] ),
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=100, stop=600, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
@@ -236,15 +238,14 @@ cfg = Configurator(
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-        
-        
+
+
         # 2D plots
 	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
-                                   type="variable",   label="N. Jets (good)"),
+                                   type="variable", label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],
-                                   type="variable",
-                                   label="Jets $H_T$ [GeV]")]),
+                                   type="variable", label="Jets $H_T$ [GeV]")]),
 
     }
 )

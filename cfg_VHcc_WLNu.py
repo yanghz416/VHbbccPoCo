@@ -78,10 +78,11 @@ cfg = Configurator(
                 "WZ",
                 "ZZ",
                 #"QCD",
+                "WJetsToLNu_FxFx",
+                #"WJetsToLNu_NJPT_FxFx",
                 #"WJetsToLNu_MLM",
                 #"WJetsToQQ_MLM",
                 #"DYJetsToLL_FxFx",
-                "WJetsToLNu_FxFx",
                 "TTToSemiLeptonic",
                 #"TTTo2L2Nu",
                 #"TTToHadrons",
@@ -269,8 +270,7 @@ cfg = Configurator(
                                    type="variable",   label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],
-                                   type="variable",
-                                   label="Jets $H_T$ [GeV]")]),
+                                   type="variable", label="Jets $H_T$ [GeV]")]),
 
     }
 )
