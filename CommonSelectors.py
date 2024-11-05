@@ -345,32 +345,15 @@ lep_met_2jets = Cut(
     },
 )
 
-wlnu_plus_2j = Cut(
-    name="w_plus_2j",
-    function=WLNuTwoJets,
-    params={
-        "lep_flav": "both",
-        "pt_w": 100
-    }
-)
-
-wmunu_plus_2j = Cut(
-    name="w_plus_2j",
-    function=WLNuTwoJets,
-    params={
-        "lep_flav": "mu",
-        "pt_w": 100
-    }
-)
-
-welnu_plus_2j = Cut(
-    name="w_plus_2j",
-    function=WLNuTwoJets,
-    params={
-        "lep_flav": "el",
-        "pt_w": 100
-    }
-)
+def wlnu_plus_2j(lep_flav='both'):
+    return Cut(
+        name="w_plus_2j_lepflav_"+lep_flav,
+        function=WLNuTwoJets,
+        params={
+            "lep_flav": lep_flav,
+            "pt_w": 100
+        }
+    )
 
 # Cuts for 2-Lep channel
 
@@ -398,7 +381,7 @@ ee_channel = Cut(
 
 def ll_2j(lep_flav='both'):
     return Cut(
-        name = 'll_2j_'+lep_flav,
+        name = 'll_2j_lepflav_'+lep_flav,
         function=TwoLepTwoJets,
         params={"lep_flav": lep_flav,
                 "pt_dilep": 60,
@@ -408,7 +391,7 @@ def ll_2j(lep_flav='both'):
 
 def Zll_2j(lep_flav='both'):
     return  Cut(
-        name = 'Zll_2j',
+        name = 'Zll_2j_lepflav_'+lepflav,
         function=TwoLepTwoJets,
         params={"lep_flav": lep_flav,
                 "pt_dilep": 60,
@@ -419,7 +402,7 @@ def Zll_2j(lep_flav='both'):
 
 def dilep_pt(pt_min=60, pt_max=2000):
     return Cut(
-        name="dilep_pt_cut",
+        name="dilep_pt_cut_Pt%iTo%i"%(pt_min,pt_max),
         function=DiLeptonPtCut,
         params={
 	    "ptll": {'low': pt_min, 'high': pt_max}
@@ -429,7 +412,7 @@ def dilep_pt(pt_min=60, pt_max=2000):
 # Cuts for ttbar control region
 def ll_antiZ_4j(lep_flav='both'):
     return  Cut(
-        name = 'll_antiZ_4j',
+        name = 'll_antiZ_4j_lepflav_'+lep_flav,
         function=AntiZFourJets,
         params={"lep_flav": lep_flav,
                 "pt_dilep": 60,

@@ -57,7 +57,7 @@ files_Run3 = [
 parameters["proc_type"] = "ZNuNu"
 parameters["save_arrays"] = True
 parameters["separate_models"] = False
-parameters['run_dnn'] = False
+parameters['run_dnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -69,17 +69,14 @@ cfg = Configurator(
 
         "filter" : {
             "samples": [
-                #"DATA_SingleMuon",
-                #"DATA_SingleElectron", # For 2017
-                #"DATA_EGamma",          # For 2018
-                #"WW", 
+                "WW", 
                 "WZ",
                 #"ZZ", 
                 #"QCD",
                 #"WJetsToLNu_MLM",
                 #"WJetsToQQ_MLM",
                 #"DYJetsToLL_FxFx",
-                #"WJetsToLNu_FxFx",
+                "WJetsToLNu_FxFx",
                 #"TTToSemiLeptonic", 
                 #"TTTo2L2Nu",
                 #"TTToHadrons",
@@ -87,7 +84,7 @@ cfg = Configurator(
                 #"WminusH_Hto2C_WtoLNu",
                 #"WplusH_HToCC_WToLNu",
                 #"WplusH_Hto2C_WtoLNu",
-                #"ZH_Hto2C_Zto2Nu"
+                "ZH_Hto2C_Zto2Nu"
             ],
             "samples_exclude" : [],
             #"year": ['2017'],
@@ -111,7 +108,7 @@ cfg = Configurator(
             'WJetsToLNu_FxFx': {
                 'DiJet_incl': [passthrough],
                 'DiJet_bx': [DiJet_bx],
-		        'DiJet_cx': [DiJet_cx],
+		'DiJet_cx': [DiJet_cx],
                 'DiJet_ll': [DiJet_ll],
             }
         }
@@ -130,23 +127,23 @@ cfg = Configurator(
 
     categories = {
         "presel_Met_2J_no_ctag": [passthrough],
-        "presel_Met_2J_ctag": [passthrough],
-        "presel_Met_2J_ctag_calib": [passthrough],
+        #"presel_Met_2J_ctag": [passthrough],
+        #"presel_Met_2J_ctag_calib": [passthrough],
         "baseline_Met_2J_ptcut":  [dijet_pt_cut, jet_met_dphi_cut],
         
-        "SR_ZNuNu_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
+        "SR_Znn_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
-        "CR_ZNuNu_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	    "CR_ZNuNu_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
-        "CR_ZNuNu_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
-        "CR_ZNuNu_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
+        "CR_Znn_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
+	"CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+        "CR_Znn_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
+        "CR_Znn_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
     },
     
     columns = {
         "common": {
             "bycategory": {
-                    "SR_ZNuNu_2J_cJ": [
+                    "SR_Znn_2J_cJ": [
                         ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
                                           "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
                                           "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt"], flatten=False),
@@ -236,9 +233,9 @@ cfg = Configurator(
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
 
         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_ZNuNu_2J_cJ','baseline_Met_2J_ptcut']),
+                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_ZNuNu_2J_cJ','baseline_Met_2J_ptcut']),
+                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         
         
         # 2D plots
