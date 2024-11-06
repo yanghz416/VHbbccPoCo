@@ -1,0 +1,38 @@
+input:
+  channel: "2L"
+  eras: "2022_preEE"
+  coffea_file_name: "./output_vhbb_zll_sig_local/output_all.coffea"
+  variation: "nominal"
+
+output:
+  shapes_file_name: "vhbb_shapes_output.root"
+  
+config:
+    example_variable: "dijet_m"
+    example_data: "DATA_DoubleMuon"
+    example_MC: "ZH_Hto2B_Zto2L"
+    example_subsample: "DYJetsToLL_FxFx__DiJet_bx"
+    example_category: "SR_2L2B"
+    
+categories:
+  SR_2L2B:
+    observable: "dijet_m"
+    mata_name: "Zll_SR"
+    
+sample_to_process_map:
+  DATA_EGamma: "DATA_ee"
+  DATA_DoubleMuon: "DATA_mm"
+  ZH_Hto2C_Zto2L: "ZH_hcc"
+  ZH_Hto2B_Zto2L: "ZH_hbb"
+  ggZH_Hto2C_Zto2L: "ggZH_hcc"
+  ggZH_Hto2B_Zto2L: "ggZH_hbb"
+  TTTo2L2Nu: "TT"
+  DYJetsToLL_FxFx: "Zj_ll"
+  DYJetsToLL_FxFx__DiJet_ll: "Zj_ll"
+  DYJetsToLL_FxFx__DiJet_cx: "Zj_cj"
+  DYJetsToLL_FxFx__DiJet_bx: "Zj_bj"
+  WW: "WW"
+  WZ: "WZ"
+  ZZ: "ZZ"
+  
+  
