@@ -1,76 +1,67 @@
-#!/usr/bin/env python
 import os
+import yaml
+import argparse
 import uproot
 from coffea.util import load, save
-import click
+# import click
 
-@click.command()
-@click.argument(
-    'inputfile',
-    required=True,
-    type=str,
-    nargs=1,
-)
+# @click.command()
+# @click.argument(
+#     'inputfile',
+#     required=True,
+#     type=str,
+#     nargs=1,
+# )
 
+def load_config(config_path="config.yaml"):
+    with open(config_path, "r") as file:
+        config = yaml.safe_load(file)
+    return config
 
-def convertCoffeaToRoot(inputfile):
+def convertCoffeaToRoot(config):
+  
+    shapes_file = config["output"]["shapes_file_name"]
+    inputfile = config["input"]["coffea_file_name"]
+    eras = config["input"]["eras"]
+    variation = config["input"]["variation"]
+    
+    example_variable = config["config"]["example_variable"]
+    example_data = config["config"]["example_data"]
+    example_MC = config["config"]["example_MC"]
+    example_subsample = config["config"]["example_subsample"]
+    example_category = config["config"]["example_category"]
+    
     hists = load(inputfile)
 
+    # information printing
     print("The structure of the COFFEA file:")
     print('\t top keys:\n', hists.keys())
-    print('\n\t Variables:\n', hists['variables'].keys())
-    print('\n\t Samples:\n', hists['variables']['dijet_pt'].keys())
-    print('\n\t Subsamples (for DATA):\n', hists['variables']['dijet_pt']['DATA_DoubleMuon'].keys())
-    print('\n\t Subsamples (for ZH_Hto2C):\n', hists['variables']['dijet_pt']['ZH_Hto2C_Zto2L'].keys())
-    print('\n\t Subsamples (for DYJetsToLL_FxFx__DiJet_bx):\n', hists['variables']['dijet_pt']['DYJetsToLL_FxFx__DiJet_bx'].keys())
+    print('\n\t Variables:\n', hists["variables"].keys())
+    print('\n\t Samples:\n', hists["variables"][example_variable].keys())
+    print('\n\t Subsamples (for DATA):\n', hists["variables"][example_variable][example_data].keys())
+    print(f'\n\t Subsamples (for {example_MC}):\n', hists["variables"][example_variable][example_MC].keys())
+    if example_subsample in hists["variables"][example_variable].keys():
+      print(f'\n\t Subsamples (for {example_subsample}):\n', hists["variables"][example_variable][example_subsample].keys())
 
-    print('\n\t A Histogram (for ZH_Hto2C:):\n', hists['variables']['nJet']['ZH_Hto2C_Zto2L']['ZH_Hto2C_Zto2L_2022_postEE'])
-    print('\n\t Draw it: \n', hists['variables']['nJet']['ZH_Hto2C_Zto2L']['ZH_Hto2C_Zto2L_2022_postEE'][{'cat':'SR_ll_2J_cJ', 'variation': 'nominal'}])
+    print(f'\n\t A Histogram (for {example_MC}:):\n', hists["variables"][example_variable][example_MC][f'{example_MC}_{eras}'])
+    print('\n\t Draw it: \n', hists["variables"][example_variable][example_MC][f'{example_MC}_{eras}'][{'cat':example_category, 'variation': variation}])
 
-    #print(hists['variables']['dijet_pt']['ZH_Hto2C_Zto2L'].keys())
-    #print(hists['variables']['dijet_pt']['ZH_Hto2C_Zto2L'])
-
-    Channel = '2L'
+    Channel = config["input"]["channel"]
+    
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category
-    categ_to_var = {'SR_ll_2J_cJ': ['DNN', 'Zll_SR'],
-                    'SR_mm_2J_cJ': ['DNN', 'Zmm_SR'],
-                    'SR_ee_2J_cJ': ['DNN', 'Zee_SR'],
-                    'CR_mm_2J_HF': ['dijet_pt', 'Zmm_CR_HF'],
-                    'CR_mm_2J_LF': ['dijet_pt', 'Zmm_CR_LF'],
-                    'CR_mm_2J_CC': ['dijet_pt', 'Zmm_CR_CC'],
-                    'CR_mm_4J_TT': ['dijet_pt', 'Zmm_CR_TT'],
-                    'CR_ee_2J_HF': ['dijet_pt', 'Zee_CR_HF'],
-                    'CR_ee_2J_LF': ['dijet_pt', 'Zee_CR_LF'],
-                    'CR_ee_2J_CC': ['dijet_pt', 'Zee_CR_CC'],
-                    'CR_ee_4J_TT': ['dijet_pt', 'Zee_CR_TT']
-                    }
-
+    
+    categ_to_var = {
+        category: [details['observable'], details['mata_name']]
+        for category, details in config["categories"].items()
+    }
 
     output_dict = {}
     # Which processes to consider:
-    samples = hists['variables']['dijet_pt'].keys()
+    samples = hists["variables"][example_variable].keys()
 
-    map_sampleName_to_processName = {
-        'DATA_EGamma': 'DATA_ee',
-        'DATA_DoubleMuon': 'DATA_mm',
-        'ZH_Hto2C_Zto2L': 'ZH_hcc',
-        'ZH_Hto2B_Zto2L': 'ZH_hbb',
-        'ggZH_Hto2C_Zto2L': 'ggZH_hcc',
-        'ggZH_Hto2B_Zto2L': 'ggZH_hbb',
-        'TTTo2L2Nu': 'TT',
-        'DYJetsToLL_FxFx': 'Zj_ll',
-        'DYJetsToLL_FxFx__DiJet_ll': 'Zj_ll',
-        'DYJetsToLL_FxFx__DiJet_cx': 'Zj_cj',
-        'DYJetsToLL_FxFx__DiJet_bx': 'Zj_bj',
-        'WW':'WW',
-        'WZ':'WZ',
-        'ZZ':'ZZ',
-        }
-
-    # Which eras:
-    eras = ['2022_postEE']
-
+    map_sampleName_to_processName = config.get("sample_to_process_map", {})
+    
     for samp in samples:
         if 'DATA' in samp:
             # Do not process DATA for now. It needs to be delt separately somehow...
@@ -90,26 +81,30 @@ def convertCoffeaToRoot(inputfile):
                 if len(subsamples)==1:
                     # Note: only nominal is done here.
                     # Need to loop over variations to get shape systematics (todo)
-                    myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': 'nominal'}]
+                    myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                 else:
                     # We need to add all the histograms for sub-samples
-                    myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': 'nominal'}]
+                    myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                     for i in range(1,len(subsamples)):
-                        hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': 'nominal'}]
+                        hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
                         myHist = myHist + hist_i
-                output_dict[era+'_'+newCatName+'/'+proc+'_'+variable+'_nominal'] = myHist
+                output_dict[era+'_'+newCatName+'/'+proc+'_'+variable+f'_{variation}'] = myHist
 
-
-    shapes_file = os.path.join('./', 'vhcc_shapes_'+Channel+'.root')
     with uproot.recreate(shapes_file) as root_file:
         for shape, histogram in output_dict.items():
             root_file[shape] = histogram
 
-
 if __name__ == "__main__":
+  
+    parser = argparse.ArgumentParser(description="Run the Coffea to ROOT converter with a specified config file.")
+    parser.add_argument( "-c", "--config", dest="config", type=str, default="config.yaml", help="Path to the configuration YAML file.")
+    args = parser.parse_args()
+    
+    config_path = args.config
 
     print("Hello world")
-
-    convertCoffeaToRoot()
+    
+    config = load_config(config_path)
+    convertCoffeaToRoot(config)
 
     print("... and goodbye.")
