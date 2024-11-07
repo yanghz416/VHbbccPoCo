@@ -5,7 +5,7 @@ input:
   variation: "nominal"
 
 output:
-  shapes_file_name: "vhcc_shapes_output.root"
+  shapes_file_name: "vhcc_shapes"
   
 config:
   example_variable: "dijet_m"
@@ -50,8 +50,8 @@ categories:
     mata_name: "Zee_CR_TT"
 
 sample_to_process_map:
-  DATA_EGamma: "DATA_ee"
-  DATA_DoubleMuon: "DATA_mm"
+  DATA_EGamma: "data_obs"
+  DATA_DoubleMuon: "data_obs"
   ZH_Hto2C_Zto2L: "ZH_hcc"
   ZH_Hto2B_Zto2L: "ZH_hbb"
   ggZH_Hto2C_Zto2L: "ggZH_hcc"

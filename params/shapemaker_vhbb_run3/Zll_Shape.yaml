@@ -1,11 +1,10 @@
 input:
   channel: "2L"
   eras: ["2022_preEE"]
-  coffea_file_name: "./output_vhbb_zll_sig_local/output_all.coffea"
   variation: "nominal"
 
 output:
-  shapes_file_name: "vhbb_shapes_output.root"
+  shapes_file_name: "vhbb_shapes"
   
 config:
   example_variable: "dijet_m"
@@ -20,8 +19,8 @@ categories:
     mata_name: "Zll_SR"
     
 sample_to_process_map:
-  DATA_EGamma: "DATA_ee"
-  DATA_DoubleMuon: "DATA_mm"
+  DATA_EGamma: "data_ob"
+  DATA_DoubleMuon: "data_obs"
   ZH_Hto2C_Zto2L: "ZH_hcc"
   ZH_Hto2B_Zto2L: "ZH_hbb"
   ggZH_Hto2C_Zto2L: "ggZH_hcc"
