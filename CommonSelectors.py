@@ -504,7 +504,7 @@ def ll_2j(lep_flav='both'):
 
 def Zll_2j(lep_flav='both'):
     return  Cut(
-        name = 'Zll_2j_lepflav_'+lepflav,
+        name = 'Zll_2j_lepflav_'+lep_flav,
         function=TwoLepTwoJets,
         params={"lep_flav": lep_flav,
                 "pt_dilep": 60,
