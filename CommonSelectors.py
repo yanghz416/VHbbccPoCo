@@ -142,12 +142,54 @@ def jettag(events, params, **kwargs):
     
     return ak.where(ak.is_none(mask), False, mask)
 
+def bjettag(events, params, **kwargs):
+    if params['tagger'] == "PNet":
+        BvL = "btagPNetB"
+    elif params['tagger'] == "DeepFlav":
+        BvL = "btagDeepFlavB"
+    elif params['tagger'] == "RobustParT":
+        BvL = "btagRobustParTAK4B"
+    else:
+        raise NotImplementedError(f"This tagger is not implemented: {params['tagger']}")
+        
+    tightness = params["btag_cut"]
+    _btag_cut = events[f"btag_cut_{tightness}"]
+    
+    if params["inv"]:
+      mask_BvL = (events.JetsBvsL[BvL][:, params["nJ"]]<_btag_cut)
+    else:
+      mask_BvL = (events.JetsBvsL[BvL][:, params["nJ"]]>_btag_cut)
+      
+    mask = mask_BvL
+    
+    return ak.where(ak.is_none(mask), False, mask)
+  
+def METpTCut(events, params, **kwargs):
+    if params["invert"]:
+        mask = (events.pt_miss < params["pt_met"])
+    else:
+        mask = (events.pt_miss > params["pt_met"])
+      
+    return ak.where(ak.is_none(mask), False, mask)
 
 def DiJetPtCut(events, params, **kwargs):
     mask = (  (events.nJetGood >= 2)
               & (events.dijet.pt > params["pt_dijet"])
               #& (events.dijet_csort.pt > params["pt_dijet"])
             )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DiBJetPtCut(events, params, **kwargs):
+    if params["dijet"]:
+        mask = (  (events.nJetGood >= 2)
+                & (events.dijet_bsort.pt > params["pt_dijet"])
+              )
+    else:
+        mask = (  (events.nJetGood >= 2)
+                & (events.dijet_bsort.j1pt > params["pt_b1"])
+                & (events.dijet_bsort.j2pt > params["pt_b2"])
+              )
+            
     return ak.where(ak.is_none(mask), False, mask)
 
 def DiJetMassCut(events, params, **kwargs):
@@ -164,7 +206,63 @@ def DiJetMassCut(events, params, **kwargs):
                 )
     return ak.where(ak.is_none(mask), False, mask)
 
+def DiBJetMassCut(events, params, **kwargs):
 
+    if params["invert"]:
+        mask = (  (events.nJetGood >= 2)          
+                  & ( (events.dijet_bsort.mass < params["mjj"]["low"])
+                      | (events.dijet_bsort.mass > params["mjj"]["high"]) )
+                )        
+    else:
+        mask = (  (events.nJetGood >= 2)          
+                  & (events.dijet_bsort.mass > params["mjj"]["low"])
+                  & (events.dijet_bsort.mass < params["mjj"]["high"])
+                )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def BJetMassCut(events, params, **kwargs):
+    mask = (  (events.nJetGood >= 2)          
+            & (events.dijet_bsort.j1mass >= params["mass_b1_min"])
+            & (events.dijet_bsort.j1mass <= params["mass_b1_max"])
+            & (events.dijet_bsort.j2mass >= params["mass_b2_min"])
+            & (events.dijet_bsort.j2mass <= params["mass_b2_max"])
+    )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DiBJetDeltaEtaCut(events, params, **kwargs):
+    mask = ( (events.nJetGood >= 2) & (events.dijet_bsort.deltaEta < params["bb_deta"]) )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DeltaPhiVHCut(events, params, **kwargs):
+    mask = ( events.VHbb_deltaPhi > params["VHdPhi"] )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DeltaRVHCut(events, params, **kwargs):
+    mask = ( events.VHbb_deltaR < params["VHdR"] )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def HVpTRatioCut(events, params, **kwargs):
+    mask = ( (events.VHbb_pt_ratio >= params["HVpTRatio_min"]) 
+         & (events.VHbb_pt_ratio <= params["HVpTRatio_max"])
+         )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def AddLepCut(events, params, **kwargs):
+    mask = ( events.NaL == params["add_lep"] )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def AddJetCut(events, params, **kwargs):
+    mask = ( events.NaJ <= params["add_jet"] )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def DiLeptonMassCut(events, params, **kwargs):
+    if params["invert"]:
+        mask = (  (events.ll.mass < params["mll"]["low"]) | (events.ll.mass > params["mll"]["high"]) )
+        return ak.where(ak.is_none(mask), False, mask)
+    else:
+        mask = (  (events.ll.mass >= params["mll"]["low"]) & (events.ll.mass <= params["mll"]["high"]) )
+        return ak.where(ak.is_none(mask), False, mask)
+    
 def DiLeptonPtCut(events, params, **kwargs):
     mask = (  (events.ll.pt > params["ptll"]["low"]) & (events.ll.pt < params["ptll"]["high"]) )
     return ak.where(ak.is_none(mask), False, mask)
@@ -284,6 +382,18 @@ btag_j1 = Cut(
     }
 )
 
+def bjet_tagger(tagger='DeepFlav', nJ = 0, btag_cut = 'M', invert = False):
+    return Cut(
+    name = "bjet_tagger",
+    function = bjettag,
+    params = {
+      "tagger": tagger,
+      "nJ": nJ,
+      "btag_cut": btag_cut,
+      "inv": invert
+    }
+    )
+
 dijet_pt_cut = Cut(
     name="dijet_pt_cut",
     function=DiJetPtCut,
@@ -402,6 +512,118 @@ def Zll_2j(lep_flav='both'):
                 }
     )
 
+def ZLLHBB_2J(lep_flav='both'):
+    return Cut(
+    name = 'ZLLHBB_2J',
+    function=TwoLepTwoJets,
+    params={"lep_flav": lep_flav,
+            "pt_dilep": 0,
+            "mll": {'low': 10, 'high': 450}
+            }
+    )
+
+VH_dPhi_cut_2p5 = Cut(
+  name = 'VH_dPhi_cut_2p5',
+  function=DeltaPhiVHCut,
+    params={
+      "VHdPhi": 2.5,
+           }
+)
+
+VH_dR_cut_3p6 = Cut(
+  name = 'VH_dR_cut_3p6',
+  function=DeltaRVHCut,
+    params={
+      "VHdR": 3.6,
+           }
+)
+
+HV_pTRatio_cut_0p5to2 = Cut(
+  name = 'HV_pTRatio_cut_0p5to2',
+  function=HVpTRatioCut,
+    params={
+      "HVpTRatio_min": 0.5,
+      "HVpTRatio_max": 2,
+           }
+)
+
+def dijet_mass(mass_min=0, mass_max=2000, invert=False):
+    return Cut(
+        name=f"dijet_mass_cut",
+        function=DiBJetMassCut,
+        params={
+            "invert": invert,
+            "mjj": {'low': mass_min, 'high': mass_max}
+        }
+    )
+
+def dibjet_pt_cut(dijet=True, pt_dijet=50, pt_b1=0, pt_b2=0):
+    return Cut(
+      name="dijet_pt_cut_50",
+      function=DiBJetPtCut,
+      params={
+        "dijet": True,
+        "pt_dijet": 50,
+        "pt_b1": 0,
+        "pt_b2": 0,
+      }
+    )
+
+bJ_mass_cut_5to30_5to30 = Cut(
+    name="bJ_mass_cut_5to30_5to30",
+    function=BJetMassCut,
+    params={
+      "mass_b1_min": 5,
+      "mass_b2_min": 5,
+      "mass_b1_max": 30,
+      "mass_b2_max": 30,
+    },
+)
+                                   
+dijet_eta_cut_1 = Cut(
+    name="dijet_eta_cut_1",
+    function=DiBJetDeltaEtaCut,
+    params={
+	"bb_deta": 1.0,
+    },
+)
+                                   
+nAddLep_cut_0 = Cut(
+    name="nAddLep_cut_0",
+    function=AddLepCut,
+    params={
+      "add_lep": 0,
+    },
+) 
+
+def nAddJetCut(add_jet=1):
+  return Cut(
+    name="nAddJet_cut",
+    function=AddJetCut,
+    params={
+      "add_jet": add_jet,
+    },
+  ) 
+
+def missing_pt_cut(invert=False, pt_met=60):
+    return Cut(
+        name="missing_pt_cut",
+        function=METpTCut,
+        params={
+          "invert": invert,
+          "pt_met": pt_met,
+        },
+    )
+
+def dilep_mass_window(invert=False, mll_low=75, mll_high=400):
+    return Cut(
+        name = 'dilep_mass_window',
+        function=DiLeptonMassCut,
+          params={
+            "invert": invert,
+            "mll": {'low': mll_low, 'high': mll_high}
+          }
+    )
 
 def dilep_pt(pt_min=60, pt_max=2000):
     return Cut(
