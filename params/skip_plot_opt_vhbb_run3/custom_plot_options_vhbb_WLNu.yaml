@@ -1,0 +1,111 @@
+plotting_style:
+  samples_groups:
+    # Top:
+    #   - TTToSemiLeptonic
+    #   - TTTo2L2Nu
+    #   - TTToHadrons
+    VV:
+      - WW
+      - WZ
+      - ZZ
+      
+    W2B:
+      - WminusH_Hto2B_WtoLNu
+      - WplusH_Hto2B_WtoLNu
+      
+    W2C:
+      - WminusH_Hto2C_WtoLNu
+      - WplusH_Hto2C_WtoLNu
+        
+  exclude_samples:
+
+    - DATA_MuonEG
+    # - DATA_DoubleMuon
+    # - DYJetsToLL_PT_MLM
+    # - DYJetsToLL_PT_MLM__DiJet_bx
+    # - DYJetsToLL_PT_MLM__DiJet_cx
+    # - DYJetsToLL_PT_MLM__DiJet_ll
+    # - DYJetsToLL_PT_MLM__DiJet_incl
+    # - WJetsToLNu_FxFx
+    - WJetsToLNu_FxFx__DiJet_incl
+    # - DYJetsToLL_M-50_MLM
+    # - DYJetsToLL_M-50_MLM__DiJet_incl
+    
+  rescale_samples:
+    WJetsToLNu_FxFx: 1.00
+
+  signal_samples:
+    WplusH_Hto2B_WtoLNu: 50
+    WminusH_Hto2B_WtoLNu: 50
+    # WplusH_Hto2C_WtoLNu: 50
+    # WminusH_Hto2C_WtoLNu: 50
+    
+  labels_mc:
+    
+    # DYJetsToLL_PT_MLM__DiJet_bx: DY4J+bj
+    # DYJetsToLL_PT_MLM__DiJet_cx: DY4J+cj
+    # DYJetsToLL_PT_MLM__DiJet_ll: DY4J+lj
+    # DYJetsToLL_PT_MLM__DiJet_incl: DY4J-Inc
+    
+    WJetsToLNu_FxFx__DiJet_bx: WJ+bj
+    WJetsToLNu_FxFx__DiJet_cx: WJ+cj
+    WJetsToLNu_FxFx__DiJet_ll: WJ+lj
+    WJetsToLNu_FxFx__DiJet_incl: WJ-Inc
+    
+    TTTo2L2Nu: TT2L
+    TTToSemiLeptonic: TT1L
+    TTToHadrons: TTHad
+    
+    WplusH_Hto2B_WtoLNu: "$W+H\\to bb$"
+    WminusH_Hto2B_WtoLNu: "$W-H\\to bb$"
+    WplusH_Hto2C_WtoLNu: "$W+H\\to cc$"
+    WminusH_Hto2C_WtoLNu: "$W-H\\to cc$"
+    
+   
+  colors_mc:
+    TTTo2L2Nu: "#02baf7"
+    TTToSemiLeptonic: "#1ca8d6"
+    TTToHadrons: "#438aa1"
+    
+    # DYJetsToLL_MLM: "#ADFF2F"
+    # WJetsToLNu_FxFx: "#ADFF2F"
+    # DYJetsToLL_MiNNLO: "#ADFF2F"
+    # WJetsToLNu_FxFx: "#F6D608"
+    # ZJetsToNuNu_FxFx: "#ADFF2F"
+    # VV: "#FFA07A"
+    # QCD: "#D3D3D3"
+
+    WJetsToLNu_FxFx__DiJet_bx:  "#22e02e"
+    WJetsToLNu_FxFx__DiJet_cx:  "#03910c"
+    WJetsToLNu_FxFx__DiJet_ll:  "#8fff96"
+    
+    # DYJetsToLL_M-50_MLM__DiJet_bx:  "#f5f768"
+    # DYJetsToLL_M-50_MLM__DiJet_cx:  "#e3e146"
+    # DYJetsToLL_M-50_MLM__DiJet_ll:  "#adab10"
+    # DYJetsToLL_M-50_MLM__DiJet_incl: "#196f3d"
+
+  blind_hists:
+    categories: [SR_LNu2B]
+    histograms:
+      dibjet_m: [90, 150]
+      BDT: [0.7, 1]
+      DNN: [0.7, 1]
+
+  opts_sig:
+    histtype: "step"
+    stack: false
+    flow: "sum"
+    edges: true
+    linestyle: solid
+    linewidth: 2
+
+  opts_ratios:
+    elinewidth: 1
+    linestyle: solid
+    linewidth: 0
+    marker: o
+    markersize: 4.0
+
+  print_info:
+    category: True
+    year: True
