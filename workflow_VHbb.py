@@ -137,6 +137,12 @@ def get_dibjet(jets, tagger = 'PNet'):
         fields["j2CvsL"] = ak.where( (njet >= 2), jets[:,1][CvL], -1)
         fields["j1CvsB"] = ak.where( (njet >= 2), jets[:,0][CvB], -1)
         fields["j2CvsB"] = ak.where( (njet >= 2), jets[:,1][CvB], -1)
+        
+    # Lead b-jet pt: larger of the first two jets' pt
+    fields["leadb_pt"] = ak.where( njet >= 2, ak.max(ak.Array([jets[:, 0].pt, jets[:, 1].pt]), axis=0), -1)
+
+    # Sublead b-jet pt: smaller of the first two jets' pt
+    fields["subleadb_pt"] = ak.where(njet >= 2, ak.min(ak.Array([jets[:, 0].pt, jets[:, 1].pt]), axis=0), -1)
     
     dibjet = ak.zip(fields, with_name="PtEtaPhiMCandidate")
     return dibjet
@@ -635,7 +641,6 @@ class VHbbBaseProcessor(BaseProcessorABC):
                 })
             
                 df = ak.to_pandas(variables_to_process)
-                columns_to_exclude = ['dilep_m']
                 df = df.drop(columns=columns_to_exclude, errors='ignore')
                 self.channel = "1L"
                 if not self.params.separate_models: 
@@ -682,34 +687,81 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
             self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
             
-            self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.Z_candidate.pt
-            self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_csort))
-            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
-            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
+            self.events["dibjet_m"] = self.events.dijet_bsort.mass
+            self.events["dibjet_pt"] = self.events.dijet_bsort.pt
+            self.events["dibjet_eta"] = self.events.dijet_bsort.eta
+            self.events["dibjet_phi"] = self.events.dijet_bsort.phi
+            self.events["dibjet_dr"] = self.events.dijet_bsort.deltaR
+            self.events["dibjet_deltaPhi"] = self.events.dijet_bsort.deltaPhi
+            self.events["dibjet_deltaEta"] = self.events.dijet_bsort.deltaEta
+            self.events["dibjet_BvsL_max"] = self.events.dijet_bsort.j1BvsL
+            self.events["dibjet_BvsL_min"] = self.events.dijet_bsort.j2BvsL
+            self.events["dibjet_CvsL_max"] = self.events.dijet_bsort.j1CvsL
+            self.events["dibjet_CvsL_min"] = self.events.dijet_bsort.j2CvsL
+            self.events["dibjet_CvsB_max"] = self.events.dijet_bsort.j1CvsB
+            self.events["dibjet_CvsB_min"] = self.events.dijet_bsort.j2CvsB
+            self.events["dibjet_pt_max"] = self.events.dijet_bsort.j1pt
+            self.events["dibjet_pt_min"] = self.events.dijet_bsort.j2pt
+            self.events["dibjet_mass_max"] = self.events.dijet_bsort.j1mass
+            self.events["dibjet_mass_min"] = self.events.dijet_bsort.j2mass
             
-            # Create a record of variables to be dumped as root/parquete file:
-            variables_to_process = ak.zip({
-                "dijet_m": self.events["dijet_m"],
-                "dijet_pt": self.events["dijet_pt"],
-                "dijet_dr": self.events["dijet_dr"],
-                "dijet_deltaPhi": self.events["dijet_deltaPhi"],
-                "dijet_deltaEta": self.events["dijet_deltaEta"],
-                "dijet_CvsL_max": self.events["dijet_CvsL_max"],
-                "dijet_CvsL_min": self.events["dijet_CvsL_min"],
-                "dijet_CvsB_max": self.events["dijet_CvsB_max"],
-                "dijet_CvsB_min": self.events["dijet_CvsB_min"],
-                "dijet_pt_max": self.events["dijet_pt_max"],
-                "dijet_pt_min": self.events["dijet_pt_min"],
-                "ZH_pt_ratio": self.events["ZH_pt_ratio"],
-                "ZH_deltaPhi": self.events["ZH_deltaPhi"],
-                "Z_pt": self.events["Z_pt"]
-            })
+            self.events["ZHbb_pt_ratio"] = self.events.dijet_bsort.pt/self.events.Z_candidate.pt
+            self.events["VHbb_pt_ratio"] = self.events.ZHbb_pt_ratio
             
-            df = ak.to_pandas(variables_to_process)
-            #columns_to_exclude = []
-            #df = df.drop(columns=columns_to_exclude, errors='ignore')
-            self.events["BDT"] = self.evaluateBDT(df)
-            self.events["DNN"] = self.evaluateDNN(df)
-            mask = ((self.events.nJetGood >= 2) & (self.events.dijet_csort.pt > 120)) &  ( (self.events.deltaPhi_jet1_MET > 0.6) & (self.events.deltaPhi_jet2_MET > 0.6)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4)) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200))
-            selection_ZNuNu = ak.where(ak.is_none(mask), False, mask)
+            self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_bsort))
+            self.events["VHbb_deltaPhi"] = self.events.ZH_deltaPhi
+            
+            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetsBvsL[:,0]))
+            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetsBvsL[:,1]))
+            
+            if self.run_dnn:
+                odd_events = self.events[odd_event_mask]
+                # Create a record of variables to be dumped as root/parquete file:
+                variables_to_process = ak.zip({
+                    "dijet_m": self.events["dijet_m"],
+                    "dijet_pt": self.events["dijet_pt"],
+                    "dijet_dr": self.events["dijet_dr"],
+                    "dijet_deltaPhi": self.events["dijet_deltaPhi"],
+                    "dijet_deltaEta": self.events["dijet_deltaEta"],
+                    "dijet_CvsL_max": self.events["dijet_CvsL_max"],
+                    "dijet_CvsL_min": self.events["dijet_CvsL_min"],
+                    "dijet_CvsB_max": self.events["dijet_CvsB_max"],
+                    "dijet_CvsB_min": self.events["dijet_CvsB_min"],
+                    "dijet_pt_max": self.events["dijet_pt_max"],
+                    "dijet_pt_min": self.events["dijet_pt_min"],
+                    "ZH_pt_ratio": self.events["ZH_pt_ratio"],
+                    "ZH_deltaPhi": self.events["ZH_deltaPhi"],
+                    "Z_pt": self.events["Z_pt"]
+                })
+            
+                df = ak.to_pandas(variables_to_process)
+                # columns_to_exclude = ['dilep_m']
+                df = df.drop(columns=columns_to_exclude, errors='ignore')
+                self.channel = "0L"
+                if not self.params.separate_models: 
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
+
+                    bdt_predictions = self.evaluateBDT(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
+
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateDNN(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
+                else:
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
+
+                    bdt_predictions = self.evaluateseparateBDTs(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
+
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateseparateDNNs(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
 

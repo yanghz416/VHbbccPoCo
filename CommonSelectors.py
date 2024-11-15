@@ -229,6 +229,14 @@ def BJetMassCut(events, params, **kwargs):
     )
     return ak.where(ak.is_none(mask), False, mask)
 
+def HbbPtCut(events, params, **kwargs):
+    
+    mask = ( (events.nJetGood >= 2)
+           & (events.dijet_bsort.leadb_pt > params["b1_pt"])
+           & (events.dijet_bsort.subleadb_pt > params["b2_pt"])
+    )
+    return ak.where(ak.is_none(mask), False, mask)
+
 def DiBJetDeltaEtaCut(events, params, **kwargs):
     mask = ( (events.nJetGood >= 2) & (events.dijet_bsort.deltaEta < params["bb_deta"]) )
     return ak.where(ak.is_none(mask), False, mask)
@@ -445,6 +453,40 @@ met_2jets_0lep = Cut(
         "pt_met": 170,
         "pt_jet1": 60,
         "pt_jet2": 35,
+    },
+)
+
+def ZNNHBB_2J():
+    return Cut(
+        name = "ZNNHBB_2J",
+        function=MetTwoJetsNoLep,
+        params={
+            "pt_met": 180,
+            "pt_jet1": 0,
+            "pt_jet2": 0,
+        },
+    )
+def bJ_pt_cut(b1_pt = 60, b2_pt = 35):
+    return Cut(
+        name="bJ_pt_cut",
+        function=HbbPtCut,
+        params={
+            "b1_pt": b1_pt,
+            "b2_pt": b2_pt,
+        },
+    )
+
+import numpy as np
+
+def min_dPhi_bJ_MET(events, params, **kwargs):
+    mask = ( np.minimum(events.deltaPhi_jet1_MET, events.deltaPhi_jet2_MET) <= params["max_min_dPhi"] )
+    return ak.where(ak.is_none(mask), False, mask)
+    
+min_dPhi_bJ_MET_1p57 = Cut(
+    name = "min_dPhi_bJ_MET_1p57",
+    function=min_dPhi_bJ_MET,
+    params={
+        "max_min_dPhi": 1.57,
     },
 )
 

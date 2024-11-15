@@ -1,0 +1,35 @@
+
+cd VHccPoCo
+
+build-datasets --cfg samples_Run3.json -o -rs 'T[123]_(FR|IT|BE|CH|US)_\w+' -ir # or
+build-datasets --cfg samples_Run3.json -o -rs 'T[2]_(CH)_\w+' -ir
+
+cd ..
+
+runner --cfg VHccPoCo/cfg_VHbb_ZLL.py -o output_vhbb_zll_dev_local --executor futures -s 10 -lf 1 -lc 1 2>&1 | tee output_vhbb_zll_local.log  # local test
+
+runner --cfg VHccPoCo/cfg_VHbb_ZLL.py --executor dask@lxplus --custom-run-options VHccPoCo/params/skip_plot_opt_vhbb_run3/custom_run_options_vhbb_test.yaml  -o output_vhbb_zll_dev_all_1113 2>&1 | tee dask_out_1113.log &
+
+cd output_vhbb_zll_dev_all_1113
+
+make-plots -i output_all.coffea --cfg parameters_dump.yaml -o plots -op ../VHccPoCo/params/skip_plot_opt_vhbb_run3/custom_plot_options_vhbb_ZLL.yaml
+
+
+
+
+
+pocket-coffea merge-outputs -i output_DATA_SingleMuon_2018_EraA.coffea -i output_DATA_SingleMuon_2018_EraB.coffea -i output_DATA_SingleMuon_2018_EraC.coffea -i output_DATA_SingleMuon_2018_EraD.coffea -i output_DYJetsToLL_M-50_2018.coffea -o output_all.coffea
+
+runner --cfg VHccPoCo/cfg_VHbb_ZLL.py -o output_vhbb_zll_dev_local --executor futures -s 10 -lf 10000 -lc 10000 2>&1 | tee output_vhbb_zll_local.log
+
+runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_vhcc_zll_dev_local --executor futures -s 10 -lf 10000 -lc 10000 2>&1 | tee output_vhcc_zll_local.log
+
+
+
+
+
+
+runner --cfg VHccPoCo/cfg_VHbb_WLNu.py -o output_vhbb_wln_dev_local --executor futures -s 10 -lf 1 -lc 1 2>&1 | tee output_vhbb_wln_local.log
+
+
+runner --cfg VHccPoCo/cfg_VHbb_ZNuNu.py -o output_vhbb_znn_dev_local --executor futures -s 10 -lf 1 -lc 1 2>&1 | tee output_vhbb_znn_local.log
