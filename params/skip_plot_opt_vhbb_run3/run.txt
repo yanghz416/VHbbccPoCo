@@ -1,4 +1,4 @@
-
+# examples, don't run directly
 cd VHccPoCo
 
 build-datasets --cfg samples_Run3.json -o -rs 'T[123]_(FR|IT|BE|CH|US)_\w+' -ir # or
