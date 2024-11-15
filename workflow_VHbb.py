@@ -671,6 +671,11 @@ class VHbbBaseProcessor(BaseProcessorABC):
                         self.events["DNN"] = np.zeros_like(self.events["BDT"])
 
         if self.proc_type=="ZNuNu":
+
+            self.events["NaL"] = get_additionalleptons(
+                self.events.ElectronGood, self.events.MuonGood, 0
+            ) # number of additional leptons
+            
             ### General
             self.events["Z_candidate"] = self.events.MET_used
             self.events["Z_pt"] = self.events.Z_candidate.pt
