@@ -1,0 +1,64 @@
+
+btagger:
+  '2016_PreVFP':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2431
+  '2016_PostVFP':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2431
+  '2017':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2431
+  '2018':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2431
+
+  '2022_preEE':
+    reference:
+      btagging_WP: https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22/#ak4-b-tagging
+    DeepFlav: 
+      name: btagDeepFlavB
+      WP:
+        L: 0.0583
+        M: 0.3086
+        T: 0.7183
+        XT: 0.8111
+        XXT: 0.9512
+    PNet: 
+      name: btagPNetB
+      WP: 
+        L: 0.047
+        M: 0.245
+        T: 0.6734
+        XT: 0.7862
+        XXT: 0.961
+
+  '2022_postEE':
+    reference:
+      btagging_WP: https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer22EE/
+    DeepFlav: 
+      name: btagDeepFlavB
+      WP:
+        L: 0.0614
+        M: 0.3196
+        T: 0.73
+        XT: 0.8184
+        XXT: 0.9542
+    PNet: 
+      name: btagPNetB
+      WP: 
+        L: 0.0499
+        M: 0.2605
+        T: 0.6915
+        XT: 0.8033
+        XXT: 0.9664
+
+
+  '2023_preBPix':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2431
+  '2023_postBPix':
+    tagger: Jet_btagDeepFlavB
+    wp: 0.2435
+
+# https://btv-wiki.docs.cern.ch/ScaleFactors/Run3Summer23BPix/

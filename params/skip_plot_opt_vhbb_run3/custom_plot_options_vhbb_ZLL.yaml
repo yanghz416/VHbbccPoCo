@@ -1,0 +1,88 @@
+plotting_style:
+  samples_groups:
+    # Top:
+    #   - TTToSemiLeptonic
+    #   - TTTo2L2Nu
+    #   - TTToHadrons
+    VV:
+      - WW
+      - WZ
+      - ZZ
+        
+  exclude_samples:
+
+    - DATA_MuonEG
+    # - DATA_DoubleMuon
+    # - DYJetsToLL_PT_MLM
+    # - DYJetsToLL_PT_MLM__DiJet_bx
+    # - DYJetsToLL_PT_MLM__DiJet_cx
+    # - DYJetsToLL_PT_MLM__DiJet_ll
+    # - DYJetsToLL_PT_MLM__DiJet_incl
+    # - DYJetsToLL_FxFx
+    - DYJetsToLL_FxFx__DiJet_incl
+    # - DYJetsToLL_M-50_MLM
+    # - DYJetsToLL_M-50_MLM__DiJet_incl
+    
+  rescale_samples:
+    DYJetsToLL_FxFx: 1.33
+
+  signal_samples:
+    ZH_Hto2B_Zto2L: 50
+    ZH_Hto2C_Zto2L: 50
+      
+  labels_mc:
+    
+    # DYJetsToLL_PT_MLM__DiJet_bx: DY4J+bj
+    # DYJetsToLL_PT_MLM__DiJet_cx: DY4J+cj
+    # DYJetsToLL_PT_MLM__DiJet_ll: DY4J+lj
+    # DYJetsToLL_PT_MLM__DiJet_incl: DY4J-Inc
+    
+    DYJetsToLL_FxFx__DiJet_bx: DY4J+bj
+    DYJetsToLL_FxFx__DiJet_cx: DY4J+cj
+    DYJetsToLL_FxFx__DiJet_ll: DY4J+lj
+    DYJetsToLL_FxFx__DiJet_incl: DY4J-Inc
+    
+    TTTo2L2Nu: TT2L
+    TTToSemiLeptonic: TT1L
+    TTToHadrons: TTHad
+    
+    ZH_Hto2C_Zto2L: "$ZH\\to cc$"
+    ZH_Hto2B_Zto2L: "$ZH\\to bb$"
+    
+  colors_mc:
+    TTTo2L2Nu: "#02baf7"
+    TTToSemiLeptonic: "#1ca8d6"
+    TTToHadrons: "#438aa1"
+    
+    ZH_Hto2B_Zto2L: "#ff0000"
+    ZH_Hto2C_Zto2L: "#0088ff"
+
+    DYJetsToLL_FxFx__DiJet_bx:  "#f5f768"
+    DYJetsToLL_FxFx__DiJet_cx:  "#e3e146"
+    DYJetsToLL_FxFx__DiJet_ll:  "#adab10"
+
+  blind_hists:
+    categories: [SR_2L2B]
+    histograms:
+      dibjet_m: [90, 150]
+      BDT: [0.7, 1]
+      DNN: [0.7, 1]
+
+  opts_sig:
+    histtype: "step"
+    stack: false
+    flow: "sum"
+    edges: true
+    linestyle: solid
+    linewidth: 2
+
+  opts_ratios:
+    elinewidth: 1
+    linestyle: solid
+    linewidth: 0
+    marker: o
+    markersize: 4.0
+
+  print_info:
+    category: True
+    year: True

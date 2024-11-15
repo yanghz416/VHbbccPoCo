@@ -6,12 +6,12 @@ import math
 import warnings
 import os
 import lightgbm as lgb
-import tensorflow as tf
+# import tensorflow as tf
 import gc
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.callbacks import EarlyStopping
-from keras.models import load_model
+# from keras.models import Sequential
+# from keras.layers import Dense
+# from keras.callbacks import EarlyStopping
+# from keras.models import load_model
 import CommonSelectors
 from CommonSelectors import *
 from pocket_coffea.utils.utils import dump_ak_array
@@ -83,8 +83,7 @@ def BvsLsorted(jets, tagger):
         raise NotImplementedError(f"This tagger is not implemented: {tagger}")
     
     return jets[ak.argsort(jets[btag], axis=1, ascending=False)]
-
-  
+    
 def get_dibjet(jets, tagger = 'PNet'):
     
     fields = {
@@ -142,19 +141,19 @@ def get_dibjet(jets, tagger = 'PNet'):
     dibjet = ak.zip(fields, with_name="PtEtaPhiMCandidate")
     return dibjet
   
-def get_additionalleptons(electrons, muons, transverse=False):
+def get_additionalleptons(electrons, muons, baseNum=0):
 
     if muons is None and electrons is None:
         raise("Must specify either muon or electron collection in get_dilepton() function")
     elif muons is None and electrons is not None:
-        leptons = ak.pad_none(ak.with_name(electrons, "PtEtaPhiMCandidate"), 2)
+        leptons = ak.pad_none(ak.with_name(electrons, "PtEtaPhiMCandidate"), baseNum)
     elif electrons is None and muons is not None:
-        leptons = ak.pad_none(ak.with_name(muons, "PtEtaPhiMCandidate"), 2)
+        leptons = ak.pad_none(ak.with_name(muons, "PtEtaPhiMCandidate"), baseNum)
     else:
-        leptons = ak.pad_none(ak.with_name(ak.concatenate([ muons[:, 0:2], electrons[:, 0:2]], axis=1), "PtEtaPhiMCandidate"), 2)
+        leptons = ak.pad_none(ak.with_name(ak.concatenate([ muons[:, 0:baseNum], electrons[:, 0:baseNum]], axis=1), "PtEtaPhiMCandidate"), baseNum)
         
     nlep = ak.num(leptons[~ak.is_none(leptons, axis=1)])
-    NAL = nlep - 2
+    NAL = nlep - baseNum
     return NAL
   
 class VHbbBaseProcessor(BaseProcessorABC):
@@ -352,11 +351,7 @@ class VHbbBaseProcessor(BaseProcessorABC):
                                         },with_name="PtEtaPhiMCandidate")
         
         self.events["pt_miss"] = self.events.MET_used.pt
-        
-        self.events["NaL"] = get_additionalleptons(
-              self.events.ElectronGood, self.events.MuonGood
-            ) # number of additional leptons
-        
+                
         self.events["btag_cut_L"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.L
         self.events["btag_cut_M"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.M
         self.events["btag_cut_T"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.T
@@ -403,6 +398,10 @@ class VHbbBaseProcessor(BaseProcessorABC):
         if self.proc_type=="ZLL":
 
             ### General
+            self.events["NaL"] = get_additionalleptons(
+                self.events.ElectronGood, self.events.MuonGood, 2
+            ) # number of additional leptons
+            
             self.events["dijet_m"] = self.events.dijet_csort.mass
             self.events["dijet_pt"] = self.events.dijet_csort.pt
             self.events["dijet_dr"] = self.events.dijet_csort.deltaR
@@ -443,8 +442,8 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["dilep_deltaPhi"] = self.events.ll.deltaPhi
             self.events["dilep_deltaEta"] = self.events.ll.deltaEta
             
-            self.events["ZH_pt_ratio"] = self.events.dijet_pt/self.events.dilep_pt
-            self.events["ZH_deltaPhi"] = np.abs(self.events.ll.delta_phi(self.events.dijet_csort))
+            # self.events["ZH_pt_ratio"] = self.events.dijet_pt/self.events.dilep_pt
+            # self.events["ZH_deltaPhi"] = np.abs(self.events.ll.delta_phi(self.events.dijet_csort))
             
             self.events["ZHbb_pt_ratio"] = self.events.dibjet_pt/self.events.dilep_pt
             self.events["VHbb_pt_ratio"] = self.events.ZHbb_pt_ratio
@@ -516,21 +515,25 @@ class VHbbBaseProcessor(BaseProcessorABC):
 
                 
         if self.proc_type=="WLNu":
+            
+            self.events["NaL"] = get_additionalleptons(
+                self.events.ElectronGood, self.events.MuonGood, 1
+            ) # number of additional leptons
+            
             self.events["lead_lep"] = ak.firsts(self.events.LeptonGood)
             self.events["W_candidate"] = self.events.lead_lep + self.events.MET_used
-            #print("W_candidate", self.events.W_candidate, self.events.W_candidate.mass, self.events.W_candidate.pt)
             self.events["W_m"] = self.events.W_candidate.mass
             self.events["W_pt"] = self.events.W_candidate.pt
             self.events["W_mt"] = np.sqrt(2*self.events.lead_lep.pt*self.events.MET_used.pt*(1-np.cos(self.events.lead_lep.delta_phi(self.events.MET_used))))
-            self.events["pt_miss"] = self.events.MET_used.pt
-            # Step 1: Calculate delta_r for each b_jet with respect to lead_lep
-            delta_rs = self.events.BJetGood.delta_r(self.events.lead_lep)
+            
+#             # Step 1: Calculate delta_r for each b_jet with respect to lead_lep
+#             delta_rs = self.events.BJetGood.delta_r(self.events.lead_lep)
 
-            # Step 2: Find the index of the b_jet with the minimum delta_r
-            min_delta_r_index = ak.argmin(delta_rs, axis=1, keepdims=True)
+#             # Step 2: Find the index of the b_jet with the minimum delta_r
+#             min_delta_r_index = ak.argmin(delta_rs, axis=1, keepdims=True)
 
-            # Step 3: Select the b_jet with the minimum delta_r
-            self.events["b_jet"] = self.events.BJetGood[min_delta_r_index]
+#             # Step 3: Select the b_jet with the minimum delta_r
+#             self.events["b_jet"] = self.events.BJetGood[min_delta_r_index]
             
             self.events["dijet_m"] = self.events.dijet_csort.mass
             self.events["dijet_pt"] = self.events.dijet_csort.pt
@@ -544,61 +547,123 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
             self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
             
-            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
-            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
-        
+            self.events["dibjet_m"] = self.events.dijet_bsort.mass
+            self.events["dibjet_pt"] = self.events.dijet_bsort.pt
+            self.events["dibjet_eta"] = self.events.dijet_bsort.eta
+            self.events["dibjet_phi"] = self.events.dijet_bsort.phi
+            self.events["dibjet_dr"] = self.events.dijet_bsort.deltaR
+            self.events["dibjet_deltaPhi"] = self.events.dijet_bsort.deltaPhi
+            self.events["dibjet_deltaEta"] = self.events.dijet_bsort.deltaEta
+            self.events["dibjet_BvsL_max"] = self.events.dijet_bsort.j1BvsL
+            self.events["dibjet_BvsL_min"] = self.events.dijet_bsort.j2BvsL
+            self.events["dibjet_CvsL_max"] = self.events.dijet_bsort.j1CvsL
+            self.events["dibjet_CvsL_min"] = self.events.dijet_bsort.j2CvsL
+            self.events["dibjet_CvsB_max"] = self.events.dijet_bsort.j1CvsB
+            self.events["dibjet_CvsB_min"] = self.events.dijet_bsort.j2CvsB
+            self.events["dibjet_pt_max"] = self.events.dijet_bsort.j1pt
+            self.events["dibjet_pt_min"] = self.events.dijet_bsort.j2pt
+            self.events["dibjet_mass_max"] = self.events.dijet_bsort.j1mass
+            self.events["dibjet_mass_min"] = self.events.dijet_bsort.j2mass
+            
+            self.events["lep_pt"] = self.events.lead_lep.pt
+            self.events["lep_eta"] = self.events.lead_lep.eta
+            self.events["lep_phi"] = self.events.lead_lep.phi
+            self.events["lep_m"] = self.events.lead_lep.mass
+            
+            self.events["lead_b"] = ak.firsts(self.events.JetsBvsL)
+            self.events["deltaR_Leadb_Lep"] = self.events.lead_b.delta_r(self.events.lead_lep)
+            self.events["deltaPhi_Leadb_Lep"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.lead_b.phi))
+            self.events["deltaEta_Leadb_Lep"] = np.abs(self.events.lead_lep.eta - self.events.lead_b.eta)
+            
+            # self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
+            # self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
+            # self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
+            
+            self.events["WHbb_pt_ratio"] = self.events.dibjet_pt/self.events.W_pt
+            self.events["VHbb_pt_ratio"] = self.events.WHbb_pt_ratio
+            
+            self.events["WHbb_deltaPhi"] = np.abs(self.events.W_candidate.delta_phi(self.events.dijet_bsort))
+            self.events["VHbb_deltaPhi"] = self.events.WHbb_deltaPhi
+            
+            self.events["WHbb_deltaEta"] = np.abs(self.events.W_candidate.eta - self.events.dijet_bsort.eta)
+            self.events["VHbb_deltaEta"] = self.events.WHbb_deltaEta
+            
+            self.events["WHbb_deltaR"] = np.abs(self.events.W_candidate.delta_r(self.events.dijet_bsort))
+            self.events["VHbb_deltaR"] = self.events.WHbb_deltaR
+            
             self.events["WH_deltaPhi"] = np.abs(self.events.W_candidate.delta_phi(self.events.dijet_csort))
-            self.events["deltaPhi_l1_j1"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.dijet_csort.j1Phi))
+            
+            self.events["deltaPhi_l1_j1"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.dijet_bsort.j1Phi))
             self.events["deltaPhi_l1_MET"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.MET_used.phi))
-            self.events["deltaPhi_l1_b"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.b_jet.phi))
-            self.events["deltaEta_l1_b"] = np.abs(self.events.lead_lep.eta - self.events.b_jet.eta)
-            self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
-            self.events["b_CvsL"] = self.events.b_jet.btagDeepFlavCvL
-            self.events["b_CvsB"] = self.events.b_jet.btagDeepFlavCvB
-            self.events["b_Btag"] = self.events.b_jet.btagDeepFlavB
+            
+            # self.events["b_CvsL"] = self.events.b_jet.btagDeepFlavCvL
+            # self.events["b_CvsB"] = self.events.b_jet.btagDeepFlavCvB
+            # self.events["b_Btag"] = self.events.b_jet.btagDeepFlavB
+            
             self.events["neutrino_from_W"] = get_nu_4momentum(self.events.lead_lep, self.events.MET_used)
-            self.events["top_candidate"] = self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W
-            #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
+            self.events["top_candidate"] = self.events.lead_lep + self.events.lead_b + self.events.neutrino_from_W
+            self.events["top_mass"] = (self.events.lead_lep + self.events.lead_b + self.events.neutrino_from_W).mass
+            
+            if self.run_dnn:
+                odd_events = self.events[odd_event_mask]
+                # Create a record of variables to be dumped as root/parquete file:
+                variables_to_process = ak.zip({
+                    "dijet_m": self.events["dijet_m"],
+                    "dijet_pt": self.events["dijet_pt"],
+                    "dijet_dr": self.events["dijet_dr"],
+                    "dijet_deltaPhi": self.events["dijet_deltaPhi"],
+                    "dijet_deltaEta": self.events["dijet_deltaEta"],
+                    "dijet_CvsL_max": self.events["dijet_CvsL_max"],
+                    "dijet_CvsL_min": self.events["dijet_CvsL_min"],
+                    "dijet_CvsB_max": self.events["dijet_CvsB_max"],
+                    "dijet_CvsB_min": self.events["dijet_CvsB_min"],
+                    "dijet_pt_max": self.events["dijet_pt_max"],
+                    "dijet_pt_min": self.events["dijet_pt_min"],
+                    "W_mt": self.events["W_mt"],
+                    "W_pt": self.events["W_pt"],
+                    "pt_miss": self.events["pt_miss"],
+                    "WH_deltaPhi": self.events["WH_deltaPhi"],
+                    "deltaPhi_l1_j1": self.events["deltaPhi_l1_j1"],
+                    "deltaPhi_l1_MET": self.events["deltaPhi_l1_MET"],
+                    "deltaPhi_l1_b": self.events["deltaPhi_l1_b"],
+                    "deltaEta_l1_b": self.events["deltaEta_l1_b"],
+                    "deltaR_l1_b": self.events["deltaR_l1_b"],
+                    "b_CvsL": self.events["b_CvsL"],
+                    "b_CvsB": self.events["b_CvsB"],
+                    "b_Btag": self.events["b_Btag"],
+                    "top_mass": self.events["top_mass"]
+                })
+            
+                df = ak.to_pandas(variables_to_process)
+                columns_to_exclude = ['dilep_m']
+                df = df.drop(columns=columns_to_exclude, errors='ignore')
+                self.channel = "1L"
+                if not self.params.separate_models: 
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
 
-            self.events["top_mass"] = (self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W).mass
-            variables_to_process = ak.zip({
-                "dijet_m": self.events["dijet_m"],
-                "dijet_pt": self.events["dijet_pt"],
-                "dijet_dr": self.events["dijet_dr"],
-                "dijet_deltaPhi": self.events["dijet_deltaPhi"],
-                "dijet_deltaEta": self.events["dijet_deltaEta"],
-                "dijet_CvsL_max": self.events["dijet_CvsL_max"],
-                "dijet_CvsL_min": self.events["dijet_CvsL_min"],
-                "dijet_CvsB_max": self.events["dijet_CvsB_max"],
-                "dijet_CvsB_min": self.events["dijet_CvsB_min"],
-                "dijet_pt_max": self.events["dijet_pt_max"],
-                "dijet_pt_min": self.events["dijet_pt_min"],
-                "W_mt": self.events["W_mt"],
-                "W_pt": self.events["W_pt"],
-                "pt_miss": self.events["pt_miss"],
-                "WH_deltaPhi": self.events["WH_deltaPhi"],
-                "deltaPhi_l1_j1": self.events["deltaPhi_l1_j1"],
-                "deltaPhi_l1_MET": self.events["deltaPhi_l1_MET"],
-                "deltaPhi_l1_b": self.events["deltaPhi_l1_b"],
-                "deltaEta_l1_b": self.events["deltaEta_l1_b"],
-                "deltaR_l1_b": self.events["deltaR_l1_b"],
-                "b_CvsL": self.events["b_CvsL"],
-                "b_CvsB": self.events["b_CvsB"],
-                "b_Btag": self.events["b_Btag"],
-                "top_mass": self.events["top_mass"]})
-            df = ak.to_pandas(variables_to_process)
-            #columns_to_exclude = []
-            #df = df.drop(columns=columns_to_exclude, errors='ignore')
-            self.events["BDT"] = self.evaluateBDT(df)
-            self.events["DNN"] = self.evaluateDNN(df)
-            mask = (self.events.nJetGood >= 2) & (self.events.W_pt > 100) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4))
-            selection_WLNu = ak.where(ak.is_none(mask), False, mask)
+                    bdt_predictions = self.evaluateBDT(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
 
-        #print("Pt sort pt:", self.events["JetGood"][self.events["nJetGood"]>=3].pt)
-        #print("CvsL sort pt:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].pt)
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateDNN(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
+                else:
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
 
-        #print("Pt sort CvsL:", self.events["JetGood"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
-        #print("CvsL sort CvsL:", self.events["JetsCvsL"][self.events["nJetGood"]>=3].btagDeepFlavCvL)
+                    bdt_predictions = self.evaluateseparateBDTs(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
+
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateseparateDNNs(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
 
         if self.proc_type=="ZNuNu":
             ### General

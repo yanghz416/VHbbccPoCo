@@ -1,4 +1,3 @@
-retries: 2
 queue: "workday"
 scaleout: 800
 chunksize: 150000
