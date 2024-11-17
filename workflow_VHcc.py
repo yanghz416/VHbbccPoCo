@@ -122,9 +122,10 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events.ElectronGood, self.events.MuonGood
         )
         
+        myJetTagger = self.params.ctagging[self._year]["tagger"]
         
         self.events["JetGood"], self.jetGoodMask = jet_selection(
-            self.events, "Jet", self.params, self._year, "LeptonGood"
+            self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
         )
         
         self.events['EventNr'] = self.events.event
@@ -250,28 +251,24 @@ class VHccBaseProcessor(BaseProcessorABC):
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
 
+        jetvars = ["btagCvL","btagCvB"]
+        leptonvars = ["miniPFRelIso_all","pfRelIso03_all"]
+        p4vars = ["pt","eta","phi","mass"]
+
+        for var in jetvars+p4vars:
+            self.events["JetGood_"+var] = self.events.JetGood[var]
+        for var in leptonvars+p4vars:
+            self.events["LeptonGood_"+var] = self.events.LeptonGood[var]
+        for var in p4vars:
+            self.events["ll_"+var] = self.events.ll[var]
+
     def define_common_variables_after_presel(self, variation):
-        self.myJetTagger = self.params.ctagging[self._year]["tagger"]
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
-        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
 
-        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
+        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
 
-        if self.myJetTagger == "PNet":
-            B   = "btagPNetB"
-            CvL = "btagPNetCvL"
-            CvB = "btagPNetCvB"
-        elif self.myJetTagger == "DeepFlav":
-            B   = "btagDeepFlavB"
-            CvL = "btagDeepFlavCvL"
-            CvB = "btagDeepFlavCvB"
-        elif self.myJetTagger == "RobustParT":
-            B   = "btagRobustParTAK4B"
-            CvL = "btagRobustParTAK4CvL"
-            CvB = "btagRobustParTAK4CvB"
-        else:
-            raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
         #self.events["dijet_pt"] = self.events.dijet.pt
         odd_event_mask = (self.events.EventNr % 2 == 1)
         
@@ -305,34 +302,16 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l2_j1"] = ak.where(self.angle21_gen, abs(self.events.ll.l2phi - self.events.dijet_csort.j1Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet_csort.j1Phi))              
             self.events["deltaPhi_l2_j2"] = ak.where(self.angle22_gen, abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi))
             self.events["deltaPhi_l2_j1"] = np.abs(delta_phi(self.events.ll.l2phi, self.events.dijet_csort.j1Phi))
-
             
             odd_events = self.events[odd_event_mask]
             # Create a record of variables to be dumped as root/parquete file:
-            variables_to_process = ak.zip({
-                "dilep_m": odd_events["dilep_m"],
-                "dilep_pt": odd_events["dilep_pt"],
-                "dilep_dr": odd_events["dilep_dr"],
-                "dilep_deltaPhi": odd_events["dilep_deltaPhi"],
-                "dilep_deltaEta": odd_events["dilep_deltaEta"],
-                
-                "dijet_m": odd_events["dijet_m"],
-                "dijet_pt": odd_events["dijet_pt"],
-                "dijet_dr": odd_events["dijet_dr"],
-                "dijet_deltaPhi": odd_events["dijet_deltaPhi"],
-                "dijet_deltaEta": odd_events["dijet_deltaEta"],
-                "dijet_CvsL_max": odd_events["dijet_CvsL_max"],
-                "dijet_CvsL_min": odd_events["dijet_CvsL_min"],
-                "dijet_CvsB_max": odd_events["dijet_CvsB_max"],
-                "dijet_CvsB_min": odd_events["dijet_CvsB_min"],
-                "dijet_pt_max": odd_events["dijet_pt_max"],
-                "dijet_pt_min": odd_events["dijet_pt_min"],
-                
-                "ZH_pt_ratio": odd_events["ZH_pt_ratio"],
-                "ZH_deltaPhi": odd_events["ZH_deltaPhi"],
-                "deltaPhi_l2_j1": odd_events["deltaPhi_l2_j1"],
-                "deltaPhi_l2_j2": odd_events["deltaPhi_l2_j2"],
-            })
+            variables_to_process_list = ["dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+                                    "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                                    "dijet_pt_max","dijet_pt_min",
+                                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2"]
+
+            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
             
             df = ak.to_pandas(variables_to_process)
             columns_to_exclude = ['dilep_m']
@@ -414,9 +393,9 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l1_b"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.b_jet.phi))
             self.events["deltaEta_l1_b"] = np.abs(self.events.lead_lep.eta - self.events.b_jet.eta)
             self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
-            self.events["b_CvsL"] = self.events.b_jet[CvL]
-            self.events["b_CvsB"] = self.events.b_jet[CvB]
-            self.events["b_Btag"] = self.events.b_jet[B]
+            self.events["b_CvsL"] = self.events.b_jet["btagCvL"]
+            self.events["b_CvsB"] = self.events.b_jet["btagCvB"]
+            self.events["b_Btag"] = self.events.b_jet["btagB"]
             self.events["neutrino_from_W"] = get_nu_4momentum(self.events.lead_lep, self.events.MET_used)
             self.events["top_candidate"] = self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
@@ -424,31 +403,16 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["top_mass"] = (self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W).mass
             odd_events = self.events[odd_event_mask & bjet_mask]
             #self.events = self.events[bjet_mask]
-            variables_to_process = ak.zip({
-                "dijet_m": odd_events["dijet_m"],
-                "dijet_pt": odd_events["dijet_pt"],
-                "dijet_dr": odd_events["dijet_dr"],
-                "dijet_deltaPhi": odd_events["dijet_deltaPhi"],
-                "dijet_deltaEta": odd_events["dijet_deltaEta"],
-                "dijet_CvsL_max": odd_events["dijet_CvsL_max"],
-                "dijet_CvsL_min": odd_events["dijet_CvsL_min"],
-                "dijet_CvsB_max": odd_events["dijet_CvsB_max"],
-                "dijet_CvsB_min": odd_events["dijet_CvsB_min"],
-                "dijet_pt_max": odd_events["dijet_pt_max"],
-                "dijet_pt_min": odd_events["dijet_pt_min"],
-                "W_mt": odd_events["W_mt"],
-                "W_pt": odd_events["W_pt"],
-                "pt_miss": odd_events["pt_miss"],
-                "WH_deltaPhi": odd_events["WH_deltaPhi"],
-                "deltaPhi_l1_j1": odd_events["deltaPhi_l1_j1"],
-                "deltaPhi_l1_MET": odd_events["deltaPhi_l1_MET"],
-                "deltaPhi_l1_b": odd_events["deltaPhi_l1_b"],
-                "deltaEta_l1_b": odd_events["deltaEta_l1_b"],
-                "deltaR_l1_b": odd_events["deltaR_l1_b"],
-                "b_CvsL": odd_events["b_CvsL"],
-                "b_CvsB": odd_events["b_CvsB"],
-                "b_Btag": odd_events["b_Btag"],
-                "top_mass": odd_events["top_mass"]})
+            
+            variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                                    "dijet_pt_max","dijet_pt_min",
+                                    "W_mt","W_pt","pt_miss","WH_deltaPhi",
+                                    "deltaPhi_l1_j1","deltaPhi_l1_MET","deltaPhi_l1_b","deltaEta_l1_b","deltaR_l1_b",
+                                    "b_CvsL","b_CvsB","b_Btag","top_mass"]
+
+            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
+
             df = ak.to_pandas(variables_to_process)
             # Remove the 'subentry' column
             df = df.reset_index(level='subentry', drop=True)
@@ -503,23 +467,13 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
             
             odd_events = self.events[odd_event_mask]
-            # Create a record of variables to be dumped as root/parquete file:
-            variables_to_process = ak.zip({
-                "dijet_m": odd_events["dijet_m"],
-                "dijet_pt": odd_events["dijet_pt"],
-                "dijet_dr": odd_events["dijet_dr"],
-                "dijet_deltaPhi": odd_events["dijet_deltaPhi"],
-                "dijet_deltaEta": odd_events["dijet_deltaEta"],
-                "dijet_CvsL_max": odd_events["dijet_CvsL_max"],
-                "dijet_CvsL_min": odd_events["dijet_CvsL_min"],
-                "dijet_CvsB_max": odd_events["dijet_CvsB_max"],
-                "dijet_CvsB_min": odd_events["dijet_CvsB_min"],
-                "dijet_pt_max": odd_events["dijet_pt_max"],
-                "dijet_pt_min": odd_events["dijet_pt_min"],
-                "ZH_pt_ratio": odd_events["ZH_pt_ratio"],
-                "ZH_deltaPhi": odd_events["ZH_deltaPhi"],
-                "Z_pt": odd_events["Z_pt"],
-            })
+
+            variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                                    "dijet_pt_max","dijet_pt_min",
+                                    "ZH_pt_ratio","ZH_deltaPhi","Z_pt"]
+
+            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
             
             df = ak.to_pandas(variables_to_process)
             #columns_to_exclude = []

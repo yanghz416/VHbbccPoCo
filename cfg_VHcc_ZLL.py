@@ -91,7 +91,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_preEE']
             #"year": ['2023_preBPix']
         },
 
@@ -157,16 +157,28 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                     "SR_ll_2J_cJ": [
-                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                          "dilep_pt", "dilep_dr", "dilep_deltaPhi", "dilep_deltaEta",
-                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "deltaPhi_l2_j1", "deltaPhi_l2_j2"], flatten=False),
+                        ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+                                    "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                                    "dijet_pt_max","dijet_pt_min",
+                                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
+                                    "JetGood_btagCvL","JetGood_btagCvB",
+                                    "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                    "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                                    "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                                    "ll_pt","ll_eta","ll_phi","ll_mass"], flatten=False),
                     ],
                     "baseline_2L2J_no_ctag": [
-                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                          "dilep_pt", "dilep_dr", "dilep_deltaPhi", "dilep_deltaEta",
-                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "deltaPhi_l2_j1", "deltaPhi_l2_j2"], flatten=False),
+                        ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+                                    "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                                    "dijet_pt_max","dijet_pt_min",
+                                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
+                                    "JetGood_btagCvL","JetGood_btagCvB",
+                                    "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                    "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                                    "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                                    "ll_pt","ll_eta","ll_phi","ll_mass"], flatten=False),
                     ]
                 }
         },
@@ -224,7 +236,7 @@ cfg = Configurator(
         **jet_hists(coll="JetGood", pos=1),
 
         **jet_hists(coll="JetsCvsL", pos=0),
-	**jet_hists(coll="JetsCvsL", pos=1),
+	    **jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
         
