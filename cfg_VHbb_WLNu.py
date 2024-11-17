@@ -65,9 +65,7 @@ parameters["separate_models"] = False
 parameters['run_dnn'] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
-outVariables = [
-    "nJet",
-]
+
 cfg = Configurator(
     parameters = parameters,
     weights_classes = common_weights + [custom_weight_vjet],
@@ -154,14 +152,11 @@ cfg = Configurator(
     columns = {
         "common": {
             "bycategory": {
-                    "baseline_WLNuHBB_2J": [ ColOut("events", outVariables, flatten=False), ],
-                    "SR_LNu2B": [ ColOut("events", outVariables, flatten=False), ],
-                    "CR_LF": [ ColOut("events", outVariables, flatten=False), ],
-                    "CR_B": [ ColOut("events", outVariables, flatten=False), ],
-                    "CR_BB": [ ColOut("events", outVariables, flatten=False), ],
-                    "CR_TT": [ ColOut("events", outVariables, flatten=False), ]
+                    "SR_LNu2B": [
+                        ColOut("events", ["dijet_m"], flatten=False),
+                    ],
                 }
-         },
+        },
     },
 
     weights = {

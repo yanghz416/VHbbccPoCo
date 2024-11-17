@@ -35,7 +35,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
                                                   f"{localdir}/params/btagger.yaml",
-                                                  f"{localdir}/params/xgboost.yaml",
+                                                  f"{localdir}/params/trainings_Hbb.yaml",
                                                   update=True)
 files_2016 = [
     f"{localdir}/datasets/Run2UL2016_MC_VJets.json",
@@ -60,8 +60,9 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
+parameters["run_bdt"] = True
 parameters['run_dnn'] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
@@ -72,8 +73,8 @@ outVariables = [
     "dibjet_m", "dibjet_pt", "dibjet_dr", "dibjet_deltaPhi", "dibjet_deltaEta",
     "dibjet_pt_max", "dibjet_pt_min",
     "dibjet_mass_max", "dibjet_mass_min",
-    "dibjet_BvsL_max", "dibjet_BvsL_min",
-    "VHbb_pt_ratio", "VHbb_deltaPhi", "VHbb_deltaR"
+    "dibjet_BvsL_max", "dibjet_BvsL_min", "dibjet_CvsL_max", "dibjet_CvsL_min", "dibjet_CvsB_max", "dibjet_CvsB_min",
+    "VHbb_pt_ratio", "VHbb_deltaPhi", "VHbb_deltaR", "BDT"
 ]
 
 
@@ -90,9 +91,9 @@ cfg = Configurator(
                 "DATA_EGamma",
                 "DATA_MuonEG",
                 "ZH_Hto2B_Zto2L",
-                "ZH_Hto2C_Zto2L",
+                # "ZH_Hto2C_Zto2L",
                 "DYJetsToLL_FxFx",
-                "TTTo2L2Nu",
+                "TTTo2L2Nu"
                 # "TTToHadrons",
                 # "TTToSemiLeptonic"
             ],
@@ -114,8 +115,9 @@ cfg = Configurator(
     },
 
     workflow = VHbbBaseProcessor,
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"} if parameters["save_arrays"] else {},
-
+    workflow_options = {"dump_columns_as_arrays_per_chunk": 
+                        "root://eosuser.cern.ch//eos/user/l/lichengz/Column_output_vhbb_zll_all_1117/"} if parameters["save_arrays"] else {},
+    
     # save_skimmed_files = "root://eosuser.cern.ch://eos/user/l/lichengz/skimmed_samples/Run3ZLL/",
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
             get_nObj_min(4, 18., "Jet"),
@@ -199,7 +201,7 @@ cfg = Configurator(
                 "inclusive": [
                     "pileup",
                     "sf_mu_id", "sf_mu_iso",
-                    "sf_ele_reco", "sf_ele_id",
+                    # "sf_ele_reco", "sf_ele_id",
                     #"sf_ctag",
                 ]
             },
@@ -249,16 +251,20 @@ cfg = Configurator(
         "VHbb_pt_ratio" : HistConf( [Axis(field="VHbb_pt_ratio", bins=24, start=0, stop=2, label=r"$p_T{H}/p_T{Z}")] ),
         "VHbb_deltaPhi" : HistConf( [Axis(field="VHbb_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi_{ZH}$")] ),
         "VHbb_deltaR" : HistConf( [Axis(field="VHbb_deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{VH}$")] ),
-
+        "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
+                         only_categories = ['SR_2L2B','CR_BB','CR_TT']),
+        
+        "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_2L2B','CR_BB','CR_TT']),
+                        
         
 #         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=700, label=r"Jet HT [GeV]")] ),
 #         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
 #         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=50, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
-#         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-#                          only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
-#         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-#                          only_categories = ['SR_mumu_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_low','SR_ll_2J_cJ_high']),
+#         
+#                          
+#         
         
         
 #         # 2D histograms:

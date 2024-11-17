@@ -24,7 +24,7 @@ plotting_style:
     # - DYJetsToLL_M-50_MLM__DiJet_incl
     
   rescale_samples:
-    DYJetsToLL_FxFx: 1.33
+    DYJetsToLL_FxFx: 1.00
 
   signal_samples:
     ZH_Hto2B_Zto2L: 50
