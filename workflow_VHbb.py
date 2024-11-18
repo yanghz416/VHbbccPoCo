@@ -1,5 +1,6 @@
 import awkward as ak
 import numpy as np
+import ctypes #test
 import uproot
 import pandas as pd
 import math
@@ -161,25 +162,67 @@ def get_additionalleptons(electrons, muons, baseNum=0):
     nlep = ak.num(leptons[~ak.is_none(leptons, axis=1)])
     NAL = nlep - baseNum
     return NAL
+
+def LorentzBooster(array_pt, array_eta, array_phi, array_mass):
+    
+    # Flatten arrays
+    flat_pt = ak.to_numpy(ak.flatten(array_pt))
+    flat_eta = ak.to_numpy(ak.flatten(array_eta))
+    flat_phi = ak.to_numpy(ak.flatten(array_phi))
+    flat_mass = ak.to_numpy(ak.flatten(array_mass))
+    
+    compute_lib = ctypes.CDLL('/afs/cern.ch/work/l/lichengz/private/VHbb/VHccPoCo/scripts/interface/compute_vectors.so')
+    # TODO can add it into another parameter yml file
+    
+    # Define the argument types for the C++ function
+    compute_lib.compute_4vectors.argtypes = [
+        ctypes.POINTER(ctypes.c_double),  # pt
+        ctypes.POINTER(ctypes.c_double),  # eta
+        ctypes.POINTER(ctypes.c_double),  # phi
+        ctypes.POINTER(ctypes.c_double),  # mass
+        ctypes.POINTER(ctypes.c_double),  # px
+        ctypes.POINTER(ctypes.c_double),  # py
+        ctypes.POINTER(ctypes.c_double),  # pz
+        ctypes.POINTER(ctypes.c_double),  # energy
+        ctypes.c_int                      # size
+    ]
+    
+    # Allocate arrays for the outputs
+    size = len(flat_pt)
+    px = np.zeros(size, dtype=np.float64)
+    py = np.zeros(size, dtype=np.float64)
+    pz = np.zeros(size, dtype=np.float64)
+    energy = np.zeros(size, dtype=np.float64)
+    
+    # Call the C++ function
+    compute_lib.compute_4vectors(
+        flat_pt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_eta.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_phi.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_mass.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        px.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        py.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        pz.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        size
+    )
+    
+    # Print the results
+    print("px:", px)
+    print("py:", py)
+    print("pz:", pz)
+    print("energy:", energy)
+    
+    return 0
   
 class VHbbBaseProcessor(BaseProcessorABC):
     def __init__(self, cfg: Configurator):
         super().__init__(cfg)
         
-        self.proc_type   = self.params["proc_type"]
-        self.run_dnn     = self.params["run_dnn"]
-
-        #self.bdt_model = lgb.Booster(model_file=self.params.LightGBM_model)
-        #self.bdt_low_model = lgb.Booster(model_file=self.params.LigtGBM_low)
-        #self.bdt_high_model = lgb.Booster(model_file=self.params.LigtGBM_high)
-        #self.dnn_model = load_model(self.params.DNN_model)
-        #self.dnn_low_model = load_model(self.params.DNN_low)
-        #self.dnn_high_model = load_model(self.params.DNN_high)
-    
-        # Define the prediction functions with @tf.function
-        #self.predict_dnn = tf.function(self.model.predict, reduce_retracing=True)
-        #self.predict_dnn_low = tf.function(self.model_low.predict, reduce_retracing=True)
-        #self.predict_dnn_high = tf.function(self.model_high.predict, reduce_retracing=True)
+        self.proc_type       = self.params["proc_type"]
+        self.run_bdt         = self.params["run_bdt"]
+        self.run_dnn         = self.params["run_dnn"]
+        self.separate_models = self.params["separate_models"]
 
         print("Processor initialized")
         
@@ -332,7 +375,7 @@ class VHbbBaseProcessor(BaseProcessorABC):
         print("Separate DNN evaluation completed.")
         
         return dnn_score
-    
+        
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
@@ -378,6 +421,12 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["GenPart_pt"] = self.events.GenPart.pt
             self.events["GenPart_status"] = self.events.GenPart.status
             self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
+            
+            # a C++ interface test
+            # LorentzBooster(self.events.GenPart_pt, 
+            #                self.events.GenPart_eta, 
+            #                self.events.GenPart_phi, 
+            #                self.events.GenPart_mass)
 
             self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
             self.events["LHE_HT"] = self.events.LHE.HT
@@ -460,36 +509,35 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["ZHbb_deltaR"] = np.abs(self.events.ll.delta_r(self.events.dijet_bsort))
             self.events["VHbb_deltaR"] = self.events.ZHbb_deltaR
             
-            if self.run_dnn:
+            if self.run_bdt:
                 odd_events = self.events[odd_event_mask]
                 # Create a record of variables to be dumped as root/parquete file:
                 variables_to_process = ak.zip({
-                    "dilep_m": odd_events["dilep_m"],
-                    "dilep_pt": odd_events["dilep_pt"],
-                    "dilep_dr": odd_events["dilep_dr"],
-                    "dilep_deltaPhi": odd_events["dilep_deltaPhi"],
-                    "dilep_deltaEta": odd_events["dilep_deltaEta"],
+                    "events_dilep_m": odd_events["dilep_m"],
+                    "events_dilep_pt": odd_events["dilep_pt"],
+                    "events_dilep_dr": odd_events["dilep_dr"],
+                    "events_dilep_deltaPhi": odd_events["dilep_deltaPhi"],
+                    "events_dilep_deltaEta": odd_events["dilep_deltaEta"],
+                    # "events_dibjet_m": odd_events["dibjet_m"],  # Commented out as per the features list
+                    "events_dibjet_pt": odd_events["dibjet_pt"],
+                    "events_dibjet_dr": odd_events["dibjet_dr"],
+                    "events_dibjet_deltaPhi": odd_events["dibjet_deltaPhi"],
+                    "events_dibjet_deltaEta": odd_events["dibjet_deltaEta"],
+                    "events_dibjet_pt_max": odd_events["dibjet_pt_max"],
+                    "events_dibjet_pt_min": odd_events["dibjet_pt_min"],
+                    "events_dibjet_mass_max": odd_events["dibjet_mass_max"],
+                    "events_dibjet_mass_min": odd_events["dibjet_mass_min"],
+                    "events_dibjet_BvsL_max": odd_events["dibjet_BvsL_max"],
+                    "events_dibjet_BvsL_min": odd_events["dibjet_BvsL_min"],
+                    "events_dibjet_CvsB_max": odd_events["dibjet_CvsB_max"],
+                    "events_dibjet_CvsB_min": odd_events["dibjet_CvsB_min"],
+                    "events_VHbb_pt_ratio": odd_events["VHbb_pt_ratio"],
+                    "events_VHbb_deltaPhi": odd_events["VHbb_deltaPhi"],
+                    "events_VHbb_deltaR": odd_events["VHbb_deltaR"]
+                })
 
-                    "dijet_m": odd_events["dijet_m"],
-                    "dijet_pt": odd_events["dijet_pt"],
-                    "dijet_dr": odd_events["dijet_dr"],
-                    "dijet_deltaPhi": odd_events["dijet_deltaPhi"],
-                    "dijet_deltaEta": odd_events["dijet_deltaEta"],
-                    "dijet_CvsL_max": odd_events["dijet_CvsL_max"],
-                    "dijet_CvsL_min": odd_events["dijet_CvsL_min"],
-                    "dijet_CvsB_max": odd_events["dijet_CvsB_max"],
-                    "dijet_CvsB_min": odd_events["dijet_CvsB_min"],
-                    "dijet_pt_max": odd_events["dijet_pt_max"],
-                    "dijet_pt_min": odd_events["dijet_pt_min"],
-
-                    "ZH_pt_ratio": odd_events["ZH_pt_ratio"],
-                    "ZH_deltaPhi": odd_events["ZH_deltaPhi"],
-                    "deltaPhi_l2_j1": odd_events["deltaPhi_l2_j1"],
-                    "deltaPhi_l2_j2": odd_events["deltaPhi_l2_j2"],
-                })            
-            
                 df = ak.to_pandas(variables_to_process)
-                columns_to_exclude = ['dilep_m']
+                columns_to_exclude = ['dibjet_m']
                 df = df.drop(columns=columns_to_exclude, errors='ignore')
                 self.channel = "2L"
                 if not self.params.separate_models: 
@@ -671,11 +719,6 @@ class VHbbBaseProcessor(BaseProcessorABC):
                         self.events["DNN"] = np.zeros_like(self.events["BDT"])
 
         if self.proc_type=="ZNuNu":
-
-            self.events["NaL"] = get_additionalleptons(
-                self.events.ElectronGood, self.events.MuonGood, 0
-            ) # number of additional leptons
-            
             ### General
             self.events["Z_candidate"] = self.events.MET_used
             self.events["Z_pt"] = self.events.Z_candidate.pt
