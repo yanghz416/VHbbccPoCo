@@ -79,12 +79,13 @@ cfg = Configurator(
 	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
+                #"WJetsToLNu_FxFx",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
                 "ZH_Hto2C_Zto2L",
-                #"ZH_Hto2B_Zto2L"
+                "ZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
@@ -114,7 +115,7 @@ cfg = Configurator(
 
     workflow = VHccBaseProcessor,
     
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"} if parameters["save_arrays"] else {},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"},
 
     #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
@@ -171,7 +172,7 @@ cfg = Configurator(
                 }
         },
         
-    },
+    } if parameters["save_arrays"] else {},
 
     weights = {
         "common": {

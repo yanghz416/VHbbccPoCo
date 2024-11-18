@@ -15,6 +15,7 @@ def testFileStructure(hists, example_variable, example_data, example_MC, example
     print("The structure of the COFFEA file:")
     print('\t top keys:\n', hists.keys())
     print('\n\t Variables:\n', hists["variables"].keys())
+    print('\n\t Columns:\n', hists["columns"].keys())
     print('\n\t Samples:\n', hists["variables"][example_variable].keys())
     print('\n\t Subsamples (for DATA):\n', hists["variables"][example_variable][example_data].keys())
     print(f'\n\t Subsamples (for {example_MC}):\n', hists["variables"][example_variable][example_MC].keys())
@@ -41,7 +42,7 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
     hists = load(inputfile)
 
-    #testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation)
+    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation)
 
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category

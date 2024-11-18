@@ -422,7 +422,9 @@ class VHccBaseProcessor(BaseProcessorABC):
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
 
             self.events["top_mass"] = (self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W).mass
-            odd_events = self.events[odd_event_mask & bjet_mask]
+            #odd_events = self.events[odd_event_mask & bjet_mask]
+            odd_events = self.events
+            #odd_events = self.events[odd_event_mask]
             #self.events = self.events[bjet_mask]
             variables_to_process = ak.zip({
                 "dijet_m": odd_events["dijet_m"],
