@@ -91,6 +91,7 @@ def convertCoffeaToRoot(coffea_file_name, config):
                     else:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                 else:
+                    print("\t Subsamples:", subsamples)
                     # We need to add all the histograms for sub-samples
                     if isData:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
