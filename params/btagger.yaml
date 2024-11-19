@@ -32,6 +32,14 @@ btagger:
         T: 0.6734
         XT: 0.7862
         XXT: 0.961
+    RobustParT:
+      name: btagRobustParTAK4B
+      WP: 
+        L: 0.0849
+        M: 0.4319
+        T: 0.8482
+        XT: 0.9151
+        XXT: 0.9874
 
   '2022_postEE':
     reference:
@@ -52,6 +60,14 @@ btagger:
         T: 0.6915
         XT: 0.8033
         XXT: 0.9664
+    RobustParT:
+      name: btagRobustParTAK4B
+      WP: 
+        L: 0.0897
+        M: 0.451
+        T: 0.8604
+        XT: 0.9234
+        XXT: 0.9893
 
 
   '2023_preBPix':

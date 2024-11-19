@@ -1,7 +1,7 @@
-queue: "workday"
-scaleout: 800
+queue: "longlunch"
+scaleout: 300
 chunksize: 150000
-worker-image: /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-latest
+worker-image: /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-stable
 cores-per-worker: 1
 mem-per-worker: "3GB"
 disk-per-worker: "3GB"

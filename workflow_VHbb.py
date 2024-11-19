@@ -1,5 +1,6 @@
 import awkward as ak
 import numpy as np
+import ctypes #test
 import uproot
 import pandas as pd
 import math
@@ -137,6 +138,12 @@ def get_dibjet(jets, tagger = 'PNet'):
         fields["j2CvsL"] = ak.where( (njet >= 2), jets[:,1][CvL], -1)
         fields["j1CvsB"] = ak.where( (njet >= 2), jets[:,0][CvB], -1)
         fields["j2CvsB"] = ak.where( (njet >= 2), jets[:,1][CvB], -1)
+        
+    # Lead b-jet pt: larger of the first two jets' pt
+    fields["leadb_pt"] = ak.where( njet >= 2, ak.max(ak.Array([jets[:, 0].pt, jets[:, 1].pt]), axis=0), -1)
+
+    # Sublead b-jet pt: smaller of the first two jets' pt
+    fields["subleadb_pt"] = ak.where(njet >= 2, ak.min(ak.Array([jets[:, 0].pt, jets[:, 1].pt]), axis=0), -1)
     
     dibjet = ak.zip(fields, with_name="PtEtaPhiMCandidate")
     return dibjet
@@ -155,25 +162,67 @@ def get_additionalleptons(electrons, muons, baseNum=0):
     nlep = ak.num(leptons[~ak.is_none(leptons, axis=1)])
     NAL = nlep - baseNum
     return NAL
+
+def LorentzBooster(array_pt, array_eta, array_phi, array_mass):
+    
+    # Flatten arrays
+    flat_pt = ak.to_numpy(ak.flatten(array_pt))
+    flat_eta = ak.to_numpy(ak.flatten(array_eta))
+    flat_phi = ak.to_numpy(ak.flatten(array_phi))
+    flat_mass = ak.to_numpy(ak.flatten(array_mass))
+    
+    compute_lib = ctypes.CDLL('/afs/cern.ch/work/l/lichengz/private/VHbb/VHccPoCo/scripts/interface/compute_vectors.so')
+    # TODO can add it into another parameter yml file
+    
+    # Define the argument types for the C++ function
+    compute_lib.compute_4vectors.argtypes = [
+        ctypes.POINTER(ctypes.c_double),  # pt
+        ctypes.POINTER(ctypes.c_double),  # eta
+        ctypes.POINTER(ctypes.c_double),  # phi
+        ctypes.POINTER(ctypes.c_double),  # mass
+        ctypes.POINTER(ctypes.c_double),  # px
+        ctypes.POINTER(ctypes.c_double),  # py
+        ctypes.POINTER(ctypes.c_double),  # pz
+        ctypes.POINTER(ctypes.c_double),  # energy
+        ctypes.c_int                      # size
+    ]
+    
+    # Allocate arrays for the outputs
+    size = len(flat_pt)
+    px = np.zeros(size, dtype=np.float64)
+    py = np.zeros(size, dtype=np.float64)
+    pz = np.zeros(size, dtype=np.float64)
+    energy = np.zeros(size, dtype=np.float64)
+    
+    # Call the C++ function
+    compute_lib.compute_4vectors(
+        flat_pt.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_eta.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_phi.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        flat_mass.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        px.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        py.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        pz.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        energy.ctypes.data_as(ctypes.POINTER(ctypes.c_double)),
+        size
+    )
+    
+    # Print the results
+    print("px:", px)
+    print("py:", py)
+    print("pz:", pz)
+    print("energy:", energy)
+    
+    return 0
   
 class VHbbBaseProcessor(BaseProcessorABC):
     def __init__(self, cfg: Configurator):
         super().__init__(cfg)
         
-        self.proc_type   = self.params["proc_type"]
-        self.run_dnn     = self.params["run_dnn"]
-
-        #self.bdt_model = lgb.Booster(model_file=self.params.LightGBM_model)
-        #self.bdt_low_model = lgb.Booster(model_file=self.params.LigtGBM_low)
-        #self.bdt_high_model = lgb.Booster(model_file=self.params.LigtGBM_high)
-        #self.dnn_model = load_model(self.params.DNN_model)
-        #self.dnn_low_model = load_model(self.params.DNN_low)
-        #self.dnn_high_model = load_model(self.params.DNN_high)
-    
-        # Define the prediction functions with @tf.function
-        #self.predict_dnn = tf.function(self.model.predict, reduce_retracing=True)
-        #self.predict_dnn_low = tf.function(self.model_low.predict, reduce_retracing=True)
-        #self.predict_dnn_high = tf.function(self.model_high.predict, reduce_retracing=True)
+        self.proc_type       = self.params["proc_type"]
+        self.run_bdt         = self.params["run_bdt"]
+        self.run_dnn         = self.params["run_dnn"]
+        self.separate_models = self.params["separate_models"]
 
         print("Processor initialized")
         
@@ -326,7 +375,7 @@ class VHbbBaseProcessor(BaseProcessorABC):
         print("Separate DNN evaluation completed.")
         
         return dnn_score
-    
+        
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
@@ -372,6 +421,12 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["GenPart_pt"] = self.events.GenPart.pt
             self.events["GenPart_status"] = self.events.GenPart.status
             self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
+            
+            # a C++ interface test
+            # LorentzBooster(self.events.GenPart_pt, 
+            #                self.events.GenPart_eta, 
+            #                self.events.GenPart_phi, 
+            #                self.events.GenPart_mass)
 
             self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
             self.events["LHE_HT"] = self.events.LHE.HT
@@ -454,36 +509,35 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["ZHbb_deltaR"] = np.abs(self.events.ll.delta_r(self.events.dijet_bsort))
             self.events["VHbb_deltaR"] = self.events.ZHbb_deltaR
             
-            if self.run_dnn:
+            if self.run_bdt:
                 odd_events = self.events[odd_event_mask]
                 # Create a record of variables to be dumped as root/parquete file:
                 variables_to_process = ak.zip({
-                    "dilep_m": odd_events["dilep_m"],
-                    "dilep_pt": odd_events["dilep_pt"],
-                    "dilep_dr": odd_events["dilep_dr"],
-                    "dilep_deltaPhi": odd_events["dilep_deltaPhi"],
-                    "dilep_deltaEta": odd_events["dilep_deltaEta"],
+                    "events_dilep_m": odd_events["dilep_m"],
+                    "events_dilep_pt": odd_events["dilep_pt"],
+                    "events_dilep_dr": odd_events["dilep_dr"],
+                    "events_dilep_deltaPhi": odd_events["dilep_deltaPhi"],
+                    "events_dilep_deltaEta": odd_events["dilep_deltaEta"],
+                    # "events_dibjet_m": odd_events["dibjet_m"],  # Commented out as per the features list
+                    "events_dibjet_pt": odd_events["dibjet_pt"],
+                    "events_dibjet_dr": odd_events["dibjet_dr"],
+                    "events_dibjet_deltaPhi": odd_events["dibjet_deltaPhi"],
+                    "events_dibjet_deltaEta": odd_events["dibjet_deltaEta"],
+                    "events_dibjet_pt_max": odd_events["dibjet_pt_max"],
+                    "events_dibjet_pt_min": odd_events["dibjet_pt_min"],
+                    "events_dibjet_mass_max": odd_events["dibjet_mass_max"],
+                    "events_dibjet_mass_min": odd_events["dibjet_mass_min"],
+                    "events_dibjet_BvsL_max": odd_events["dibjet_BvsL_max"],
+                    "events_dibjet_BvsL_min": odd_events["dibjet_BvsL_min"],
+                    "events_dibjet_CvsB_max": odd_events["dibjet_CvsB_max"],
+                    "events_dibjet_CvsB_min": odd_events["dibjet_CvsB_min"],
+                    "events_VHbb_pt_ratio": odd_events["VHbb_pt_ratio"],
+                    "events_VHbb_deltaPhi": odd_events["VHbb_deltaPhi"],
+                    "events_VHbb_deltaR": odd_events["VHbb_deltaR"]
+                })
 
-                    "dijet_m": odd_events["dijet_m"],
-                    "dijet_pt": odd_events["dijet_pt"],
-                    "dijet_dr": odd_events["dijet_dr"],
-                    "dijet_deltaPhi": odd_events["dijet_deltaPhi"],
-                    "dijet_deltaEta": odd_events["dijet_deltaEta"],
-                    "dijet_CvsL_max": odd_events["dijet_CvsL_max"],
-                    "dijet_CvsL_min": odd_events["dijet_CvsL_min"],
-                    "dijet_CvsB_max": odd_events["dijet_CvsB_max"],
-                    "dijet_CvsB_min": odd_events["dijet_CvsB_min"],
-                    "dijet_pt_max": odd_events["dijet_pt_max"],
-                    "dijet_pt_min": odd_events["dijet_pt_min"],
-
-                    "ZH_pt_ratio": odd_events["ZH_pt_ratio"],
-                    "ZH_deltaPhi": odd_events["ZH_deltaPhi"],
-                    "deltaPhi_l2_j1": odd_events["deltaPhi_l2_j1"],
-                    "deltaPhi_l2_j2": odd_events["deltaPhi_l2_j2"],
-                })            
-            
                 df = ak.to_pandas(variables_to_process)
-                columns_to_exclude = ['dilep_m']
+                columns_to_exclude = ['dibjet_m']
                 df = df.drop(columns=columns_to_exclude, errors='ignore')
                 self.channel = "2L"
                 if not self.params.separate_models: 
@@ -635,7 +689,6 @@ class VHbbBaseProcessor(BaseProcessorABC):
                 })
             
                 df = ak.to_pandas(variables_to_process)
-                columns_to_exclude = ['dilep_m']
                 df = df.drop(columns=columns_to_exclude, errors='ignore')
                 self.channel = "1L"
                 if not self.params.separate_models: 
@@ -682,34 +735,81 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
             self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
             
-            self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.Z_candidate.pt
-            self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_csort))
-            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
-            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
+            self.events["dibjet_m"] = self.events.dijet_bsort.mass
+            self.events["dibjet_pt"] = self.events.dijet_bsort.pt
+            self.events["dibjet_eta"] = self.events.dijet_bsort.eta
+            self.events["dibjet_phi"] = self.events.dijet_bsort.phi
+            self.events["dibjet_dr"] = self.events.dijet_bsort.deltaR
+            self.events["dibjet_deltaPhi"] = self.events.dijet_bsort.deltaPhi
+            self.events["dibjet_deltaEta"] = self.events.dijet_bsort.deltaEta
+            self.events["dibjet_BvsL_max"] = self.events.dijet_bsort.j1BvsL
+            self.events["dibjet_BvsL_min"] = self.events.dijet_bsort.j2BvsL
+            self.events["dibjet_CvsL_max"] = self.events.dijet_bsort.j1CvsL
+            self.events["dibjet_CvsL_min"] = self.events.dijet_bsort.j2CvsL
+            self.events["dibjet_CvsB_max"] = self.events.dijet_bsort.j1CvsB
+            self.events["dibjet_CvsB_min"] = self.events.dijet_bsort.j2CvsB
+            self.events["dibjet_pt_max"] = self.events.dijet_bsort.j1pt
+            self.events["dibjet_pt_min"] = self.events.dijet_bsort.j2pt
+            self.events["dibjet_mass_max"] = self.events.dijet_bsort.j1mass
+            self.events["dibjet_mass_min"] = self.events.dijet_bsort.j2mass
             
-            # Create a record of variables to be dumped as root/parquete file:
-            variables_to_process = ak.zip({
-                "dijet_m": self.events["dijet_m"],
-                "dijet_pt": self.events["dijet_pt"],
-                "dijet_dr": self.events["dijet_dr"],
-                "dijet_deltaPhi": self.events["dijet_deltaPhi"],
-                "dijet_deltaEta": self.events["dijet_deltaEta"],
-                "dijet_CvsL_max": self.events["dijet_CvsL_max"],
-                "dijet_CvsL_min": self.events["dijet_CvsL_min"],
-                "dijet_CvsB_max": self.events["dijet_CvsB_max"],
-                "dijet_CvsB_min": self.events["dijet_CvsB_min"],
-                "dijet_pt_max": self.events["dijet_pt_max"],
-                "dijet_pt_min": self.events["dijet_pt_min"],
-                "ZH_pt_ratio": self.events["ZH_pt_ratio"],
-                "ZH_deltaPhi": self.events["ZH_deltaPhi"],
-                "Z_pt": self.events["Z_pt"]
-            })
+            self.events["ZHbb_pt_ratio"] = self.events.dijet_bsort.pt/self.events.Z_candidate.pt
+            self.events["VHbb_pt_ratio"] = self.events.ZHbb_pt_ratio
             
-            df = ak.to_pandas(variables_to_process)
-            #columns_to_exclude = []
-            #df = df.drop(columns=columns_to_exclude, errors='ignore')
-            self.events["BDT"] = self.evaluateBDT(df)
-            self.events["DNN"] = self.evaluateDNN(df)
-            mask = ((self.events.nJetGood >= 2) & (self.events.dijet_csort.pt > 120)) &  ( (self.events.deltaPhi_jet1_MET > 0.6) & (self.events.deltaPhi_jet2_MET > 0.6)) & ((self.events.JetsCvsL.btagDeepFlavCvL[:,0]>0.2) & (self.events.JetsCvsL.btagDeepFlavCvB[:,0]>0.4)) & ((self.events.nJetGood >= 2) & (self.events.dijet_csort.mass > 75) & (self.events.dijet_csort.mass < 200))
-            selection_ZNuNu = ak.where(ak.is_none(mask), False, mask)
+            self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_bsort))
+            self.events["VHbb_deltaPhi"] = self.events.ZH_deltaPhi
+            
+            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetsBvsL[:,0]))
+            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetsBvsL[:,1]))
+            
+            if self.run_dnn:
+                odd_events = self.events[odd_event_mask]
+                # Create a record of variables to be dumped as root/parquete file:
+                variables_to_process = ak.zip({
+                    "dijet_m": self.events["dijet_m"],
+                    "dijet_pt": self.events["dijet_pt"],
+                    "dijet_dr": self.events["dijet_dr"],
+                    "dijet_deltaPhi": self.events["dijet_deltaPhi"],
+                    "dijet_deltaEta": self.events["dijet_deltaEta"],
+                    "dijet_CvsL_max": self.events["dijet_CvsL_max"],
+                    "dijet_CvsL_min": self.events["dijet_CvsL_min"],
+                    "dijet_CvsB_max": self.events["dijet_CvsB_max"],
+                    "dijet_CvsB_min": self.events["dijet_CvsB_min"],
+                    "dijet_pt_max": self.events["dijet_pt_max"],
+                    "dijet_pt_min": self.events["dijet_pt_min"],
+                    "ZH_pt_ratio": self.events["ZH_pt_ratio"],
+                    "ZH_deltaPhi": self.events["ZH_deltaPhi"],
+                    "Z_pt": self.events["Z_pt"]
+                })
+            
+                df = ak.to_pandas(variables_to_process)
+                # columns_to_exclude = ['dilep_m']
+                df = df.drop(columns=columns_to_exclude, errors='ignore')
+                self.channel = "0L"
+                if not self.params.separate_models: 
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
+
+                    bdt_predictions = self.evaluateBDT(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
+
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateDNN(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
+                else:
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
+
+                    bdt_predictions = self.evaluateseparateBDTs(df_final)
+                    bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
+                    # Convert NaN to None
+                    bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
+                    self.events["BDT"] = bdt_predictions
+
+                    if self.run_dnn:
+                        self.events["DNN"] = self.evaluateseparateDNNs(df_final)
+                    else:
+                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
 
