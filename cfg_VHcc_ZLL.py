@@ -85,14 +85,14 @@ cfg = Configurator(
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
                 "ZH_Hto2C_Zto2L",
-                "ZH_Hto2B_Zto2L"
+                #"ZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_preEE']
             #"year": ['2023_preBPix']
         },
 
