@@ -1,7 +1,7 @@
 
 input:
   channel: "2L"
-  eras: ["2022_preEE"]
+  eras: ["2022_postEE"]
   variation: "nominal"
 
 output:

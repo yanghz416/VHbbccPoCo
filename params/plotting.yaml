@@ -87,6 +87,7 @@ plotting_style:
     categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']
     histograms:
       dijet_m: [90, 150]
+      dijet_csort_m: [90, 150]
       BDT: [0.7, 1]
       DNN: [0.7, 1]
 

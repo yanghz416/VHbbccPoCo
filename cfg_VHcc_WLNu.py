@@ -56,7 +56,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 ctx = click.get_current_context()
@@ -119,13 +119,12 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"}
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"},
 
     skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
-            get_nObj_min(3, 20., "Jet"),
-            get_nPVgood(1), eventFlags, goldenJson], # in default jet collection there are leptons. So we ask for 1lep+2jets=3Jet objects
+            get_nObj_min(3, 20., "Jet"), # in default jet collection there are leptons. So we ask for 1lep+2jets=3Jet objects
+            get_nPVgood(1), eventFlags, goldenJson],
 
-    #preselections = [onelep_plus_met],
     preselections = [lep_met_2jets],
     categories = {
         "baseline_1L2j": [passthrough],
