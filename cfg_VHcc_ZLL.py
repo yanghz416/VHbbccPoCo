@@ -79,6 +79,7 @@ cfg = Configurator(
 	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
+                #"WJetsToLNu_FxFx",
                 #"TTToSemiLeptonic",
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
@@ -91,7 +92,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_postEE']
             #"year": ['2023_preBPix']
         },
 
@@ -114,7 +115,7 @@ cfg = Configurator(
 
     workflow = VHccBaseProcessor,
     
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"} if parameters["save_arrays"] else {},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZLL"},
 
     #skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
     skim = [get_HLTsel(primaryDatasets=["DoubleMuon","DoubleEle"]),
@@ -171,7 +172,7 @@ cfg = Configurator(
                 }
         },
         
-    },
+    } if parameters["save_arrays"] else {},
 
     weights = {
         "common": {
