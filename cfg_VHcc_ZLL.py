@@ -166,7 +166,7 @@ cfg = Configurator(
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    # "JetGood_btagCvL","JetGood_btagCvB",          # comment out until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
+                                    "JetGood_btagCvL","JetGood_btagCvB",
                                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
@@ -179,7 +179,7 @@ cfg = Configurator(
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    # "JetGood_btagCvL","JetGood_btagCvB",          # comment out until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
+                                    "JetGood_btagCvL","JetGood_btagCvB",
                                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",

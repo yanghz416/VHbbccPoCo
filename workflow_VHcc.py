@@ -127,6 +127,8 @@ class VHccBaseProcessor(BaseProcessorABC):
         )
         
         myJetTagger = self.params.ctagging[self._year]["tagger"]
+        self.myJetTagger = myJetTagger
+
         
         
         self.newjetdefiniton = "jet_tagger" in inspect.signature(jet_selection).parameters
@@ -139,6 +141,24 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["JetGood"], self.jetGoodMask = jet_selection(
                 self.events, "Jet", self.params, self._year, "LeptonGood"
             )
+            if self.myJetTagger == "PNet":
+                B   = "btagPNetB"
+                CvL = "btagPNetCvL"
+                CvB = "btagPNetCvB"
+            elif self.myJetTagger == "DeepFlav":
+                B   = "btagDeepFlavB"
+                CvL = "btagDeepFlavCvL"
+                CvB = "btagDeepFlavCvB"
+            elif self.myJetTagger == "RobustParT":
+                B   = "btagRobustParTAK4B"
+                CvL = "btagRobustParTAK4CvL"
+                CvB = "btagRobustParTAK4CvB"
+            else:
+                raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
+            self.events.JetGood["btagB"] = self.events.JetGood[B]
+            self.events.JetGood["btagCvL"] = self.events.JetGood[CvL]
+            self.events.JetGood["btagCvB"] = self.events.JetGood[CvB]
+            
         
         self.events['EventNr'] = self.events.event
         
@@ -360,24 +380,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
         else:
             #TODO: This is temporary
-            self.myJetTagger = self.params.ctagging[self._year]["tagger"]
             self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
             self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
-
-            if self.myJetTagger == "PNet":
-                B   = "btagPNetB"
-                CvL = "btagPNetCvL"
-                CvB = "btagPNetCvB"
-            elif self.myJetTagger == "DeepFlav":
-                B   = "btagDeepFlavB"
-                CvL = "btagDeepFlavCvL"
-                CvB = "btagDeepFlavCvB"
-            elif self.myJetTagger == "RobustParT":
-                B   = "btagRobustParTAK4B"
-                CvL = "btagRobustParTAK4CvL"
-                CvB = "btagRobustParTAK4CvB"
-            else:
-                raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
 
         #self.events["dijet_pt"] = self.events.dijet.pt
         odd_event_mask = (self.events.EventNr % 2 == 1)
@@ -520,15 +524,10 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l1_b"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.b_jet.phi))
             self.events["deltaEta_l1_b"] = np.abs(self.events.lead_lep.eta - self.events.b_jet.eta)
             self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
-            if self.newjetdefiniton:
-                self.events["b_CvsL"] = self.events.b_jet["btagCvL"]
-                self.events["b_CvsB"] = self.events.b_jet["btagCvB"]
-                self.events["b_Btag"] = self.events.b_jet["btagB"]
-            else:
-                #TODO: This is temp
-                self.events["b_CvsL"] = self.events.b_jet[CvL]
-                self.events["b_CvsB"] = self.events.b_jet[CvB]
-                self.events["b_Btag"] = self.events.b_jet[B]
+            self.events["b_CvsL"] = self.events.b_jet["btagCvL"]
+            self.events["b_CvsB"] = self.events.b_jet["btagCvB"]
+            self.events["b_Btag"] = self.events.b_jet["btagB"]
+            
             self.events["neutrino_from_W"] = get_nu_4momentum(self.events.lead_lep, self.events.MET_used)
             self.events["top_candidate"] = self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
