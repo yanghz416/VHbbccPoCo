@@ -171,3 +171,12 @@ Models:
           model_file: '${config_dir:}/../MVA/DNN_models/ZH_HToCC_ZToNuNu_2017_dnn_model_QCD.h5'
       '2023_postBPix':
           model_file: '${config_dir:}/../MVA/DNN_models/ZH_HToCC_ZToNuNu_2017_dnn_model_QCD.h5'
+  'GNN':
+    '2L':
+      '2022_preEE':
+        model_file: '${config_dir:}/../MVA/GNN_models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/gnn.pt'
+        params: '${config_dir:}/../MVA/GNN_models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/modelparams.pkl'
+      '2022_postEE':                                                         
+#TODO: This is temporary
+        model_file: '${config_dir:}/../MVA/GNN_models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/gnn.pt'
+        params: '${config_dir:}/../MVA/GNN_models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/modelparams.pkl'

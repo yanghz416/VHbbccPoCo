@@ -4,19 +4,22 @@ import uproot
 import pandas as pd
 import math
 import warnings
-import os
+import os, pickle
 import lightgbm as lgb
-import tensorflow as tf
 import gc
+import tensorflow as tf
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 from keras.models import load_model
 import CommonSelectors
 from CommonSelectors import *
+import inspect
+
+import torch
+from MVA.gnnmodels import GraphAttentionClassifier
+
 from pocket_coffea.utils.utils import dump_ak_array
-
-
 from pocket_coffea.workflows.base import BaseProcessorABC
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.hist_manager import Axis
@@ -82,6 +85,7 @@ class VHccBaseProcessor(BaseProcessorABC):
         self.proc_type   = self.params["proc_type"]
         self.save_arrays = self.params["save_arrays"]
         self.run_dnn     = self.params["run_dnn"]
+        self.run_gnn     = self.params["run_gnn"]
         #self.bdt_model = lgb.Booster(model_file=self.params.LightGBM_model)
         #self.bdt_low_model = lgb.Booster(model_file=self.params.LigtGBM_low)
         #self.bdt_high_model = lgb.Booster(model_file=self.params.LigtGBM_high)
@@ -124,9 +128,17 @@ class VHccBaseProcessor(BaseProcessorABC):
         
         myJetTagger = self.params.ctagging[self._year]["tagger"]
         
-        self.events["JetGood"], self.jetGoodMask = jet_selection(
-            self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
-        )
+        
+        self.newjetdefiniton = "jet_tagger" in inspect.signature(jet_selection).parameters
+        # This is a hack for now until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
+        if self.newjetdefiniton:
+            self.events["JetGood"], self.jetGoodMask = jet_selection(
+                self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
+            )
+        else:
+            self.events["JetGood"], self.jetGoodMask = jet_selection(
+                self.events, "Jet", self.params, self._year, "LeptonGood"
+            )
         
         self.events['EventNr'] = self.events.event
         
@@ -203,6 +215,7 @@ class VHccBaseProcessor(BaseProcessorABC):
         gc.collect()
         #print("DNN evaluation completed.")
         return dnn_score
+
     
     def evaluateseparateDNNs(self, data):
         
@@ -247,6 +260,76 @@ class VHccBaseProcessor(BaseProcessorABC):
         
         return dnn_score
     
+    def resize_tensor(self,tensor,target):
+        m, n, p = tensor.shape
+        
+        if n > target:
+            return tensor[:, :target, :]
+        elif n < target:
+            padding = torch.zeros((m, target - n, p), device=tensor.device, dtype=tensor.dtype)
+            return torch.cat((tensor, padding), dim=1)
+        else:
+            return tensor
+
+    def evaluateGNN(self,data):
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        # model = torch.jit.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file) #TODO This would be the most elegant way, but the current model does not work with torch.jit
+
+        modelparams = pickle.load(open(self.params.Models.GNN[self.channel][self.events.metadata["year"]].params,'rb'))
+        model = GraphAttentionClassifier(**modelparams)
+        model.load_state_dict(torch.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file,weights_only=True,map_location=device))
+        model.eval()
+
+        varsdict = {
+            'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+            'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+            'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
+            'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
+            'll'    : ["ll_pt","ll_eta","ll_phi","ll_mass"],
+            'glo'   : ["MET_pt","MET_phi","nPV"],
+            'cat'   : ["LeptonCategory"]
+        }
+
+        pads = {
+            'jet'   : 6,
+            'jetp4' : 6,
+            'lep'   : 2,
+            'lepp4' : 2,
+            'll'    : 0,
+            'glo'   : 0,
+            'cat'   : 0
+        }
+
+        tensordict = {}  
+        for arr in varsdict:  
+            maxelem = pads[arr]                    
+            for field in varsdict[arr]:
+                var = data[field]
+                
+                if maxelem > 0:
+                    N = np.max(ak.num(var, axis=1))  
+                    padded = ak.fill_none(ak.pad_none(var,N,axis=1),0)
+                    
+                else: 
+                    padded = var
+                if arr not in tensordict:
+                    tensordict[arr] = []
+                dtype = torch.float32
+                if arr == 'cat':
+                    dtype = torch.int64
+                tensordict[arr].append(torch.tensor(padded,dtype=dtype))
+
+            stacked = torch.stack(tensordict[arr],dim=-1)
+            if maxelem > 0:
+                stacked = self.resize_tensor(stacked,maxelem)
+            tensordict[arr] = stacked
+        
+        with torch.no_grad():
+            prediction = model(tensordict["jet"],tensordict["jetp4"],tensordict["lep"],tensordict["lepp4"],tensordict["ll"],tensordict["glo"],tensordict["cat"])[:,0]
+
+
+        return prediction.detach().cpu().numpy()    
+    
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
@@ -262,12 +345,39 @@ class VHccBaseProcessor(BaseProcessorABC):
         for var in p4vars:
             self.events["ll_"+var] = self.events.ll[var]
 
+        self.events["MET_pt"] = self.events.MET.pt
+        self.events["MET_phi"] = self.events.MET.phi
+        self.events["nPV"] = self.events.PV.npvsGood
+
+
+
     def define_common_variables_after_presel(self, variation):
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
-        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
 
-        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
+        if self.newjetdefiniton:
+            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
+            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
+        else:
+            #TODO: This is temporary
+            self.myJetTagger = self.params.ctagging[self._year]["tagger"]
+            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
+            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
+
+            if self.myJetTagger == "PNet":
+                B   = "btagPNetB"
+                CvL = "btagPNetCvL"
+                CvB = "btagPNetCvB"
+            elif self.myJetTagger == "DeepFlav":
+                B   = "btagDeepFlavB"
+                CvL = "btagDeepFlavCvL"
+                CvB = "btagDeepFlavCvB"
+            elif self.myJetTagger == "RobustParT":
+                B   = "btagRobustParTAK4B"
+                CvL = "btagRobustParTAK4CvL"
+                CvB = "btagRobustParTAK4CvB"
+            else:
+                raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
 
         #self.events["dijet_pt"] = self.events.dijet.pt
         odd_event_mask = (self.events.EventNr % 2 == 1)
@@ -292,6 +402,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["dilep_dr"] = self.events.ll.deltaR
             self.events["dilep_deltaPhi"] = self.events.ll.deltaPhi
             self.events["dilep_deltaEta"] = self.events.ll.deltaEta
+
+            self.events["LeptonCategory"] = ak.values_astype(self.events["nMuonGood"]==2,"int32")
             
             self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.ll.pt
             self.events["ZH_deltaPhi"] = np.abs(self.events.ll.delta_phi(self.events.dijet_csort))
@@ -311,11 +423,21 @@ class VHccBaseProcessor(BaseProcessorABC):
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2"]
 
-            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
+            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})  #TODO: use odd_events instead
+
+            gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
+                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                        "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                        "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                        "ll_pt","ll_eta","ll_phi","ll_mass",
+                        "MET_pt","MET_phi","nPV","LeptonCategory"]
+
+            ak_gnn = self.events[gnn_vars] #TODO: use odd_events instead
             
             df = ak.to_pandas(variables_to_process)
             columns_to_exclude = ['dilep_m']
             df = df.drop(columns=columns_to_exclude, errors='ignore')
+
             self.channel = "2L"
             if not self.params.separate_models: 
                 df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
@@ -330,6 +452,11 @@ class VHccBaseProcessor(BaseProcessorABC):
                     self.events["DNN"] = self.evaluateDNN(df_final)
                 else:
                     self.events["DNN"] = np.zeros_like(self.events["BDT"])
+
+                if self.run_gnn:
+                    self.events["GNN"] = self.evaluateGNN(ak_gnn)
+                else:
+                    self.events["GNN"] = np.zeros_like(self.events["BDT"])
             else:
                 df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
 
@@ -393,9 +520,15 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l1_b"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.b_jet.phi))
             self.events["deltaEta_l1_b"] = np.abs(self.events.lead_lep.eta - self.events.b_jet.eta)
             self.events["deltaR_l1_b"] = np.sqrt((self.events.lead_lep.eta - self.events.b_jet.eta)**2 + (self.events.lead_lep.phi - self.events.b_jet.phi)**2)
-            self.events["b_CvsL"] = self.events.b_jet["btagCvL"]
-            self.events["b_CvsB"] = self.events.b_jet["btagCvB"]
-            self.events["b_Btag"] = self.events.b_jet["btagB"]
+            if self.newjetdefiniton:
+                self.events["b_CvsL"] = self.events.b_jet["btagCvL"]
+                self.events["b_CvsB"] = self.events.b_jet["btagCvB"]
+                self.events["b_Btag"] = self.events.b_jet["btagB"]
+            else:
+                #TODO: This is temp
+                self.events["b_CvsL"] = self.events.b_jet[CvL]
+                self.events["b_CvsB"] = self.events.b_jet[CvB]
+                self.events["b_Btag"] = self.events.b_jet[B]
             self.events["neutrino_from_W"] = get_nu_4momentum(self.events.lead_lep, self.events.MET_used)
             self.events["top_candidate"] = self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)

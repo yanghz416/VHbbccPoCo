@@ -1,22 +1,23 @@
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader, Dataset, random_split, WeightedRandomSampler
+from torch.utils.data import DataLoader, Dataset, random_split, WeightedRandomSampler, Subset
 from alive_progress import alive_bar
 import numpy as np
 import torch.nn.functional as F
 import torch.optim.lr_scheduler as lr_scheduler
 import os, math
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print("Device, as seen by pytorch:", device)
 import matplotlib.pyplot as plt
 import mplhep as hep
+from contextlib import nullcontext
 plt.style.use(hep.style.CMS)
+import optuna
+import copy, pickle, gc
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 class GraphDataset(Dataset):
-    def __init__(self, datadict, labels, weights=None, dvc=None):
+    def __init__(self, datadict, labels, weights=None, weightsigns=None, dvc=None):
         if dvc:
             for d in datadict:
                 datadict[d] = datadict[d].to(dvc)
@@ -25,6 +26,10 @@ class GraphDataset(Dataset):
         self.labels = labels
         if weights is None:
             self.weights = torch.ones_like(labels)
+            if weightsigns is not None:
+                self.weights = np.where(weightsigns>=0, self.weights, self.weights*-1)
+                print("Using signs of input weights.")
+                print(f"There are {(self.weights>0).sum()} positive weights and {(self.weights<0).sum()} negative weights.")
         else:
             self.weights = weights
         
@@ -36,20 +41,15 @@ class GraphDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        # Return the data and corresponding label at the given index
         return *[self.data[d][idx] for d in self.data], self.labels[idx], self.weights[idx]
 
 class GraphAttentionClassifier(nn.Module):
-    def __init__(self, out, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, num_classes=2, dropout=0.2, pairwisefeats = 7):
+    def __init__(self, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, num_classes=2, dropout=0.2, pairwisefeats = 7, hyperembeddim=16, globdim=3):
         super(GraphAttentionClassifier, self).__init__()
         self.num_heads = num_heads
-
-        attention_dim=int(out.getenv("ATTENTION",256))
-        
-        hyperembeddim = int(out.getenv("DIM",16))
         self.pairwisefeats = pairwisefeats
 
-        self.embedjets = nn.Linear(jet_dim, hyperembeddim)
+        self.embedjets = nn.Linear(jet_dim+4, hyperembeddim)
         self.multihead_attention_jet = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
         self.edgejet = nn.Linear(pairwisefeats, hyperembeddim)
@@ -57,13 +57,13 @@ class GraphAttentionClassifier(nn.Module):
         self.multihead_attention_edgejet = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)        
         self.edgejetbn = nn.BatchNorm1d(1)
 
-        self.embedleps = nn.Linear(lep_dim, hyperembeddim)
+        self.embedleps = nn.Linear(lep_dim+4, hyperembeddim)
         self.multihead_attention_lep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
         self.edgelep = nn.Linear(pairwisefeats, hyperembeddim)
         self.multihead_attention_edgelep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)     
 
-        self.embedll = nn.Linear(ll_dim, hyperembeddim)     
+        # self.embedll = nn.Linear(ll_dim, hyperembeddim)     
 
         self.embedjl = nn.Linear(pairwisefeats, hyperembeddim)
         self.multihead_attention_jl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
@@ -74,15 +74,18 @@ class GraphAttentionClassifier(nn.Module):
         self.embedjjll = nn.Linear(pairwisefeats, hyperembeddim)
         self.multihead_attention_jjll = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
-        self.layer_norm = nn.LayerNorm(hyperembeddim)
+        self.embedglob = nn.Linear(globdim, hyperembeddim)
 
-        self.fc1 = nn.Linear(hyperembeddim*9, attention_dim)
+        self.layer_norm = nn.LayerNorm(hyperembeddim)
+        
+
+        self.fc1 = nn.Linear(hyperembeddim*9+2, attention_dim)
         self.bn1 = nn.BatchNorm1d(attention_dim)
         self.fc2 = nn.Linear(attention_dim, attention_dim)
         self.bn2 = nn.BatchNorm1d(attention_dim)
         self.fc3 = nn.Linear(attention_dim, num_classes)
 
-        self.dropout = nn.Dropout(out.getenv("DROPOUT",dropout))
+        self.dropout = nn.Dropout(dropout)
     
     def selfinteraction(self, x):
         pT = x[:, :, 0]        
@@ -259,6 +262,8 @@ class GraphAttentionClassifier(nn.Module):
     def makeUT(self,tensor):
         nnodes = tensor.shape[1]
         indices = torch.triu_indices(nnodes, nnodes, offset=1, dtype=torch.int32)
+        if len(tensor.shape) == 3:
+            return tensor[:, indices[0], indices[1]]
         return tensor[:, indices[0], indices[1], :]
         
 
@@ -274,13 +279,13 @@ class GraphAttentionClassifier(nn.Module):
             return ij_pooled
         return ij_embed
 
-    def forward(self, jet, jetp4, lep, lepp4, ll):
+    def forward(self, jet, jetp4, lep, lepp4, ll, glo, cat):
         # Jets
-        edge_features, dijetP4 = self.selfinteraction(jetp4)            # BxNxNxF
-        nnodes = edge_features.shape[1]
-        edge_features_conc = edge_features.view(edge_features.shape[0], nnodes*nnodes, edge_features.shape[3])   # BxN^2xF
+        jet_edge_features, dijetP4 = self.selfinteraction(jetp4)            # BxNxNxF
+        nnodes = jet_edge_features.shape[1]
+        jet_edge_features_conc = jet_edge_features.view(jet_edge_features.shape[0], nnodes*nnodes, jet_edge_features.shape[3])   # BxN^2xF
 
-        e_attn = self.conv1d_edgejet(edge_features_conc.permute(0,2,1))      #BxFxN^2
+        e_attn = self.conv1d_edgejet(jet_edge_features_conc.permute(0,2,1))      #BxFxN^2
         e_attn = F.relu(self.edgejetbn(e_attn))
         e_attn = e_attn.view(e_attn.shape[0],e_attn.shape[1],nnodes,nnodes) #BxFxNxN
         e_attn = e_attn.repeat(1, self.num_heads, 1, 1)
@@ -288,39 +293,42 @@ class GraphAttentionClassifier(nn.Module):
 
         jetmask = torch.all(jet == 0, dim=-1)
         edgemask = jetmask.unsqueeze(1) | jetmask.unsqueeze(2)
-        edgemask = edgemask.view(edgemask.shape[0],edgemask.shape[1]*edgemask.shape[2])     #BxN^2
+        # edgemask = edgemask.view(edgemask.shape[0],edgemask.shape[1]*edgemask.shape[2])     #BxN^2
 
+        jet = torch.cat([jet,jetp4],dim=2)
         jet = self.embedjets(jet)
         attn_output_jet, _ = self.multihead_attention_jet(jet, jet, jet, key_padding_mask=jetmask.float(), attn_mask=e_attn)
         attn_output_jet = self.layer_norm(attn_output_jet)
-
-        e = self.edgejet(edge_features_conc)
-        attn_output_edgejet, _ = self.multihead_attention_edgejet(e, e, e, key_padding_mask=edgemask)
-        attn_output_edgejet = self.layer_norm(attn_output_edgejet)
-
         pooled_output_jets = torch.sum(attn_output_jet, dim=1)
+
+        
+        jet_edge_features = self.makeUT(jet_edge_features)
+        edgemask = self.makeUT(edgemask)
+        e = self.edgejet(jet_edge_features)
+        attn_output_edgejet, _ = self.multihead_attention_edgejet(e, e, e, key_padding_mask=edgemask)
+        attn_output_edgejet = self.layer_norm(attn_output_edgejet)        
         pooled_output_edgejet = torch.mean(attn_output_edgejet, dim=1)
 
 
         # Leps
-        edge_features, _ = self.selfinteraction(lepp4)
-        nnodes = edge_features.shape[1]
-        edge_features_avg = edge_features.view(edge_features.shape[0], nnodes*nnodes, edge_features.shape[3])
+        lep_edge_features, _ = self.selfinteraction(lepp4)
+        # nnodes = lep_edge_features.shape[1]
+        # lep_edge_features_avg = lep_edge_features.view(lep_edge_features.shape[0], nnodes*nnodes, lep_edge_features.shape[3])
 
-
+        lep = torch.cat([lep,lepp4],dim=2)
         lep_emb = self.embedleps(lep)
         attn_output_lep, _ = self.multihead_attention_lep(lep_emb, lep_emb, lep_emb)
         attn_output_lep = self.layer_norm(attn_output_lep)
-
-        e = self.edgelep(edge_features_avg)
-        attn_output_edgelep, _ = self.multihead_attention_edgelep(e, e, e)
-        attn_output_edgelep = self.layer_norm(attn_output_edgelep)
-
         pooled_output_leps = torch.sum(attn_output_lep, dim=1)
+
+        lep_edge_features = self.makeUT(lep_edge_features)
+        e = self.edgelep(lep_edge_features)
+        attn_output_edgelep, _ = self.multihead_attention_edgelep(e, e, e)
+        attn_output_edgelep = self.layer_norm(attn_output_edgelep)        
         pooled_output_edgelep = torch.mean(attn_output_edgelep, dim=1)
 
         # ll
-        ll_emb = self.embedll(ll)
+        # ll_emb = self.embedll(ll)
 
         #jet with lep interactions
         jl_out = self.pairprocess(jetp4,lepp4,self.embedjl,self.multihead_attention_jl)
@@ -337,7 +345,15 @@ class GraphAttentionClassifier(nn.Module):
         # jj with ll interactions
         jjll_out = self.pairprocess(jjp4,ll,self.embedjjll,self.multihead_attention_jjll)
 
-        allout = torch.cat([pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,ll_emb,jl_out,jjl_out,jll_out,jjll_out],dim=1)
+        #global
+        global_out = self.embedglob(glo)
+
+        #categorical
+        category_emb = F.one_hot(cat.squeeze(),num_classes=2)
+        if len(category_emb.shape) == 1:          #This happens when batchsize is 1
+            category_emb = category_emb.unsqueeze(0)
+
+        allout = torch.cat([pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,jl_out,jjl_out,jll_out,jjll_out,global_out,category_emb],dim=1)
 
         # Feedforward neural network
         x = self.fc1(allout)
@@ -352,25 +368,71 @@ class GraphAttentionClassifier(nn.Module):
         
         return torch.sigmoid(x)
 
-def runGNNtraining(tensordict, y, outdir, test=False):
+def getinputs(data,device):
+    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = data
+    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),glo.to(device),cat.to(device),label.to(device),weight.to(device)
+    return jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
+
+def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=2, ncpu=4, loadmodel=None):
+
+    outhandle = outhandler(outdir)
+    outhandle.addcustom("signweighted")
+
+    if trial is not None:
+        lr = trial.suggest_float('lr', 5e-3, 1e-2, log=True)
+        dropout = trial.suggest_float('dropout', 0.1, 0.4)
+        attention_dim = trial.suggest_int('attn_dim', 16, 64, step=16)
+        hyperembeddim = trial.suggest_int('hyper_dim', 4, 16, step=4)
+
+        if not torch.cuda.is_available():
+            raise NotImplementedError("Hyperparameter optimization expects GPU availability.")
+
+        if ngpu > 1:
+            # The following is experimental when you run jobs in parallel using n_jobs in optuna
+            gpu_id = trial.number % ngpu  # ngpu GPUs, alternate between GPU 0 and GPU 1
+            device = torch.device(f"cuda:{gpu_id}") # Set the GPU for this trial
+            print(f"Optuna trial number {trial.number}, using device cuda:{gpu_id}")
+            
+            outhandle.addcustom(f"hyperparameter_LR{lr}_dropout{dropout}_attn{attention_dim}_emb{hyperembeddim}")
+
+            # Set CPU affinity: Allow ncpu CPUs per job
+            process_id = os.getpid()
+            cpu_start = (trial.number % ngpu) * ncpu  # E.g. 0-3 for GPU 0, 4-7 for GPU 1
+            cpu_end = cpu_start + ncpu
+            cpu_list = list(os.sched_getaffinity(0))
+            print("Available cpus:",cpu_list)
+            cputouse = cpu_list[cpu_start:cpu_end]
+            os.sched_setaffinity(process_id, cputouse)
+            print(f"Optuna trial number {trial.number}, using cpus:",cputouse)
+    else:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        lr = outhandle.getenv("LR",0.00776)
+        dropout = outhandle.getenv("DROPOUT",0.371)
+        attention_dim = int(outhandle.getenv("ATTENTION",32))        
+        hyperembeddim = int(outhandle.getenv("DIM",8))
     # if test:
-    torch.autograd.set_detect_anomaly(True)
+    print("Device:", device)
 
     y = torch.tensor(y.to_numpy(),dtype=torch.float32)
-    graph = GraphDataset(tensordict,y)
-    
-    outhandle = outhandler(outdir)
+    if w is not None:
+        w = torch.tensor(w.to_numpy(),dtype=torch.float32)
+    if e is not None:
+        e = torch.tensor(e.to_numpy(),dtype=torch.int32)
+
+    graph = GraphDataset(tensordict, y, None, w) 
 
     if device=="cpu":
         nloaders = os.cpu_count()
     else:
-        nloaders = 4
+        nloaders = ncpu
     nepochs = 1000
-    lr = outhandle.getenv("LR",1e-3)
+    
 
     print(f"Will use {nloaders} cpus for dataloaders.")
 
-    model = GraphAttentionClassifier(out=outhandle).to(device)
+    modelparams = {"attention_dim": attention_dim, "hyperembeddim": hyperembeddim, "dropout": dropout}
+    print("Model parameters:",modelparams)
+    model = GraphAttentionClassifier(**modelparams).to(device)
 
     modelsize = count_parameters(model)
     print("Using model of size:",modelsize)
@@ -382,24 +444,49 @@ def runGNNtraining(tensordict, y, outdir, test=False):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.7, patience = 15)
 
-    criterion = nn.BCELoss()
+    if weightedsampling:
+        criterion = nn.BCELoss()
+    else:
+        criterion = nn.BCELoss(reduction="none")
 
-    trainfrac = 0.8
-    dataset_size = len(graph)
-    batch_size = 1024*128
+    batch_size = 1024*64
     val_batch_size = 1024*32
     if test:
         batch_size = 16
         val_batch_size = 16
-    train_size = int(trainfrac * dataset_size)
-    val_size = dataset_size - train_size
-   
-    train_dataset, val_dataset = random_split(graph, [train_size, val_size])
-     
-    train_weights = graph.weights[train_dataset.indices]
-    train_sampler = WeightedRandomSampler(weights=train_weights, num_samples=train_size, replacement=True)
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=nloaders, pin_memory=True)
-    val_loader = DataLoader(val_dataset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True)
+    
+
+    if e is not None:
+        print("Splitting events by even and odd.")
+        train_indices = (e % 2 == 0).nonzero(as_tuple=True)[0]
+        val_indices = (e % 2 == 1).nonzero(as_tuple=True)[0]
+
+        train_size = len(train_indices)
+        val_size = len(val_indices)
+        print(f"Train size: {train_size}, Val size: {val_size}")
+
+        # Create subsets of the dataset for training and validation
+        train_subset = Subset(graph, train_indices)
+        val_subset = Subset(graph, val_indices)
+    else:
+        print("Using random split.")
+        trainfrac = 0.8
+        dataset_size = len(graph)
+        train_size = int(trainfrac * dataset_size)
+        val_size = dataset_size - train_size
+        train_subset, val_subset = random_split(graph, [train_size, val_size])
+        train_indices = train_subset.indices
+
+    if weightedsampling:     
+        print("Using weighted sampling. Will use non-weighted loss.")
+        train_weights = graph.weights[train_indices]
+        train_sampler = WeightedRandomSampler(weights=train_weights, num_samples=train_size, replacement=True)
+        train_loader = DataLoader(train_subset, batch_size=batch_size, sampler=train_sampler, num_workers=nloaders, pin_memory=True)    
+    else:
+        print("Using normal sampling. Will use weighted loss.")
+        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, num_workers=nloaders, pin_memory=True)
+
+    val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True)
 
     print(f"Train data size to model size ratio: {train_size/modelsize}")
     if train_size/modelsize < 10:
@@ -415,96 +502,132 @@ def runGNNtraining(tensordict, y, outdir, test=False):
     bestlosses = []
     lrs = []
 
+    # loadmodel = "Models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/gnn_signweighted_hyperparameter_LR0.009858527825317508_dropout0.2830622619831955_attn32_emb8/gnn.pt"
+
     print("Using batch size",batch_size)
     outdir = outhandle.outdir
-    print("Working dir:", outdir)
-    os.system(f"mkdir -p {outdir}/checkpoints")
+    print("Working dir:", outdir)   
 
-    with alive_bar(nepochs,title="Epoch") as epochbar:
-        for iepoch in range(nepochs):
-            model.train()
-            total_loss = 0.
-            for data in train_loader:
-                jet,jetp4,lep,lepp4,llp4,label,weight = data
-                jet,jetp4,lep,lepp4,llp4,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),label.to(device),weight.to(device)
+    if not loadmodel:
+        os.system(f"mkdir -p {outdir}/checkpoints")
+        with alive_bar(nepochs,title="Epoch") if trial is None else nullcontext() as epochbar:
+            for iepoch in range(nepochs):
+                model.train()
+                total_loss = 0.
+                for data in train_loader:
+                    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
 
-                optimizer.zero_grad()
-                outputs = model(jet,jetp4,lep,lepp4,llp4)
-                loss = criterion(outputs[:,0], label)
+                    optimizer.zero_grad()
+                    outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
+                    if weightedsampling:
+                        loss = criterion(outputs[:,0], label)
+                    else:
+                        loss = criterion(outputs[:,0], label)*weight
+                        loss = loss.mean()
 
-                loss.backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 10.) 
-                optimizer.step()
-                total_loss += loss.item()
+                    loss.backward()
+                    torch.nn.utils.clip_grad_norm_(model.parameters(), 10.) 
+                    optimizer.step()
+                    total_loss += loss.item()
 
-            model.eval()
-            val_loss = 0.
-            for data in val_loader:
-                jet,jetp4,lep,lepp4,llp4,label,weight = data
-                jet,jetp4,lep,lepp4,llp4,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),label.to(device),weight.to(device)
-                with torch.no_grad():
-                    outputs = model(jet,jetp4,lep,lepp4,llp4)
-                    loss = criterion(outputs[:,0], label)
+                model.eval()
+                val_loss = 0.
+                for data in val_loader:
+                    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
+                    with torch.no_grad():
+                        outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
+                        if weightedsampling:
+                            loss = criterion(outputs[:,0], label)
+                        else:
+                            loss = criterion(outputs[:,0], label)*weight
+                            loss = loss.mean()
 
-                    val_loss += loss.item()
+                        val_loss += loss.item()
 
-            avg_train_loss = total_loss / len(train_loader)
-            avg_val_loss = val_loss / len(val_loader)
-            
-            if avg_val_loss < bestloss:
-                bestloss = avg_val_loss
-                bestepoch = iepoch
-                bestmodel = model.state_dict()
+                avg_train_loss = total_loss / len(train_loader)
+                avg_val_loss = val_loss / len(val_loader)
+                
+                if avg_val_loss < bestloss:
+                    bestloss = avg_val_loss
+                    bestepoch = iepoch
+                    bestmodel = copy.deepcopy(model.state_dict())
 
-            scheduler.step(avg_val_loss)
-            nowlr = optimizer.param_groups[-1]['lr']
-            status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
+                if trial is not None:
+                    trial.report(avg_val_loss, iepoch)
+                    # Check if the trial should be pruned
+                    if trial.should_prune():
+                        raise optuna.TrialPruned()
 
-            trainlosses.append(avg_train_loss)
-            vallosses.append(avg_val_loss)
-            bestlosses.append(bestloss)
-            lrs.append(nowlr)
+                scheduler.step(avg_val_loss)
+                nowlr = optimizer.param_groups[-1]['lr']
+                status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
+                if trial is not None:
+                    status = f"Trial: {trial.number}, "+ status
 
-            if iepoch > 0 and iepoch % reportevery == 0:
-                print(status)
-                dumploss(trainlosses,bestlosses,f"{outdir}/losses_inprogress.png",lrcurve=lrs,valloss=vallosses)
-                torch.save(bestmodel,f"{outdir}/checkpoints/gnn_{iepoch}.pt")
+                trainlosses.append(avg_train_loss)
+                vallosses.append(avg_val_loss)
+                bestlosses.append(bestloss)
+                lrs.append(nowlr)
+
+                if iepoch > 0 and iepoch % reportevery == 0:
+                    print(status)
+                    dumploss(trainlosses,bestlosses,f"{outdir}/losses_inprogress.png",lrcurve=lrs,valloss=vallosses)
+                    torch.save(bestmodel,f"{outdir}/checkpoints/gnn_{iepoch}.pt")
 
 
-            if iepoch - bestepoch > earlystop:
-                print(f"Loss did not improve in {earlystop} epochs. Exiting.")
-                break
+                if iepoch - bestepoch > earlystop:
+                    print(f"Loss did not improve in {earlystop} epochs. Exiting.")
+                    break
 
+                if trial is None:
+                    epochbar.text(status)
+                    epochbar()
 
-            epochbar.text(status)
-            epochbar()
+        print(status)
 
-    print(status)
+        torch.save(bestmodel,f"{outdir}/gnn.pt")
+        pickle.dump(modelparams,open(f"{outdir}/modelparams.pkl",'wb'))
+        dumploss(trainlosses,bestlosses,f"{outdir}/losses.png",lrcurve=lrs,valloss=vallosses)
 
-    
-    
-    torch.save(bestmodel,f"{outdir}/gnn.pt")
-    dumploss(trainlosses,bestlosses,f"{outdir}/losses.png",lrcurve=lrs,valloss=vallosses)
+        if trial is not None:
+            del model,jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
+            gc.collect()
+            return bestloss
 
-    # Eval
-    model.load_state_dict(bestmodel)
+        model.load_state_dict(bestmodel)
+        # torch.save(torch.jit.script(model),f"{outdir}/model.pt")  #jit does not work yet
+    else:
+        print("Loading existing model from",loadmodel)
+        bestmodel = torch.load(loadmodel,weights_only=True,map_location=device)
+        model.load_state_dict(bestmodel)
+
+        # pickle.dump(modelparams,open(f"{outdir}/modelparams.pkl",'wb'))
+        # if not os.path.isfile(f"{outdir}/model.pt"):
+        #     torch.save(torch.jit.script(model),f"{outdir}/model.pt")
+
+    # Eval    
     model.eval()
     allouts = []
     truth = []
+    wts = []
     for data in val_loader:
-        jet,jetp4,lep,lepp4,llp4,label,weight = data
-        jet,jetp4,lep,lepp4,llp4,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),label.to(device),weight.to(device)
+        jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
         with torch.no_grad():
-            outputs = model(jet,jetp4,lep,lepp4,llp4)
+            outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
             allouts.append(outputs[:,0])
             truth.append(label)
+            wts.append(weight)
     out = torch.cat(allouts,dim=0).cpu()
     yvals = torch.cat(truth,dim=0).cpu()
-    return out,yvals
+    ywts = torch.cat(wts,dim=0).cpu()
+    return out,yvals,ywts,outdir
 
 class outhandler():
     def __init__(self,outdir):
         self.outdir = outdir
+
+    def addcustom(self,txt=""):
+        self.outdir += f"_{txt}"
 
     def getenv(self,envvarname,default):
         #Useful for hyperparameter optimization

@@ -9,15 +9,18 @@ import workflow_VHcc
 from pocket_coffea.lib.columns_manager import ColOut
 import click
 from workflow_VHcc import VHccBaseProcessor
-import vjet_weights
+import vjet_weights 
 from vjet_weights import *
 import CommonSelectors
 from CommonSelectors import *
+import MVA
+from MVA.gnnmodels import GraphAttentionClassifier
 
 import cloudpickle
 cloudpickle.register_pickle_by_value(workflow_VHcc)
 cloudpickle.register_pickle_by_value(CommonSelectors)
 cloudpickle.register_pickle_by_value(vjet_weights)
+cloudpickle.register_pickle_by_value(MVA)
 
 import os
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -52,13 +55,14 @@ files_Run3 = [
     f"{localdir}/datasets/Run3_MC_VJets.json",
     f"{localdir}/datasets/Run3_MC_OtherBkg.json",
     f"{localdir}/datasets/Run3_DATA.json",
-    f"{localdir}/datasets/Run3_MC_Sig.json",
+    f"{localdir}/datasets/Run3_MC_Sig.json"
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = True
+parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -84,7 +88,7 @@ cfg = Configurator(
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
                 "ZH_Hto2C_Zto2L",
-                #"ZH_Hto2B_Zto2L"
+                "ZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
@@ -162,11 +166,12 @@ cfg = Configurator(
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    "JetGood_btagCvL","JetGood_btagCvB",
+                                    # "JetGood_btagCvL","JetGood_btagCvB",          # comment out until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
                                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                                    "ll_pt","ll_eta","ll_phi","ll_mass"], flatten=False),
+                                    "ll_pt","ll_eta","ll_phi","ll_mass",
+                                    "MET_pt","MET_phi","nPV","LeptonCategory"], flatten=False),
                     ],
                     "baseline_2L2J_no_ctag": [
                         ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
@@ -174,11 +179,12 @@ cfg = Configurator(
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    "JetGood_btagCvL","JetGood_btagCvB",
+                                    # "JetGood_btagCvL","JetGood_btagCvB",          # comment out until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
                                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                                    "ll_pt","ll_eta","ll_phi","ll_mass"], flatten=False),
+                                    "ll_pt","ll_eta","ll_phi","ll_mass",
+                                    "MET_pt","MET_phi","nPV","LeptonCategory"], flatten=False),
                     ]
                 }
         },
@@ -277,6 +283,9 @@ cfg = Configurator(
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
+
+        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
         
         
         # 2D histograms:

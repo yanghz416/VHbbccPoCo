@@ -2,6 +2,7 @@ Note: PyTorch is needed for GNN trainings. It is not needed for LGBM and DNN, bu
 ```
 pip install torch
 pip install alive_progress
+pip install optuna
 ```
 or use the conda equivalent.
 

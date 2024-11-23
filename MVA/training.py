@@ -3,23 +3,14 @@ import lightgbm as lgb
 from sklearn.model_selection import train_test_split
 import argparse
 import glob
-print(lgb.__version__)
 import os
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score, log_loss
-from keras.models import Sequential
-from keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from keras.models import load_model
-from keras.optimizers import Adam
-from keras import backend as K
-from keras import regularizers
-from keras.layers import Dense, BatchNormalization, LeakyReLU
-from keras.optimizers import RMSprop
+
 from imblearn.over_sampling import SMOTE
 import numpy as np
 import awkward as ak
-import torch
-from gnnmodels import *
+
 
 def get_inputs(channel,model_type):
     if model_type in ["lgbm","dnn"]:
@@ -28,7 +19,8 @@ def get_inputs(channel,model_type):
                     "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                     "dijet_pt_max","dijet_pt_min",
-                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2"]
+                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
+                    "MET_pt","MET_phi","nPV","LeptonCategory"]
         if channel == "WLnu":
             inps = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
@@ -48,7 +40,8 @@ def get_inputs(channel,model_type):
                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                    "ll_pt","ll_eta","ll_phi","ll_mass"]
+                    "ll_pt","ll_eta","ll_phi","ll_mass",
+                    "MET_pt","MET_phi","nPV","LeptonCategory"]
         if channel == "WLnu":
             inps = []
             raise NotImplementedError("Need to hardcode these.")
@@ -56,6 +49,8 @@ def get_inputs(channel,model_type):
             inps = []
             raise NotImplementedError("Need to hardcode these.")
 
+
+    inps = ["EventNr"]+inps
     return ["events_"+i for i in inps]
     print(f"Channel name {channel} for model tpye {model_type} not found!")
     exit(1)
@@ -77,7 +72,9 @@ def load_data(dir_path, signal_names, background_names, channel, model_type, tes
 
     background_files = []
     for background_name in background_names:
-        background_files.extend([file for file in all_files if background_name in file])
+        # Make sure not to double count for datasets split into bx, cx, ll
+        print("Explicitly rejecting bx/cx/ll files in background.")
+        background_files.extend([file for file in all_files if background_name in file and "_bx/" not in file and "_cx/" not in file and "_ll/" not in file])
 
     data_files = [file for file in all_files if "DATA" in file]
 
@@ -94,11 +91,16 @@ def load_data(dir_path, signal_names, background_names, channel, model_type, tes
         data_files = data_files[:1]
 
     cols = get_inputs(channel,model_type)
-    signal_dfs = [pd.read_parquet(file,columns=cols) for file in signal_files]
+    if model_type == "gnn":
+        colsMC = cols + ["weight"]
+    else:
+        colsMC = cols
+    colsdata = cols
+    signal_dfs = [pd.read_parquet(file,columns=colsMC) for file in signal_files]
     print("Loaded signal dfs.")
-    background_dfs = [pd.read_parquet(file,columns=cols) for file in background_files]
+    background_dfs = [pd.read_parquet(file,columns=colsMC) for file in background_files]
     print("Loaded background dfs.")
-    data_dfs = [pd.read_parquet(file,columns=cols) for file in data_files]
+    data_dfs = [pd.read_parquet(file,columns=colsdata) for file in data_files]
     print("Loaded data dfs.")
 
     signal_df = pd.concat(signal_dfs, ignore_index=True)
@@ -123,8 +125,23 @@ def get_background_abbreviation(background_names):
         return 'OB'
     return '_'.join(abbreviations)
 
-def train_model(X, y, X_data, signal_name, background_names):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+def splitdata(X,y,e=None):
+    if e is None:
+        print("Using random split.")
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    else:
+        print("Using even entries for training.")
+        train_indices = e[e % 2 == 0].index
+        test_indices = e[e % 2 == 1].index
+        
+        X_train = X.loc[train_indices]
+        X_test = X.loc[test_indices]
+        y_train = y.loc[train_indices]
+        y_test = y.loc[test_indices]
+    return X_train, X_test, y_train, y_test
+
+def train_model(X, y, e, X_data, signal_name, background_names):
+    X_train, X_test, y_train, y_test = splitdata(X,y,e)
 
     train_data = lgb.Dataset(X_train, label=y_train)
     valid_data = lgb.Dataset(X_test, label=y_test)
@@ -159,11 +176,20 @@ def custom_binary_crossentropy(y_true, y_pred):
     y_pred = K.clip(y_pred, K.epsilon(), 1.0 - K.epsilon())
     return K.mean(-y_true * K.log(y_pred) - (1.0 - y_true) * K.log(1.0 - y_pred))
 
-def train_dnn(X, y, X_data, signal_name, background_names):
+def train_dnn(X, y, e, X_data, signal_name, background_names):
+    from keras.models import Sequential
+    from keras.callbacks import EarlyStopping, ReduceLROnPlateau
+    from keras.models import load_model
+    from keras.optimizers import Adam
+    from keras import backend as K
+    from keras import regularizers
+    from keras.layers import Dense, BatchNormalization, LeakyReLU, Input
+    from keras.optimizers import RMSprop
+
     print(f"Original X: {X.shape[0]} rows")
     print(f"Original y: {y.shape[0]} rows")
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    X_train, X_test, y_train, y_test = splitdata(X,y,e)
 
     model = Sequential()
     model.add(Dense(128, input_dim=X_train.shape[1]))
@@ -177,13 +203,13 @@ def train_dnn(X, y, X_data, signal_name, background_names):
     model.add(LeakyReLU())
     model.add(Dense(1, activation='sigmoid'))
 
-    optimizer = RMSprop(learning_rate=1e-3)
+    optimizer = RMSprop(learning_rate=3e-3)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
 
-    early_stopping = EarlyStopping(monitor='val_loss', patience=100)
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=10, min_lr=1e-8)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=80)
+    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.7, patience=20, min_lr=1e-8)
 
-    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1000, callbacks=[early_stopping,reduce_lr], batch_size=2048*32)
+    model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=1500, callbacks=[early_stopping,reduce_lr], batch_size=2048*16)
     
     background_abbreviation = get_background_abbreviation(background_names)
     
@@ -198,7 +224,7 @@ def train_dnn(X, y, X_data, signal_name, background_names):
     return model
 
 # Function to evaluate model
-def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=None):
+def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=None, input_y_wts=None, plot_dir=None):
     if model_type == 'lgbm':
         y_pred = model.predict(X)
         data_pred = model.predict(X_data)
@@ -209,14 +235,21 @@ def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=No
         y_pred = input_y_pred
         data_pred = None
 
-    fpr, tpr, _ = roc_curve(y, y_pred)
+    fpr, tpr, _ = roc_curve(y, y_pred,sample_weight=input_y_wts)
     auc = roc_auc_score(y, y_pred)
+    if input_y_wts is None:        
+        print(f'AUC: {auc}')
+    else:
+        print(f'AUC, unweighted: {auc}')
+        fpr2, tpr2, _ = roc_curve(y, y_pred)
+
     loss = log_loss(y, y_pred)
 
-    print(f'AUC: {auc}')
+    
     print(f'Log Loss: {loss}')
 
-    plot_dir = f'Models/{signal_name}/Plots'
+    if plot_dir is None:
+        plot_dir = f'Models/{signal_name}/Plots'
     if not os.path.exists(plot_dir):
         os.makedirs(plot_dir)
 
@@ -231,6 +264,8 @@ def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=No
     # Plot ROC curve
     plt.figure()
     plt.plot(fpr, tpr, label=f'ROC curve (AUC = {auc:.4f})')
+    if input_y_wts is not None: 
+        plt.plot(fpr2, tpr2, label=f'ROC curve (unweighted)')
     plt.plot([0, 1], [0, 1], 'k--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -241,10 +276,10 @@ def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=No
     plt.savefig(f'{plot_dir}/roc_curve_{model_type}.png')
 
 
-def train_gnn(X, y, signame, bkgname, test):
+def process_gnn_inputs(X,intype="pd"):
+    #TODO: intype "ak" does not work yet
 
-    print("Processing dataframes into tensors.")
-
+    import torch
     tensors = {}
                     # Jagged? max len if jagged? 
     elements = {
@@ -253,20 +288,40 @@ def train_gnn(X, y, signame, bkgname, test):
         "ll":           [False,0]
     }
 
+    globalvars = ["MET_pt","MET_phi","nPV"]
+    categorical = ["LeptonCategory"]
+
     for ie,elem in enumerate(elements.keys()):
         isJagged = elements[elem][0]
         maxelems = elements[elem][1]
 
-        columns = [i for i in X.columns if i.startswith(f"events_{elem}_")]
-        thisX = X[columns].to_numpy()
+        if intype == "pd":
+            columns = [i for i in X.columns if i.startswith(f"events_{elem}_")]
+            thisX = X[columns].to_numpy()
+            
+        elif intype == "ak":
+            columns = [i for i in X.fields if i.startswith(f"{elem}_")]
+            thisX = X[columns]
+        
 
         if isJagged:
-            thisX = ak.Array(thisX)
-            N = np.max(ak.num(thisX, axis=2))
-            thisX = ak.to_numpy(ak.fill_none(ak.pad_none(thisX, N, axis=2), 0))
-            thisX = np.transpose(thisX, (0,2,1))
-            thisX = thisX[:,:min(N,maxelems),:]
+            if intype == "pd":
+                thisX = ak.Array(thisX)
+                ax = 2
+            elif intype == "ak":
+                ax = 1
+
+            N = np.max(ak.num(thisX, axis=ax))            
+            padded = ak.fill_none(ak.pad_none(thisX, max(N,maxelems), axis=ax), 0)
+            if intype == "pd":
+                thisX = ak.to_numpy(padded)
+            elif intype == "ak":
+                thisX = np.array([ak.fill_none(padded[cn],0) for cn in padded.fields])
+
+            if intype == "pd": thisX = np.transpose(thisX, (0,2,1))
+            elif intype == "ak": thisX = np.transpose(thisX, (2,0,1))
             
+            thisX = thisX[:,:maxelems,:]
 
         for ic,c in enumerate(columns):
             thiscol = thisX[...,ic]
@@ -288,13 +343,46 @@ def train_gnn(X, y, signame, bkgname, test):
     for t in tensors:
         tensors[t] = torch.stack(tensors[t],dim=-1)
 
+    pref = ""
+    if intype == "pd": pref = "events_"
+
+    #global vars
+    columns = [pref+i for i in globalvars]
+    thisX = X[columns].to_numpy()
+    tensors["global"] = torch.tensor(thisX,dtype=torch.float32)
+
+    #categorical
+    columns = [pref+i for i in categorical]
+    thisX = X[columns].to_numpy()
+    tensors["categorical"] = torch.tensor(thisX,dtype=torch.int64)
+    return tensors
+
+def train_gnn(X, y, signame, bkgname, test, w=None, e=None, hyperparameter=False):
+    import torch, optuna
+    from gnnmodels import runGNNtraining
+
+    print("Processing dataframes into tensors.")
+
+    tensors = process_gnn_inputs(X)
+
     background_abbreviation = get_background_abbreviation(bkgname)
     
     outdir = f"Models/{signame}_vs_{background_abbreviation}/gnn"
     print("Will store model in:",outdir)
 
-    out, ylab = runGNNtraining(tensors,y,outdir,test)
-    evaluate_model(None, None, ylab, None, signame, 'gnn', input_y_pred=out)
+    if hyperparameter:        
+        pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=100, interval_steps=10)
+        study = optuna.create_study(direction="minimize", pruner=pruner)
+        ngpu = torch.cuda.device_count()
+        func = lambda trial: runGNNtraining(tensors,y,outdir,test,w,e,trial=trial,ngpu=ngpu)
+        print("CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
+        print(f"OPTUNA will run {ngpu} jobs in parallel.")
+        study.optimize(func, n_trials=20, n_jobs=ngpu)
+        print(study.best_params)
+    else:
+        out, ylab, ywts, outdir = runGNNtraining(tensors,y,outdir,test,w,e)
+        evaluate_model(None, None, ylab, None, signame, 'gnn', input_y_pred=out, input_y_wts=ywts, plot_dir=f"{outdir}/Plots")
+        
 
 # Main function to load data and train/evaluate model
 def main():
@@ -309,7 +397,11 @@ def main():
     parser.add_argument('--separate_trainings', action='store_true',
                     help='Enable separate trainings for dilep_pt < 150 and dilep_pt > 150 regions')
     parser.add_argument('--test', action='store_true', help='Run with only one file.')
+    parser.add_argument('--hyperparameter', action='store_true', help='Do hyperparameter optimization.')
     args = parser.parse_args()
+
+    if args.hyperparameter and args.model_type!='gnn':
+        raise NotImplementedError(f"Hyperparameter optimization has not been implemented for {arg.model_type}.")
 
     signal_df, background_df, data_df = load_data(args.dir_path, args.signal, args.background, args.channel, args.model_type, args.test)
     
@@ -374,8 +466,13 @@ def main():
     print(f"Length of signal_df: {len(signal_df)}")
     print(f"Length of background_df: {len(background_df)}")
     
-    X = df.drop('target', axis=1)
+    X = df.drop(['target','events_EventNr'], axis=1)
+    data_df = data_df.drop('events_EventNr', axis=1)
     y = df['target']
+    e = df['events_EventNr']
+    if args.model_type=="gnn":
+        w = df["weight"]
+        X = X.drop("weight", axis=1)
 
     if args.model_type in ['lgbm','dnn']:
         smote = SMOTE(random_state=43)
@@ -387,26 +484,28 @@ def main():
         if args.mode == 'train':
             if args.model_type == 'lgbm':
                 if args.separate_trainings:
-                    model_low = train_model(X_low, y_low, data_df_low, common_signal_name + '_low', args.background)
-                    model_high = train_model(X_high, y_high, data_df_high, common_signal_name + '_high', args.background)
+                    #TODO: Fix the even-odd splitting 
+                    model_low = train_model(X_low, y_low, None, data_df_low, common_signal_name + '_low', args.background)
+                    model_high = train_model(X_high, y_high, None, data_df_high, common_signal_name + '_high', args.background)
                 else:
-                    model = train_model(X, y, data_df, common_signal_name, args.background)
+                    model = train_model(X, y, e, data_df, common_signal_name, args.background)
             elif args.model_type == 'dnn':
                 if args.separate_trainings:
-                    model_low = train_dnn(X_low, y_low, data_df_low, common_signal_name + '_low', args.background)
-                    model_high = train_dnn(X_high, y_high, data_df_high, common_signal_name + '_high', args.background)
+                    #TODO: Fix the even-odd splitting 
+                    model_low = train_dnn(X_low, y_low, None, data_df_low, common_signal_name + '_low', args.background)
+                    model_high = train_dnn(X_high, y_high, None, data_df_high, common_signal_name + '_high', args.background)
                 else:
-                    model = train_dnn(X, y, data_df, common_signal_name, args.background)
+                    model = train_dnn(X, y, e, data_df, common_signal_name, args.background)
                 
         elif args.mode == 'eval':
             if args.model_type == 'lgbm':
                 model = lgb.Booster(model_file=args.model)
             elif args.model_type == 'dnn':
                 model = load_model(args.model)
-            evaluate_model(model, X, y, data_df, args.signal, args.model_type)
+            evaluate_model(model, X, y, e, data_df, args.signal, args.model_type)
     
     elif args.model_type == "gnn":
-        train_gnn(X, y, common_signal_name, args.background, args.test)
+        train_gnn(X, y, common_signal_name, args.background, args.test, w, e, args.hyperparameter)
 
 if __name__ == "__main__":
     main()
