@@ -96,7 +96,7 @@ def WLNuTwoJets(events, params, **kwargs):
 
     fields = {
         "pt": events.MET.pt,
-	"eta": ak.zeros_like(events.MET.pt),
+        "eta": ak.zeros_like(events.MET.pt),
         "phi": events.MET.phi,
         "mass": ak.zeros_like(events.MET.pt),
         "charge": ak.zeros_like(events.MET.pt),
@@ -229,6 +229,14 @@ def BJetMassCut(events, params, **kwargs):
     )
     return ak.where(ak.is_none(mask), False, mask)
 
+def HbbPtCut(events, params, **kwargs):
+    
+    mask = ( (events.nJetGood >= 2)
+           & (events.dijet_bsort.leadb_pt > params["b1_pt"])
+           & (events.dijet_bsort.subleadb_pt > params["b2_pt"])
+    )
+    return ak.where(ak.is_none(mask), False, mask)
+
 def DiBJetDeltaEtaCut(events, params, **kwargs):
     mask = ( (events.nJetGood >= 2) & (events.dijet_bsort.deltaEta < params["bb_deta"]) )
     return ak.where(ak.is_none(mask), False, mask)
@@ -241,10 +249,18 @@ def DeltaRVHCut(events, params, **kwargs):
     mask = ( events.VHbb_deltaR < params["VHdR"] )
     return ak.where(ak.is_none(mask), False, mask)
 
+def DeltaEtaVHCut(events, params, **kwargs):
+    mask = ( events.VHbb_deltaEta < params["VHdEta"] )
+    return ak.where(ak.is_none(mask), False, mask)
+
 def HVpTRatioCut(events, params, **kwargs):
     mask = ( (events.VHbb_pt_ratio >= params["HVpTRatio_min"]) 
          & (events.VHbb_pt_ratio <= params["HVpTRatio_max"])
          )
+    return ak.where(ak.is_none(mask), False, mask)
+
+def LepMetDeltaPhi(events, params, **kwargs):
+    mask = ( events.deltaPhi_l1_MET <= params["lepmetdphi"] )
     return ak.where(ak.is_none(mask), False, mask)
 
 def AddLepCut(events, params, **kwargs):
@@ -252,7 +268,8 @@ def AddLepCut(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def AddJetCut(events, params, **kwargs):
-    mask = ( events.NaJ <= params["add_jet"] )
+    if params["equal"]: mask = ( events.NaJ == params["add_jet"] )
+    else: mask = ( events.NaJ <= params["add_jet"] )
     return ak.where(ak.is_none(mask), False, mask)
 
 def DiLeptonMassCut(events, params, **kwargs):
@@ -407,9 +424,10 @@ dijet_mass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": False,
-	"mjj": {'low': 70, 'high': 250}
+        "mjj": {'low': 70, 'high': 250}
     },
 )
+
 dijet_invmass_cut = Cut(
     name="dijet_invmass_cut",
     function=DiJetMassCut,
@@ -435,6 +453,40 @@ met_2jets_0lep = Cut(
         "pt_met": 170,
         "pt_jet1": 60,
         "pt_jet2": 35,
+    },
+)
+
+def ZNNHBB_2J():
+    return Cut(
+        name = "ZNNHBB_2J",
+        function=MetTwoJetsNoLep,
+        params={
+            "pt_met": 180,
+            "pt_jet1": 0,
+            "pt_jet2": 0,
+        },
+    )
+def bJ_pt_cut(b1_pt = 60, b2_pt = 35):
+    return Cut(
+        name="bJ_pt_cut",
+        function=HbbPtCut,
+        params={
+            "b1_pt": b1_pt,
+            "b2_pt": b2_pt,
+        },
+    )
+
+import numpy as np
+
+def min_dPhi_bJ_MET(events, params, **kwargs):
+    mask = ( np.minimum(events.deltaPhi_jet1_MET, events.deltaPhi_jet2_MET) <= params["max_min_dPhi"] )
+    return ak.where(ak.is_none(mask), False, mask)
+    
+min_dPhi_bJ_MET_1p57 = Cut(
+    name = "min_dPhi_bJ_MET_1p57",
+    function=min_dPhi_bJ_MET,
+    params={
+        "max_min_dPhi": 1.57,
     },
 )
 
@@ -465,7 +517,26 @@ def wlnu_plus_2j(lep_flav='both'):
         params={
             "lep_flav": lep_flav,
             "pt_w": 100
-        }
+        },
+    )
+
+def WLNuHBB_2J(lep_flav='both'):
+    return Cut(
+    name = "WLNuTwoJets_"+lep_flav,
+    function=WLNuTwoJets,
+    params={
+            "lep_flav": lep_flav,
+            "pt_w": 0
+        },
+    )
+
+def LepMetDPhi(dphi = 2):
+    return Cut(
+        name = 'LepMetDPhi',
+        function=LepMetDeltaPhi,
+        params={
+            "lepmetdphi": dphi
+        }, 
     )
 
 # Cuts for 2-Lep channel
@@ -522,6 +593,15 @@ def ZLLHBB_2J(lep_flav='both'):
             }
     )
 
+def VH_dPhi_cut(VHdPhi = 2.5):
+    return Cut(
+        name = 'VH_dPhi_cut',
+        function=DeltaPhiVHCut,
+        params={
+          "VHdPhi": VHdPhi,
+        }
+    )
+
 VH_dPhi_cut_2p5 = Cut(
   name = 'VH_dPhi_cut_2p5',
   function=DeltaPhiVHCut,
@@ -537,6 +617,15 @@ VH_dR_cut_3p6 = Cut(
       "VHdR": 3.6,
            }
 )
+
+VH_dEta_cut_2 = Cut(
+  name = 'VH_dEta_cut_2',
+  function=DeltaEtaVHCut,
+    params={
+      "VHdEta": 2,
+           }
+)
+
 
 HV_pTRatio_cut_0p5to2 = Cut(
   name = 'HV_pTRatio_cut_0p5to2',
@@ -579,14 +668,15 @@ bJ_mass_cut_5to30_5to30 = Cut(
       "mass_b2_max": 30,
     },
 )
-                                   
-dijet_eta_cut_1 = Cut(
-    name="dijet_eta_cut_1",
-    function=DiBJetDeltaEtaCut,
-    params={
-	"bb_deta": 1.0,
-    },
-)
+
+def dibjet_eta_cut(bb_deta = 1.0):
+    return Cut(
+        name="dibjet_eta_cut",
+        function=DiBJetDeltaEtaCut,
+        params={
+            "bb_deta": bb_deta,
+        },
+    )
                                    
 nAddLep_cut_0 = Cut(
     name="nAddLep_cut_0",
@@ -596,14 +686,15 @@ nAddLep_cut_0 = Cut(
     },
 ) 
 
-def nAddJetCut(add_jet=1):
-  return Cut(
-    name="nAddJet_cut",
-    function=AddJetCut,
-    params={
-      "add_jet": add_jet,
-    },
-  ) 
+def nAddJetCut(add_jet=1, equal=False):
+    return Cut(
+        name="nAddJet_cut",
+        function=AddJetCut,
+        params={
+          "equal": equal,
+          "add_jet": add_jet,
+        },
+    ) 
 
 def missing_pt_cut(invert=False, pt_met=60):
     return Cut(

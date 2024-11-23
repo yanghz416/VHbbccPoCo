@@ -1,4 +1,4 @@
-import os
+import os,sys
 import yaml
 import argparse
 import uproot
@@ -15,6 +15,7 @@ def testFileStructure(hists, example_variable, example_data, example_MC, example
     print("The structure of the COFFEA file:")
     print('\t top keys:\n', hists.keys())
     print('\n\t Variables:\n', hists["variables"].keys())
+    print('\n\t Columns:\n', hists["columns"].keys())
     print('\n\t Samples:\n', hists["variables"][example_variable].keys())
     print('\n\t Subsamples (for DATA):\n', hists["variables"][example_variable][example_data].keys())
     print(f'\n\t Subsamples (for {example_MC}):\n', hists["variables"][example_variable][example_MC].keys())
@@ -29,7 +30,6 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
     inputfile = coffea_file_name
     Channel = config["input"]["channel"]
-    shapes_file = config["output"]["shapes_file_name"]+"_"+Channel+".root"
     eras = config["input"]["eras"]
     variation = config["input"]["variation"]
 
@@ -57,16 +57,16 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
     map_sampleName_to_processName = config.get("sample_to_process_map", {})
 
-    for samp in samples:
-        isData=False
-        if 'DATA' in samp:
-            isData=True
-        if samp not in map_sampleName_to_processName.keys():
-            continue
-        proc = map_sampleName_to_processName[samp]
-        print('Processing sample:', samp, ' assigned process:', proc)
+    for era in eras:
+        for samp in samples:
+            isData=False
+            if 'DATA' in samp:
+                isData=True
+            if samp not in map_sampleName_to_processName.keys():
+                continue
+            proc = map_sampleName_to_processName[samp]
+            print('Processing sample:', samp, ' assigned process:', proc)
 
-        for era in eras:
             for cat, var_and_name in categ_to_var.items():
                 #print('\t Converting histogram for:', cat, var_and_name)
 
@@ -82,7 +82,11 @@ def convertCoffeaToRoot(coffea_file_name, config):
                         continue
                 subsamples = [sname for sname in hists['variables'][variable][samp].keys() if era in sname]
                 #print("\t Subsamples:", subsamples)
-                if len(subsamples)==1:
+                if len(subsamples)==0:
+                    print("Something is wrong. Probably ERA is not correct:", era)
+                    print("\t list of available subsamples:",hists['variables'][variable][samp].keys())
+                    sys.exit(1)
+                elif len(subsamples)==1:
                     # Note: only nominal is done here.
                     # Need to loop over variations to get shape systematics (todo)
                     if isData:
@@ -90,6 +94,7 @@ def convertCoffeaToRoot(coffea_file_name, config):
                     else:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                 else:
+                    print("\t Subsamples:", subsamples)
                     # We need to add all the histograms for sub-samples
                     if isData:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
@@ -102,11 +107,13 @@ def convertCoffeaToRoot(coffea_file_name, config):
                         else:
                             hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
                         myHist = myHist + hist_i
-                output_dict[era+'_'+newCatName+'/'+proc+'_Shape_'+f'{variation}'] = myHist
 
-    with uproot.recreate(shapes_file) as root_file:
-        for shape, histogram in output_dict.items():
-            root_file[shape] = histogram
+                output_dict[era+'_'+newCatName+'/'+proc+'_Shape_'+f'{variation}'] = myHist
+                
+        shapes_file_name = config["output"]["shapes_file_name"]+"_"+era+"_"+Channel+".root"        
+        with uproot.recreate(shapes_file_name) as root_file:
+            for shape, histogram in output_dict.items():
+                root_file[shape] = histogram
 
 if __name__ == "__main__":
 

@@ -36,7 +36,7 @@ plotting_style:
 #    DYJetsToLL_MLM: 1.33
 
   signal_samples:
-    ZH_Hto2C_Zto2L: 100
+    ZH_Hto2C_Zto2L: 2000
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
@@ -61,6 +61,7 @@ plotting_style:
     WJetsToLNu_FxFx__DiJet_ll: W+jj
 
     ZH_Hto2C_Zto2L: "$H\\to cc$"
+    ZH_Hto2B_Zto2L: "$H\\to bb$"
     
   colors_mc:
     Top: "#00BFFF"
@@ -72,32 +73,24 @@ plotting_style:
     VV: "#FFA07A"
     QCD: "#D3D3D3"
 
-    DYJetsToLL_MLM__ZJets_BX:  "#196f3d"
-    DYJetsToLL_MLM__ZJets_CX:  "#52be80"
-    DYJetsToLL_MLM__ZJets_LL:  "#ADFF2F"
+    DYJetsToLL_MLM__DiJet_bx:  "#196f3d"
+    DYJetsToLL_MLM__DiJet_cx:  "#52be80"
+    DYJetsToLL_MLM__DiJet_ll:  "#ADFF2F"
+    DYJetsToLL_MLM__DiJet_incl:  "#ADFF2F"
+
+    DYJetsToLL_FxFx__DiJet_bx:  "#196f3d"
+    DYJetsToLL_FxFx__DiJet_cx:  "#52be80"
+    DYJetsToLL_FxFx__DiJet_ll:  "#ADFF2F"
+    DYJetsToLL_FxFx__DiJet_incl:  "#ADFF2F"
 
   blind_hists:
-    categories: [SR_ll_2J_cJ, SR_ee_2J_cJ, SR_mumu_2J_cJ]
+    categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']
     histograms:
-      dijet_m: [100, 150]
+      dijet_m: [90, 150]
+      dijet_csort_m: [90, 150]
       BDT: [0.7, 1]
       DNN: [0.7, 1]
       GNN: [0.7, 1]
-
-  opts_sig:
-    histtype: "step"
-    stack: false
-    flow: "sum"
-    edges: true
-    linestyle: solid
-    linewidth: 1
-
-  opts_ratios:
-    elinewidth: 1
-    linestyle: solid
-    linewidth: 0
-    marker: o
-    markersize: 4.0
 
   print_info:
     category: True

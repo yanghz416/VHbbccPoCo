@@ -56,9 +56,9 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
-parameters['run_dnn'] = True
+parameters['run_dnn'] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -86,10 +86,10 @@ cfg = Configurator(
                 "TTToSemiLeptonic",
                 #"TTTo2L2Nu",
                 #"TTToHadrons",
-                "WminusH_HToCC_WToLNu",
+                "WminusH_Hto2C_WtoLNu",
                 "WplusH_Hto2C_WtoLNu"
             ],
-            "samples_exclude" : ["DATA_EGamma_2022_preEE_EraC"],
+            "samples_exclude" : [],
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
             #"year": ['2022_preEE','2022_postEE']
@@ -119,13 +119,12 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"} if parameters["save_arrays"] else {},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_WLNu"},
 
     skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
-            get_nObj_min(3, 20., "Jet"),
-            get_nPVgood(1), eventFlags, goldenJson], # in default jet collection there are leptons. So we ask for 1lep+2jets=3Jet objects
+            get_nObj_min(3, 20., "Jet"), # in default jet collection there are leptons. So we ask for 1lep+2jets=3Jet objects
+            get_nPVgood(1), eventFlags, goldenJson],
 
-    #preselections = [onelep_plus_met],
     preselections = [lep_met_2jets],
     categories = {
         "baseline_1L2j": [passthrough],
@@ -170,8 +169,7 @@ cfg = Configurator(
                 ]
             }
         },
-
-    },
+    } if parameters["save_arrays"] else {},
 
     weights = {
         "common": {
@@ -261,12 +259,12 @@ cfg = Configurator(
         "top_mass": HistConf( [Axis(field="top_mass", bins=100, start=0, stop=400, label=r"$M_{top}$ [GeV]")] ),
 
         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','baseline_1L2j']),
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','baseline_1L2j']),
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
         # 2D plots
-	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
+        "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
                                    type="variable",   label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],

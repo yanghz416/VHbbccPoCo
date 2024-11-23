@@ -384,7 +384,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
 
         #self.events["dijet_pt"] = self.events.dijet.pt
-        odd_event_mask = (self.events.EventNr % 2 == 1)
         
         if self.proc_type=="ZLL":
 
@@ -419,8 +418,9 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_l2_j2"] = ak.where(self.angle22_gen, abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi))
             self.events["deltaPhi_l2_j1"] = np.abs(delta_phi(self.events.ll.l2phi, self.events.dijet_csort.j1Phi))
             
-            odd_events = self.events[odd_event_mask]
+            #events = self.events[odd_event_mask]
             # Create a record of variables to be dumped as root/parquete file:
+
             variables_to_process_list = ["dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
                                     "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
@@ -438,7 +438,7 @@ class VHccBaseProcessor(BaseProcessorABC):
 
             ak_gnn = self.events[gnn_vars] #TODO: use odd_events instead
             
-            df = ak.to_pandas(variables_to_process)
+            df = ak.to_pandas(variables_for_MVA_eval)
             columns_to_exclude = ['dilep_m']
             df = df.drop(columns=columns_to_exclude, errors='ignore')
 
@@ -533,9 +533,9 @@ class VHccBaseProcessor(BaseProcessorABC):
             #print("top_candidate", self.events.top_candidate, self.events.top_candidate.mass, self.events.top_candidate.pt)
 
             self.events["top_mass"] = (self.events.lead_lep + self.events.b_jet + self.events.neutrino_from_W).mass
-            odd_events = self.events[odd_event_mask & bjet_mask]
+            #events = self.events[event_mask & bjet_mask]
             #self.events = self.events[bjet_mask]
-            
+
             variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
@@ -543,9 +543,10 @@ class VHccBaseProcessor(BaseProcessorABC):
                                     "deltaPhi_l1_j1","deltaPhi_l1_MET","deltaPhi_l1_b","deltaEta_l1_b","deltaR_l1_b",
                                     "b_CvsL","b_CvsB","b_Btag","top_mass"]
 
-            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
+            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})
 
             df = ak.to_pandas(variables_to_process)
+
             # Remove the 'subentry' column
             df = df.reset_index(level='subentry', drop=True)
             
@@ -597,7 +598,7 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_csort))
             self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
             self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
-            
+
             odd_events = self.events[odd_event_mask]
 
             variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
@@ -605,9 +606,10 @@ class VHccBaseProcessor(BaseProcessorABC):
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","Z_pt"]
 
-            variables_to_process = ak.zip({v:odd_events[v] for v in variables_to_process_list})
+            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})
+
             
-            df = ak.to_pandas(variables_to_process)
+            df = ak.to_pandas(variables_for_MVA_eval)
             #columns_to_exclude = []
             #df = df.drop(columns=columns_to_exclude, errors='ignore')
             self.channel = "0L"
