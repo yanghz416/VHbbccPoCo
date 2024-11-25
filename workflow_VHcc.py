@@ -346,7 +346,8 @@ class VHccBaseProcessor(BaseProcessorABC):
         
         with torch.no_grad():
             prediction = model(tensordict["jet"],tensordict["jetp4"],tensordict["lep"],tensordict["lepp4"],tensordict["ll"],tensordict["glo"],tensordict["cat"])[:,0]
-
+        
+        del model, tensordict
 
         return prediction.detach().cpu().numpy()    
     
@@ -421,13 +422,13 @@ class VHccBaseProcessor(BaseProcessorABC):
             #events = self.events[odd_event_mask]
             # Create a record of variables to be dumped as root/parquete file:
 
-            variables_to_process_list = ["dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+            variables_for_MVA_eval_list = ["dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
                                     "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2"]
 
-            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})  #TODO: use odd_events instead
+            variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})  #TODO: use odd_events instead
 
             gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
@@ -536,16 +537,16 @@ class VHccBaseProcessor(BaseProcessorABC):
             #events = self.events[event_mask & bjet_mask]
             #self.events = self.events[bjet_mask]
 
-            variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+            variables_for_MVA_eval_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "W_mt","W_pt","pt_miss","WH_deltaPhi",
                                     "deltaPhi_l1_j1","deltaPhi_l1_MET","deltaPhi_l1_b","deltaEta_l1_b","deltaR_l1_b",
                                     "b_CvsL","b_CvsB","b_Btag","top_mass"]
 
-            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})
+            variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})
 
-            df = ak.to_pandas(variables_to_process)
+            df = ak.to_pandas(variables_for_MVA_eval)
 
             # Remove the 'subentry' column
             df = df.reset_index(level='subentry', drop=True)
@@ -601,12 +602,12 @@ class VHccBaseProcessor(BaseProcessorABC):
 
             odd_events = self.events[odd_event_mask]
 
-            variables_to_process_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+            variables_for_MVA_eval_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                                     "dijet_pt_max","dijet_pt_min",
                                     "ZH_pt_ratio","ZH_deltaPhi","Z_pt"]
 
-            variables_to_process = ak.zip({v:self.events[v] for v in variables_to_process_list})
+            variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})
 
             
             df = ak.to_pandas(variables_for_MVA_eval)

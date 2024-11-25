@@ -275,6 +275,9 @@ def evaluate_model(model, X, y, X_data, signal_name, model_type, input_y_pred=No
     plt.legend(loc='lower right')
     plt.savefig(f'{plot_dir}/roc_curve_{model_type}.png')
 
+    plt.close()
+    return auc
+
 
 def process_gnn_inputs(X,intype="pd"):
     #TODO: intype "ak" does not work yet
@@ -357,6 +360,20 @@ def process_gnn_inputs(X,intype="pd"):
     tensors["categorical"] = torch.tensor(thisX,dtype=torch.int64)
     return tensors
 
+def split_list(lst, m):
+    n = len(lst)
+    avg_size = n // m  
+    remainder = n % m 
+
+    splits = []
+    start = 0
+    for i in range(m):
+        end = start + avg_size + (1 if i < remainder else 0)  # Distribute remainder
+        splits.append(lst[start:end])
+        start = end
+    
+    return splits
+
 def train_gnn(X, y, signame, bkgname, test, w=None, e=None, hyperparameter=False):
     import torch, optuna
     from gnnmodels import runGNNtraining
@@ -367,21 +384,24 @@ def train_gnn(X, y, signame, bkgname, test, w=None, e=None, hyperparameter=False
 
     background_abbreviation = get_background_abbreviation(bkgname)
     
-    outdir = f"Models/{signame}_vs_{background_abbreviation}/gnn"
+    outdir = f"Models/2022postEE_opt2/{signame}_vs_{background_abbreviation}/gnn"
     print("Will store model in:",outdir)
 
     if hyperparameter:        
         pruner = optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=100, interval_steps=10)
-        study = optuna.create_study(direction="minimize", pruner=pruner)
+        study = optuna.create_study(direction="maximize", pruner=pruner)
         ngpu = torch.cuda.device_count()
-        func = lambda trial: runGNNtraining(tensors,y,outdir,test,w,e,trial=trial,ngpu=ngpu)
+        cpu_list = list(os.sched_getaffinity(0))
+        print("Available cpus:",cpu_list)
+        cpu_allocations = split_list(cpu_list,ngpu)
+        func = lambda trial: runGNNtraining(tensors,y,outdir,test,w,e,trial=trial,ngpu=ngpu,cpulist=cpu_allocations)
         print("CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
         print(f"OPTUNA will run {ngpu} jobs in parallel.")
+        print("Starting jobs...\n\n")
         study.optimize(func, n_trials=20, n_jobs=ngpu)
-        print(study.best_params)
+        print("\n\nResult:", study.best_params)
     else:
-        out, ylab, ywts, outdir = runGNNtraining(tensors,y,outdir,test,w,e)
-        evaluate_model(None, None, ylab, None, signame, 'gnn', input_y_pred=out, input_y_wts=ywts, plot_dir=f"{outdir}/Plots")
+        runGNNtraining(tensors,y,outdir,test,w,e)
         
 
 # Main function to load data and train/evaluate model

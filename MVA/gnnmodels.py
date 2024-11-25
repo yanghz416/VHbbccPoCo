@@ -27,11 +27,20 @@ class GraphDataset(Dataset):
         if weights is None:
             self.weights = torch.ones_like(labels)
             if weightsigns is not None:
-                self.weights = np.where(weightsigns>=0, self.weights, self.weights*-1)
+                self.weights = torch.where(weightsigns>=0, self.weights, self.weights*-1)
                 print("Using signs of input weights.")
                 print(f"There are {(self.weights>0).sum()} positive weights and {(self.weights<0).sum()} negative weights.")
         else:
             self.weights = weights
+
+        bkgwt = (self.weights[self.labels==0]).sum()
+        sigwt = (self.weights[self.labels==1]).sum()
+        print(f"Total background weight: {bkgwt}, total signal weight: {sigwt}")
+        self.weights = torch.where(self.labels==0, self.weights*sigwt/bkgwt, self.weights)
+
+        bkgwt = (self.weights[self.labels==0]).sum()
+        sigwt = (self.weights[self.labels==1]).sum()
+        print(f"Total background weight after reweighting: {bkgwt}, total signal weight after reweighting: {sigwt}")
         
         if dvc:
             self.labels = self.labels.to(dvc)
@@ -373,16 +382,17 @@ def getinputs(data,device):
     jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),glo.to(device),cat.to(device),label.to(device),weight.to(device)
     return jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
 
-def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=2, ncpu=4, loadmodel=None):
-
+def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None):
+    from training import evaluate_model
     outhandle = outhandler(outdir)
     outhandle.addcustom("signweighted")
+    ncpu=4
 
     if trial is not None:
-        lr = trial.suggest_float('lr', 5e-3, 1e-2, log=True)
-        dropout = trial.suggest_float('dropout', 0.1, 0.4)
-        attention_dim = trial.suggest_int('attn_dim', 16, 64, step=16)
-        hyperembeddim = trial.suggest_int('hyper_dim', 4, 16, step=4)
+        lr = trial.suggest_float('lr', 5e-3, 1e-2)
+        dropout = trial.suggest_float('dropout', 0.1, 0.3)
+        attention_dim = trial.suggest_int('attn_dim', 32, 128, step=16)
+        hyperembeddim = trial.suggest_int('hyper_dim', 8, 32, step=4)
 
         if not torch.cuda.is_available():
             raise NotImplementedError("Hyperparameter optimization expects GPU availability.")
@@ -397,18 +407,15 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
 
             # Set CPU affinity: Allow ncpu CPUs per job
             process_id = os.getpid()
-            cpu_start = (trial.number % ngpu) * ncpu  # E.g. 0-3 for GPU 0, 4-7 for GPU 1
-            cpu_end = cpu_start + ncpu
-            cpu_list = list(os.sched_getaffinity(0))
-            print("Available cpus:",cpu_list)
-            cputouse = cpu_list[cpu_start:cpu_end]
+            cputouse = cpulist[gpu_id]
+            ncpu = len(cputouse)
             os.sched_setaffinity(process_id, cputouse)
             print(f"Optuna trial number {trial.number}, using cpus:",cputouse)
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         lr = outhandle.getenv("LR",0.00776)
         dropout = outhandle.getenv("DROPOUT",0.371)
-        attention_dim = int(outhandle.getenv("ATTENTION",32))        
+        attention_dim = int(outhandle.getenv("ATTENTION",48))        
         hyperembeddim = int(outhandle.getenv("DIM",8))
     # if test:
     print("Device:", device)
@@ -503,12 +510,14 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     lrs = []
 
     # loadmodel = "Models/ZH_Hto2C_Zto2L_2022_preEE_vs_DY/gnn_signweighted_hyperparameter_LR0.009858527825317508_dropout0.2830622619831955_attn32_emb8/gnn.pt"
+    # loadmodel = "Models/2022postEE/ZH_Hto2C_Zto2L_2022_postEE_vs_DY/gnn_signweighted_hyperparameter_LR0.0061251908812319416_dropout0.14118631235525558_attn48_emb8/gnn.pt"
 
     print("Using batch size",batch_size)
-    outdir = outhandle.outdir
-    print("Working dir:", outdir)   
+    
 
     if not loadmodel:
+        outdir = outhandle.outdir
+        print("Working dir:", outdir)   
         os.system(f"mkdir -p {outdir}/checkpoints")
         with alive_bar(nepochs,title="Epoch") if trial is None else nullcontext() as epochbar:
             for iepoch in range(nepochs):
@@ -562,7 +571,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
                 nowlr = optimizer.param_groups[-1]['lr']
                 status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
                 if trial is not None:
-                    status = f"Trial: {trial.number}, "+ status
+                    status = f"Trial: {trial.number}, Epoch: {iepoch}, "+ status
 
                 trainlosses.append(avg_train_loss)
                 vallosses.append(avg_val_loss)
@@ -589,15 +598,12 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
         pickle.dump(modelparams,open(f"{outdir}/modelparams.pkl",'wb'))
         dumploss(trainlosses,bestlosses,f"{outdir}/losses.png",lrcurve=lrs,valloss=vallosses)
 
-        if trial is not None:
-            del model,jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
-            gc.collect()
-            return bestloss
-
         model.load_state_dict(bestmodel)
         # torch.save(torch.jit.script(model),f"{outdir}/model.pt")  #jit does not work yet
     else:
         print("Loading existing model from",loadmodel)
+        outdir = '/'.join(loadmodel.split('/')[:-1])
+        print("Working dir:", outdir)   
         bestmodel = torch.load(loadmodel,weights_only=True,map_location=device)
         model.load_state_dict(bestmodel)
 
@@ -620,7 +626,14 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     out = torch.cat(allouts,dim=0).cpu()
     yvals = torch.cat(truth,dim=0).cpu()
     ywts = torch.cat(wts,dim=0).cpu()
-    return out,yvals,ywts,outdir
+    # return out,yvals,ywts,outdir
+
+    auc = evaluate_model(None, None, yvals, None, "", 'gnn', input_y_pred=out, input_y_wts=ywts, plot_dir=f"{outdir}/Plots")
+
+    if trial is not None:
+        del model,jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
+        gc.collect()
+        return auc
 
 class outhandler():
     def __init__(self,outdir):
