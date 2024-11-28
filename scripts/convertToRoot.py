@@ -41,7 +41,7 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
     hists = load(inputfile)
 
-    #testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation)
+    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation)
 
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category

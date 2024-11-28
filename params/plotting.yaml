@@ -90,6 +90,7 @@ plotting_style:
       dijet_csort_m: [90, 150]
       BDT: [0.7, 1]
       DNN: [0.7, 1]
+      GNN: [0.7, 1]
 
   print_info:
     category: True

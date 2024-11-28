@@ -1,4 +1,5 @@
 retries: 8
+skip-bad-files: true
 chunksize: 500000
 requirements: >
   ( TotalCpus >= 8) && 

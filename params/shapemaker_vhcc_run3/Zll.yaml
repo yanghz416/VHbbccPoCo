@@ -16,13 +16,13 @@ config:
     
 categories:
   SR_ll_2J_cJ:
-    observable: "DNN"
+    observable: "GNN"
     mata_name: "Zll_SR"
   SR_mm_2J_cJ:
-    observable: "DNN"
+    observable: "GNN"
     mata_name: "Zmm_SR"
   SR_ee_2J_cJ:
-    observable: "DNN"
+    observable: "GNN"
     mata_name: "Zee_SR"
   CR_mm_2J_HF:
     observable: "dijet_pt"
