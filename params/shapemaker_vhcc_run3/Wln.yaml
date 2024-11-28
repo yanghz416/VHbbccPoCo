@@ -1,0 +1,66 @@
+
+input:
+  channel: "1L"
+  eras: ["2022_preEE"]
+  variation: "nominal"
+
+output:
+  shapes_file_name: "vhcc_shapes"
+  
+config:
+  example_variable: "dijet_m"
+  example_data: "DATA_SingleMuon"
+  example_MC: "WH_Hto2C_WtoLNu"
+  example_subsample: "WJetsToLNu_FxFx"
+  example_category: "SR_Wln_2J_cJ"
+    
+categories:
+  SR_Wln_2J_cJ:
+    observable: "GNN"
+    mata_name: "Wln_SR"
+  SR_Wmn_2J_cJ:
+    observable: "GNN"
+    mata_name: "Wmn_SR"
+  SR_Wen_2J_cJ:
+    observable: "GNN"
+    mata_name: "Wen_SR"
+  CR_Wmn_2J_HF:
+    observable: "dijet_pt"
+    mata_name: "Wmn_CR_HF"
+  CR_Wmn_2J_LF:
+    observable: "dijet_pt"
+    mata_name: "Wmn_CR_LF"
+  CR_Wmn_2J_CC:
+    observable: "dijet_pt"
+    mata_name: "Wmn_CR_CC"
+  CR_Wmn_4J_TT:
+    observable: "dijet_pt"
+    mata_name: "Wmn_CR_TT"
+  CR_Wen_2J_HF:
+    observable: "dijet_pt"
+    mata_name: "Wen_CR_HF"
+  CR_Wen_2J_LF:
+    observable: "dijet_pt"
+    mata_name: "Wen_CR_LF"
+  CR_Wen_2J_CC:
+    observable: "dijet_pt"
+    mata_name: "Wen_CR_CC"
+  CR_Wen_4J_TT:
+    observable: "dijet_pt"
+    mata_name: "Wen_CR_TT"
+
+sample_to_process_map:
+  DATA_EGamma: "data_obs"
+  DATA_SingleMuon: "data_obs"
+  WH_Hto2C_WtoLNu: "WH_hcc"
+  WminusH_Hto2B_WtoLNu: "WH_hbb"
+  WplusH_Hto2B_WtoLNu: "WH_hbb"
+  TTTo2L2Nu: "TT"
+  TTToSemiLeptonic: "TT"
+  WJetsToLNu_FxFx: "Wj_ll"
+  WJetsToLNu_FxFx__DiJet_ll: "Wj_ll"
+  WJetsToLNu_FxFx__DiJet_cx: "Wj_cj"
+  WJetsToLNu_FxFx__DiJet_bx: "Wj_bj"
+  WW: "WW"
+  WZ: "WZ"
+  ZZ: "ZZ"

@@ -36,7 +36,7 @@ class GraphDataset(Dataset):
         bkgwt = (self.weights[self.labels==0]).sum()
         sigwt = (self.weights[self.labels==1]).sum()
         print(f"Total background weight: {bkgwt}, total signal weight: {sigwt}")
-        self.weights = torch.where(self.labels==0, self.weights*sigwt/bkgwt, self.weights)
+        self.weights = torch.where(self.labels==1, self.weights*bkgwt/sigwt, self.weights)
 
         bkgwt = (self.weights[self.labels==0]).sum()
         sigwt = (self.weights[self.labels==1]).sum()
@@ -50,11 +50,19 @@ class GraphDataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        return *[self.data[d][idx] for d in self.data], self.labels[idx], self.weights[idx]
+        orderoftensors = ['JetGood', 'JetGoodP4', 'LeptonGood', 'LeptonGoodP4', 'ZP4', 'global', 'categorical']
+        array = []
+        for d in orderoftensors:
+            if len(self.data[d])>1:
+                array.append(self.data[d][idx])
+            else:
+                array.append(1)
+        return *array, self.labels[idx], self.weights[idx]
 
 class GraphAttentionClassifier(nn.Module):
-    def __init__(self, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, num_classes=2, dropout=0.2, pairwisefeats = 7, hyperembeddim=16, globdim=3):
+    def __init__(self, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, num_classes=2, dropout=0.2, pairwisefeats = 7, hyperembeddim=16, globdim=3, channel="ZLL"):
         super(GraphAttentionClassifier, self).__init__()
+        self.channel = channel
         self.num_heads = num_heads
         self.pairwisefeats = pairwisefeats
 
@@ -66,18 +74,23 @@ class GraphAttentionClassifier(nn.Module):
         self.multihead_attention_edgejet = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)        
         self.edgejetbn = nn.BatchNorm1d(1)
 
-        self.embedleps = nn.Linear(lep_dim+4, hyperembeddim)
-        self.multihead_attention_lep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
+        if channel=="ZLL" or channel=="WLNu":
+            self.embedleps = nn.Linear(lep_dim+4, hyperembeddim)
+            self.multihead_attention_lep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
-        self.edgelep = nn.Linear(pairwisefeats, hyperembeddim)
-        self.multihead_attention_edgelep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)     
+        if channel=="ZLL":
+            self.edgelep = nn.Linear(pairwisefeats, hyperembeddim)
+            self.multihead_attention_edgelep = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)     
 
-        # self.embedll = nn.Linear(ll_dim, hyperembeddim)     
+        if channel=="ZNuNu":
+            self.embedll = nn.Linear(ll_dim, hyperembeddim)     
+        
+        if channel=="ZLL" or channel=="WLNu":
+            self.embedjl = nn.Linear(pairwisefeats, hyperembeddim)
+            self.multihead_attention_jl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
+            self.embedjjl = nn.Linear(pairwisefeats, hyperembeddim)
+            self.multihead_attention_jjl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
-        self.embedjl = nn.Linear(pairwisefeats, hyperembeddim)
-        self.multihead_attention_jl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
-        self.embedjjl = nn.Linear(pairwisefeats, hyperembeddim)
-        self.multihead_attention_jjl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
         self.embedjll = nn.Linear(pairwisefeats, hyperembeddim)
         self.multihead_attention_jll = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
         self.embedjjll = nn.Linear(pairwisefeats, hyperembeddim)
@@ -86,9 +99,17 @@ class GraphAttentionClassifier(nn.Module):
         self.embedglob = nn.Linear(globdim, hyperembeddim)
 
         self.layer_norm = nn.LayerNorm(hyperembeddim)
-        
 
-        self.fc1 = nn.Linear(hyperembeddim*9+2, attention_dim)
+        catdim = 2
+        if channel=="ZLL":
+            nmha = 9
+        elif channel=="WLNu":
+            nmha = 8
+        elif channel=="ZNuNu":
+            nmha = 6
+            catdim = 0
+
+        self.fc1 = nn.Linear(hyperembeddim*nmha+catdim, attention_dim)
         self.bn1 = nn.BatchNorm1d(attention_dim)
         self.fc2 = nn.Linear(attention_dim, attention_dim)
         self.bn2 = nn.BatchNorm1d(attention_dim)
@@ -320,32 +341,36 @@ class GraphAttentionClassifier(nn.Module):
 
 
         # Leps
-        lep_edge_features, _ = self.selfinteraction(lepp4)
+        if self.channel=="ZLL":
+            lep_edge_features, _ = self.selfinteraction(lepp4)
         # nnodes = lep_edge_features.shape[1]
         # lep_edge_features_avg = lep_edge_features.view(lep_edge_features.shape[0], nnodes*nnodes, lep_edge_features.shape[3])
 
-        lep = torch.cat([lep,lepp4],dim=2)
-        lep_emb = self.embedleps(lep)
-        attn_output_lep, _ = self.multihead_attention_lep(lep_emb, lep_emb, lep_emb)
-        attn_output_lep = self.layer_norm(attn_output_lep)
-        pooled_output_leps = torch.sum(attn_output_lep, dim=1)
+        if self.channel=="ZLL" or self.channel=="WLNu": 
+            lep = torch.cat([lep,lepp4],dim=2)
+            lep_emb = self.embedleps(lep)
+            attn_output_lep, _ = self.multihead_attention_lep(lep_emb, lep_emb, lep_emb)
+            attn_output_lep = self.layer_norm(attn_output_lep)
+            pooled_output_leps = torch.sum(attn_output_lep, dim=1)
 
-        lep_edge_features = self.makeUT(lep_edge_features)
-        e = self.edgelep(lep_edge_features)
-        attn_output_edgelep, _ = self.multihead_attention_edgelep(e, e, e)
-        attn_output_edgelep = self.layer_norm(attn_output_edgelep)        
-        pooled_output_edgelep = torch.mean(attn_output_edgelep, dim=1)
+        if self.channel=="ZLL":
+            lep_edge_features = self.makeUT(lep_edge_features)
+            e = self.edgelep(lep_edge_features)
+            attn_output_edgelep, _ = self.multihead_attention_edgelep(e, e, e)
+            attn_output_edgelep = self.layer_norm(attn_output_edgelep)        
+            pooled_output_edgelep = torch.mean(attn_output_edgelep, dim=1)
 
-        # ll
-        # ll_emb = self.embedll(ll)
+        if self.channel=="ZNuNu":
+            # ll
+            ll_emb = self.embedll(ll)
 
-        #jet with lep interactions
-        jl_out = self.pairprocess(jetp4,lepp4,self.embedjl,self.multihead_attention_jl)
-
-        # jj with lep interactions
         jjp4 = self.makeUT(dijetP4)
-        jjl_out = self.pairprocess(jjp4,lepp4,self.embedjjl,self.multihead_attention_jjl)
+        if self.channel=="ZLL" or self.channel=="WLNu": 
+            #jet with lep interactions
+            jl_out = self.pairprocess(jetp4,lepp4,self.embedjl,self.multihead_attention_jl)
 
+            # jj with lep interactions            
+            jjl_out = self.pairprocess(jjp4,lepp4,self.embedjjl,self.multihead_attention_jjl)
 
         # j with ll interactions
         ll = ll.unsqueeze(1)
@@ -362,7 +387,14 @@ class GraphAttentionClassifier(nn.Module):
         if len(category_emb.shape) == 1:          #This happens when batchsize is 1
             category_emb = category_emb.unsqueeze(0)
 
-        allout = torch.cat([pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,jl_out,jjl_out,jll_out,jjll_out,global_out,category_emb],dim=1)
+        if self.channel=="ZLL":
+            mhalist = [pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,jl_out,jjl_out,jll_out,jjll_out,global_out,category_emb]
+        elif self.channel=="WLNu":
+            mhalist = [pooled_output_jets,pooled_output_edgejet,pooled_output_leps,jl_out,jjl_out,jll_out,jjll_out,global_out,category_emb]
+        elif self.channel=="ZNuNu":
+            mhalist = [pooled_output_jets,pooled_output_edgejet,ll_emb,jll_out,jjll_out,global_out]
+
+        allout = torch.cat(mhalist,dim=1)
 
         # Feedforward neural network
         x = self.fc1(allout)
@@ -382,7 +414,7 @@ def getinputs(data,device):
     jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),glo.to(device),cat.to(device),label.to(device),weight.to(device)
     return jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
 
-def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None):
+def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None, channel="WLNu",globdim=4):
     from training import evaluate_model
     outhandle = outhandler(outdir)
     outhandle.addcustom("signweighted")
@@ -426,7 +458,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     if e is not None:
         e = torch.tensor(e.to_numpy(),dtype=torch.int32)
 
-    graph = GraphDataset(tensordict, y, None, w) 
+    graph = GraphDataset(tensordict, y, w) 
 
     if device=="cpu":
         nloaders = os.cpu_count()
@@ -437,7 +469,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
 
     print(f"Will use {nloaders} cpus for dataloaders.")
 
-    modelparams = {"attention_dim": attention_dim, "hyperembeddim": hyperembeddim, "dropout": dropout}
+    modelparams = {"attention_dim": attention_dim, "hyperembeddim": hyperembeddim, "dropout": dropout, "channel": channel, "globdim": globdim}
     print("Model parameters:",modelparams)
     model = GraphAttentionClassifier(**modelparams).to(device)
 
@@ -633,7 +665,8 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     if trial is not None:
         del model,jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
         gc.collect()
-        return auc
+        return bestloss
+        # return auc
 
 class outhandler():
     def __init__(self,outdir):

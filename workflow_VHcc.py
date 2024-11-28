@@ -98,6 +98,9 @@ class VHccBaseProcessor(BaseProcessorABC):
         #self.predict_dnn_low = tf.function(self.model_low.predict, reduce_retracing=True)
         #self.predict_dnn_high = tf.function(self.model_high.predict, reduce_retracing=True)
 
+        if self.run_gnn:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         print("Processor initialized")
         
     def apply_object_preselection(self, variation):
@@ -292,51 +295,79 @@ class VHccBaseProcessor(BaseProcessorABC):
             return tensor
 
     def evaluateGNN(self,data):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         # model = torch.jit.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file) #TODO This would be the most elegant way, but the current model does not work with torch.jit
 
         modelparams = pickle.load(open(self.params.Models.GNN[self.channel][self.events.metadata["year"]].params,'rb'))
         model = GraphAttentionClassifier(**modelparams)
-        model.load_state_dict(torch.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file,weights_only=True,map_location=device))
+        model.load_state_dict(torch.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file,weights_only=True,map_location=self.device))
         model.eval()
 
-        varsdict = {
-            'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
-            'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
-            'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
-            'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
-            'll'    : ["ll_pt","ll_eta","ll_phi","ll_mass"],
-            'glo'   : ["MET_pt","MET_phi","nPV"],
-            'cat'   : ["LeptonCategory"]
-        }
+        if self.proc_type=="ZLL":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
+                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
+                'll'    : ["ll_pt","ll_eta","ll_phi","ll_mass"],
+                'glo'   : ["MET_pt","MET_phi","nPV"],
+                'cat'   : ["LeptonCategory"]
+            }
+            lcount = 2
+            catpad = 0
+        elif self.proc_type=="WLNu":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
+                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
+                'll'    : ["W_pt","W_eta","W_phi","W_mt"],
+                'glo'   : ["MET_pt","MET_phi","nPV","W_m"],
+                'cat'   : ["LeptonCategory"]
+            }
+            lcount = 1
+            catpad = 0
+        elif self.proc_type=="ZNuNu":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : [],
+                'lepp4' : [],
+                'll'    : ["Z_pt","Z_eta","Z_phi","Z_m"],
+                'glo'   : ["MET_pt","MET_phi","nPV"],
+                'cat'   : []
+            }
+            lcount = 1
+            catpad = None
+
 
         pads = {
             'jet'   : 6,
             'jetp4' : 6,
-            'lep'   : 2,
-            'lepp4' : 2,
+            'lep'   : lcount,
+            'lepp4' : lcount,
             'll'    : 0,
             'glo'   : 0,
-            'cat'   : 0
+            'cat'   : catpad
         }
 
         tensordict = {}  
         for arr in varsdict:  
-            maxelem = pads[arr]                    
+            maxelem = pads[arr] 
+            if maxelem is None or len(varsdict[arr])==0:
+                tensordict[arr] = torch.tensor([1])
+                continue           
             for field in varsdict[arr]:
                 var = data[field]
                 
                 if maxelem > 0:
                     N = np.max(ak.num(var, axis=1))  
                     padded = ak.fill_none(ak.pad_none(var,N,axis=1),0)
-                    
                 else: 
                     padded = var
                 if arr not in tensordict:
                     tensordict[arr] = []
                 dtype = torch.float32
-                if arr == 'cat':
-                    dtype = torch.int64
+                if arr == 'cat': dtype = torch.int64
                 tensordict[arr].append(torch.tensor(padded,dtype=dtype))
 
             stacked = torch.stack(tensordict[arr],dim=-1)
@@ -489,8 +520,12 @@ class VHccBaseProcessor(BaseProcessorABC):
             #print("W_candidate", self.events.W_candidate, self.events.W_candidate.mass, self.events.W_candidate.pt)
             self.events["W_m"] = self.events.W_candidate.mass
             self.events["W_pt"] = self.events.W_candidate.pt
+            self.events["W_eta"] = ak.zeros_like(self.events.W_candidate.pt)
+            self.events["W_phi"] = self.events.MET_used.phi
             self.events["W_mt"] = np.sqrt(2*self.events.lead_lep.pt*self.events.MET_used.pt*(1-np.cos(self.events.lead_lep.delta_phi(self.events.MET_used))))
             self.events["pt_miss"] = self.events.MET_used.pt
+            self.events["LeptonCategory"] = ak.values_astype(self.events["nMuonGood"]==1,"int32")
+
             # Step 1: Calculate delta_r for each b_jet with respect to lead_lep
             delta_rs = self.events.BJetGood.delta_r(self.events.lead_lep)
 
@@ -546,6 +581,15 @@ class VHccBaseProcessor(BaseProcessorABC):
 
             variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})
 
+            gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
+                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                        "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                        "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                        "W_pt","W_eta","W_phi","W_mt",
+                        "MET_pt","MET_phi","nPV","W_m","LeptonCategory"]
+
+            ak_gnn = self.events[gnn_vars]
+
             df = ak.to_pandas(variables_for_MVA_eval)
 
             # Remove the 'subentry' column
@@ -570,6 +614,11 @@ class VHccBaseProcessor(BaseProcessorABC):
             else:
                 self.events["DNN"] = np.zeros_like(self.events["BDT"])
 
+            if self.run_gnn:
+                self.events["GNN"] = self.evaluateGNN(ak_gnn)
+            else:
+                self.events["GNN"] = np.zeros_like(self.events["BDT"])
+
 
         if self.proc_type=="ZNuNu":
             ### General
@@ -582,6 +631,9 @@ class VHccBaseProcessor(BaseProcessorABC):
                                         },with_name="PtEtaPhiMCandidate")
             self.events["Z_candidate"] = self.events.MET_used
             self.events["Z_pt"] = self.events.Z_candidate.pt
+            self.events["Z_eta"] = ak.zeros_like(self.events.Z_candidate.pt)
+            self.events["Z_phi"] = self.events.Z_candidate.phi
+            self.events["Z_m"] = ak.ones_like(self.events.Z_candidate.pt)*91.1876
             
             self.events["dijet_m"] = self.events.dijet_csort.mass
             self.events["dijet_pt"] = self.events.dijet_csort.pt
@@ -600,7 +652,7 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
             self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
 
-            odd_events = self.events[odd_event_mask]
+            # odd_events = self.events[odd_event_mask]
 
             variables_for_MVA_eval_list = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
@@ -609,6 +661,12 @@ class VHccBaseProcessor(BaseProcessorABC):
 
             variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})
 
+            gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
+                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                        "Z_pt","Z_eta","Z_phi","Z_m",
+                        "MET_pt","MET_phi","nPV"]
+
+            ak_gnn = self.events[gnn_vars]
             
             df = ak.to_pandas(variables_for_MVA_eval)
             #columns_to_exclude = []
@@ -625,5 +683,9 @@ class VHccBaseProcessor(BaseProcessorABC):
                 self.events["DNN"] = self.evaluateDNN(df_final)
             else:
                 self.events["DNN"] = np.zeros_like(self.events["BDT"])
+            if self.run_gnn:
+                self.events["GNN"] = self.evaluateGNN(ak_gnn)
+            else:
+                self.events["GNN"] = np.zeros_like(self.events["BDT"])
             
         
