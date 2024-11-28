@@ -8,6 +8,8 @@ from pocket_coffea.lib.columns_manager import ColOut
 import click
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
+import MVA
+from MVA.gnnmodels import GraphAttentionClassifier
 
 import CommonSelectors
 from CommonSelectors import *
@@ -15,6 +17,7 @@ from CommonSelectors import *
 import cloudpickle
 cloudpickle.register_pickle_by_value(workflow_VHcc)
 cloudpickle.register_pickle_by_value(CommonSelectors)
+cloudpickle.register_pickle_by_value(MVA)
 
 import os
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -58,6 +61,7 @@ parameters["proc_type"] = "ZNuNu"
 parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = True
+parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -69,30 +73,32 @@ cfg = Configurator(
 
         "filter" : {
             "samples": [
-                #"MET"
+                "DATA_MET",
                 "WW",
                 "WZ",
-                #"ZZ",
+                "ZZ",
                 #"QCD",
                 #"ZJetsToNuNu_HT_MLM",
                 "ZJetsToNuNu_NJPT_FxFx",
                 #"WJetsToLNu_MLM",
-                #"WJetsToLNu_FxFx",
+                "WJetsToLNu_FxFx",
                 #"WJetsToQQ_MLM",
-                #"TTToSemiLeptonic",
+                "TTToSemiLeptonic",
                 #"TTTo2L2Nu",
-                #"TTToHadrons",
+                "TTToHadrons",
                 #"WminusH_HToCC_WToLNu",
                 #"WminusH_Hto2C_WtoLNu",
                 #"WplusH_HToCC_WToLNu",
                 #"WplusH_Hto2C_WtoLNu",
-                "ZH_Hto2C_Zto2Nu"
+                "ZH_Hto2C_Zto2Nu",
+                "ZH_Hto2B_Zto2Nu"
+
             ],
             "samples_exclude" : [],
             #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
@@ -110,7 +116,13 @@ cfg = Configurator(
             'WJetsToLNu_FxFx': {
                 'DiJet_incl': [passthrough],
                 'DiJet_bx': [DiJet_bx],
-		'DiJet_cx': [DiJet_cx],
+		        'DiJet_cx': [DiJet_cx],
+                'DiJet_ll': [DiJet_ll],
+            },
+            'ZJetsToNuNu_NJPT_FxFx': {
+                'DiJet_incl': [passthrough],
+                'DiJet_bx': [DiJet_bx],
+		        'DiJet_cx': [DiJet_cx],
                 'DiJet_ll': [DiJet_ll],
             }
         }
@@ -136,7 +148,7 @@ cfg = Configurator(
         "SR_Znn_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_Znn_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	"CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+	    "CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_Znn_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_Znn_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut]
 
@@ -146,14 +158,22 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                     "SR_Znn_2J_cJ": [
-                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt"], flatten=False),
+                        ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                            "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
+                                            "JetGood_btagCvL","JetGood_btagCvB",
+                                            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                            "Z_pt","Z_eta","Z_phi","Z_m",
+                                            "MET_pt","MET_phi","nPV"], flatten=False),
                     ],
                     "presel_Met_2J_no_ctag": [
-                        ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                          "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                          "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt"], flatten=False),
+                        ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                            "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
+                                            "JetGood_btagCvL","JetGood_btagCvB",
+                                            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                            "Z_pt","Z_eta","Z_phi","Z_m",
+                                            "MET_pt","MET_phi","nPV"], flatten=False),
                     ]
                 }
         },
@@ -238,10 +258,12 @@ cfg = Configurator(
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
 
         # 2D plots
-	"Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
+	    "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
                                    type="variable", label="N. Jets (good)"),
                               Axis(coll="events", field="JetGood_Ht",
                                    bins=[0,80,150,200,300,450,700],

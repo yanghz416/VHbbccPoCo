@@ -8,6 +8,8 @@ from pocket_coffea.lib.columns_manager import ColOut
 import click
 import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
+import MVA
+from MVA.gnnmodels import GraphAttentionClassifier
 
 import CommonSelectors
 from CommonSelectors import *
@@ -15,6 +17,7 @@ from CommonSelectors import *
 import cloudpickle
 cloudpickle.register_pickle_by_value(workflow_VHcc)
 cloudpickle.register_pickle_by_value(CommonSelectors)
+cloudpickle.register_pickle_by_value(MVA)
 
 import os
 localdir = os.path.dirname(os.path.abspath(__file__))
@@ -58,7 +61,8 @@ files_Run3 = [
 parameters["proc_type"] = "WLNu"
 parameters["save_arrays"] = False
 parameters["separate_models"] = False
-parameters['run_dnn'] = False
+parameters['run_dnn'] = True
+parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -82,18 +86,19 @@ cfg = Configurator(
                 #"WJetsToLNu_NJPT_FxFx",
                 #"WJetsToLNu_MLM",
                 #"WJetsToQQ_MLM",
-                #"DYJetsToLL_FxFx",
+                "DYJetsToLL_FxFx",
                 "TTToSemiLeptonic",
-                #"TTTo2L2Nu",
+                "TTTo2L2Nu",
                 #"TTToHadrons",
-                "WminusH_Hto2C_WtoLNu",
-                "WplusH_Hto2C_WtoLNu"
+                "WH_Hto2C_WtoLNu",
+                "WminusH_Hto2B_WtoLNu",
+                "WplusH_Hto2B_WtoLNu"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2022_postEE']
+            "year": ['2022_preEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
@@ -158,14 +163,26 @@ cfg = Configurator(
                                       "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
                                       "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
                                       "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
-                                      "b_CvsL", "b_CvsB", "b_Btag", "top_mass"], flatten=False),
+                                      "b_CvsL", "b_CvsB", "b_Btag", "top_mass",
+                                      "JetGood_btagCvL","JetGood_btagCvB",
+                                      "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                      "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                                      "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                                      "W_pt","W_eta","W_phi","W_mt",
+                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"], flatten=False),
                 ],
                 "baseline_1L2j": [
                     ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
                                       "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
                                       "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
                                       "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
-                                      "b_CvsL", "b_CvsB", "b_Btag", "top_mass"], flatten=False),
+                                      "b_CvsL", "b_CvsB", "b_Btag", "top_mass",
+                                      "JetGood_btagCvL","JetGood_btagCvB",
+                                      "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                      "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                                      "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                                      "W_pt","W_eta","W_phi","W_mt",
+                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"], flatten=False),
                 ]
             }
         },
@@ -261,6 +278,9 @@ cfg = Configurator(
         "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+
+        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
         # 2D plots

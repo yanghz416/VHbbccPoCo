@@ -19,7 +19,8 @@
 	conda install conda-forge::xrootd
 	conda install conda-forge::lightgbm
     conda install conda-forge::tensorflow
-    conda install setuptools==70.*
+    conda install pytorch::pytorch
+    conda install setuptools==70.*    
     ```
     For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
 3. Checkout *this* repo:
@@ -48,6 +49,6 @@
     ```
 8. Make some plots:
    ```
-   make-plots -inp output_VHcc_v01 -op params/plotting.yaml
+   make-plots -inp output_VHcc_v01 -op VHccPoCo/params/plotting.yaml
    ```
-   The plot parameters can be changed by editing `params/plotting.yaml`.
+   The plot parameters can be changed by editing `VHccPoCo/params/plotting.yaml`.

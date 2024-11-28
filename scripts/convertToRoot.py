@@ -75,7 +75,10 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
                 if isData:
                     if ('DATA_DoubleMu' in samp and 'mm' in cat) \
-                       or ('DATA_EGamma' in samp and 'ee' in cat):
+                       or ('DATA_EGamma' in samp and 'ee' in cat) \
+                       or ('DATA_SingleMu' in samp and 'mn' in cat) \
+                       or ('DATA_EGamma' in samp and 'en' in cat) \
+                       or ('DATA_MET' in samp and 'nn' in cat):
                         pass
                     else:
                         # This shall not pass!
