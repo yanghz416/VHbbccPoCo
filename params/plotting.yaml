@@ -3,11 +3,23 @@ plotting_style:
     Top:
       - TTToSemiLeptonic
       - TTTo2L2Nu
-      #- TTToHadrons
+      - TTToHadrons
     VV:
       - WW
       - WZ
       - ZZ
+    Hcc:
+      - ZH_Hto2C_Zto2L
+      - WH_Hto2C_WtoLNu
+      - WminusH_Hto2C_WtoLNu
+      - WplusH_Hto2C_WtoLNu
+      - ZH_Hto2C_Zto2Nu
+    Hbb:
+      - ZH_Hto2B_Zto2L
+      - WminusH_Hto2B_WtoLNu
+      - WplusH_Hto2B_WtoLNu
+      - ZH_Hto2B_Zto2Nu
+
 
   exclude_samples:
     - DYJetsToLL_MLM
@@ -15,10 +27,10 @@ plotting_style:
     - DYJetsToLL_MiNNLO
     - DYJetsToLL_MiNNLO_ZptWei
 
-
     - DYJetsToLL_MLM__DiJet_incl
     - DYJetsToLL_FxFx__DiJet_incl
     - WJetsToLNu_FxFx__DiJet_incl
+    - ZJetsToNuNu_NJPT_FxFx__DiJet_incl
 
     ## - DYJetsToLL_MLM__DiJet_bx
     ## - DYJetsToLL_MLM__DiJet_cx
@@ -36,7 +48,12 @@ plotting_style:
 #    DYJetsToLL_MLM: 1.33
 
   signal_samples:
-    ZH_Hto2C_Zto2L: 2000
+    # ZH_Hto2C_Zto2L: 2000
+    # WminusH_Hto2C_WtoLNu: 2000
+    # WplusH_Hto2C_WtoLNu: 2000
+    # WH_Hto2C_WtoLNu: 2000
+    Hcc: 10000
+    Hbb: 10000
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
@@ -44,6 +61,7 @@ plotting_style:
     DYJetsToLL_MiNNLO: Z+jets
     WJetsToLNu_FxFx: W+jets
     ZJetsToNuNu_FxFx: ZNuNu
+    ZJetsToNuNu_NJPT_FxFx: ZNunu
 
     DYJetsToLL_MLM__DiJet_incl: Z+jets
     DYJetsToLL_MLM__DiJet_bx: Z+bj
@@ -60,8 +78,13 @@ plotting_style:
     WJetsToLNu_FxFx__DiJet_cx: W+cj
     WJetsToLNu_FxFx__DiJet_ll: W+jj
 
-    ZH_Hto2C_Zto2L: "$H\\to cc$"
-    ZH_Hto2B_Zto2L: "$H\\to bb$"
+    ZJetsToNuNu_NJPT_FxFx__DiJet_incl: Z+jets
+    ZJetsToNuNu_NJPT_FxFx__DiJet_bx: Z+bx
+    ZJetsToNuNu_NJPT_FxFx__DiJet_cx: Z+cx
+    ZJetsToNuNu_NJPT_FxFx__DiJet_ll: Z+jj
+
+    Hcc: "$H\\to cc$"
+    Hbb: "$H\\to bb$"
     
   colors_mc:
     Top: "#00BFFF"
@@ -84,12 +107,13 @@ plotting_style:
     DYJetsToLL_FxFx__DiJet_incl:  "#ADFF2F"
 
   blind_hists:
-    categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']
+    categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','SR_Wln_2J_cJ',"SR_Znn_2J_cJ"]
     histograms:
       dijet_m: [90, 150]
       dijet_csort_m: [90, 150]
       BDT: [0.7, 1]
       DNN: [0.7, 1]
+      GNN: [0.7, 1]
 
   print_info:
     category: True

@@ -1,0 +1,50 @@
+
+input:
+  channel: "0L"
+  eras: ["2022_preEE"]
+  variation: "nominal"
+
+output:
+  shapes_file_name: "vhcc_shapes"
+  
+config:
+  example_variable: "dijet_m"
+  example_data: "DATA_DoubleMuon"
+  example_MC: "ZH_Hto2C_Zto2Nu"
+  example_subsample: "DYJetsToLL_FxFx__DiJet_bx"
+  example_category: "SR_Znn_2J_cJ"
+    
+categories:
+  SR_Znn_2J_cJ:
+    observable: "GNN"
+    mata_name: "Znn_SR"
+  CR_Znn_2J_HF:
+    observable: "dijet_pt"
+    mata_name: "Znn_CR_HF"
+  CR_Znn_2J_LF:
+    observable: "dijet_pt"
+    mata_name: "Znn_CR_LF"
+  CR_Znn_2J_CC:
+    observable: "dijet_pt"
+    mata_name: "Znn_CR_CC"
+  CR_Znn_4J_TT:
+    observable: "dijet_pt"
+    mata_name: "Znn_CR_TT"
+
+sample_to_process_map:
+  DATA_MET: "data_obs"
+  ZH_Hto2C_Zto2Nu: "ZH_hcc"
+  ZH_Hto2B_Zto2Nu: "ZH_hbb"
+  TTTo2L2Nu: "TT"
+  TTToHadrons: "TT"
+  ZJetsToNuNu_NJPT_FxFx: "Zj_ll"
+  ZJetsToNuNu_NJPT_FxFx__DiJet_ll: "Zj_ll"
+  ZJetsToNuNu_NJPT_FxFx__DiJet_cx: "Zj_cj"
+  ZJetsToNuNu_NJPT_FxFx__DiJet_bx: "Zj_bj"
+  WJetsToLNu_FxFx: "Wj_ll"
+  WJetsToLNu_FxFx__DiJet_ll: "Wj_ll"
+  WJetsToLNu_FxFx__DiJet_cx: "Wj_cj"
+  WJetsToLNu_FxFx__DiJet_bx: "Wj_bj"
+  WW: "WW"
+  WZ: "WZ"
+  ZZ: "ZZ"
