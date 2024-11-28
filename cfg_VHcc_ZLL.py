@@ -80,7 +80,7 @@ cfg = Configurator(
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
-	            "WW", "WZ", "ZZ",
+	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
                 #"WJetsToLNu_FxFx",
@@ -139,8 +139,10 @@ cfg = Configurator(
         "SR_ee_2J_cJ": [Zll_2j('el'), ctag_j1, dijet_mass_cut],
         "SR_ll_2J_cJ": [Zll_2j(), ctag_j1, dijet_mass_cut],
         
-        "SR_ll_2J_cJ_loPT": [Zll_2j(), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
-        "SR_ll_2J_cJ_hiPT": [Zll_2j(), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "SR_mm_2J_cJ_loZPT": [Zll_2j('mu'), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "SR_ee_2J_cJ_hiZPT": [Zll_2j('el'), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "SR_mm_2J_cJ_loZPT": [Zll_2j('mu'), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "SR_ee_2J_cJ_hiZPT": [Zll_2j('el'), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
         
         "CR_ee_2J_LF": [Zll_2j('el'), antictag_j1, dijet_mass_cut],
         "CR_ee_2J_HF": [Zll_2j('el'), btag_j1, dijet_mass_cut],
@@ -195,7 +197,7 @@ cfg = Configurator(
     weights = {
         "common": {
             "inclusive": ["signOf_genWeight","lumi","XS",
-                          "pileup", #Not in 2022/2023
+                          "pileup",
                           "sf_mu_id","sf_mu_iso",
                           "sf_ele_reco","sf_ele_id",
                           #"sf_ctag", "sf_ctag_calib"
@@ -280,13 +282,25 @@ cfg = Configurator(
         "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=50, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
-        "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
-
-        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
+        "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ',
+                                            'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
+        "DNN": HistConf( [Axis(field="DNN", bins=1000, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ',
+                                            'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
+        "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
+                                            'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
+        
+        "BDT_coarse": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
+                                only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
+                                                   'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
+        "DNN_coarse": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                                only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
+                                                   'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
+        "GNN_coarse": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+                                only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
+                                                   'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
         
         
         # 2D histograms:

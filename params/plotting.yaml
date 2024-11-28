@@ -107,7 +107,8 @@ plotting_style:
     DYJetsToLL_FxFx__DiJet_incl:  "#ADFF2F"
 
   blind_hists:
-    categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','SR_Wln_2J_cJ',"SR_Znn_2J_cJ"]
+    categories: ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT','SR_ll_2J_cJ_loZPT','SR_ll_2J_cJ_hiZPT','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','SR_Wln_2J_cJ',"SR_Znn_2J_cJ"]
+    
     histograms:
       dijet_m: [90, 150]
       dijet_csort_m: [90, 150]

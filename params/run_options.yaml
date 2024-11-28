@@ -1,6 +1,6 @@
-retries: 8
+retries: 4
 skip-bad-files: true
-chunksize: 500000
+chunksize: 200000
 requirements: >
   ( TotalCpus >= 8) && 
   ( Machine != "lx3a44.physik.rwth-aachen.de" ) &&

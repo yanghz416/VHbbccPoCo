@@ -10,7 +10,7 @@ output:
 config:
   example_variable: "dijet_m"
   example_data: "DATA_SingleMuon"
-  example_MC: "WH_Hto2C_WtoLNu"
+  example_MC: "TTToSemiLeptonic"
   example_subsample: "WJetsToLNu_FxFx"
   example_category: "SR_Wln_2J_cJ"
     
@@ -25,28 +25,28 @@ categories:
     observable: "GNN"
     mata_name: "Wen_SR"
   CR_Wmn_2J_HF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wmn_CR_HF"
   CR_Wmn_2J_LF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wmn_CR_LF"
   CR_Wmn_2J_CC:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wmn_CR_CC"
   CR_Wmn_4J_TT:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wmn_CR_TT"
   CR_Wen_2J_HF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wen_CR_HF"
   CR_Wen_2J_LF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wen_CR_LF"
   CR_Wen_2J_CC:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wen_CR_CC"
   CR_Wen_4J_TT:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Wen_CR_TT"
 
 sample_to_process_map:
@@ -55,8 +55,9 @@ sample_to_process_map:
   WH_Hto2C_WtoLNu: "WH_hcc"
   WminusH_Hto2B_WtoLNu: "WH_hbb"
   WplusH_Hto2B_WtoLNu: "WH_hbb"
-  TTTo2L2Nu: "TT"
-  TTToSemiLeptonic: "TT"
+  TTTo2L2Nu: "TT_2L"
+  TTToSemiLeptonic: "TT_1L"
+  TTToHadrons: "TT_Had"
   WJetsToLNu_FxFx: "Wj_ll"
   WJetsToLNu_FxFx__DiJet_ll: "Wj_ll"
   WJetsToLNu_FxFx__DiJet_cx: "Wj_cj"

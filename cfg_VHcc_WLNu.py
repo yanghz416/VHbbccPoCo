@@ -61,7 +61,7 @@ files_Run3 = [
 parameters["proc_type"] = "WLNu"
 parameters["save_arrays"] = False
 parameters["separate_models"] = False
-parameters['run_dnn'] = True
+parameters['run_dnn'] = False
 parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
@@ -91,8 +91,6 @@ cfg = Configurator(
                 "TTTo2L2Nu",
                 #"TTToHadrons",
                 "WH_Hto2C_WtoLNu",
-                "WminusH_Hto2B_WtoLNu",
-                "WplusH_Hto2B_WtoLNu"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
@@ -275,13 +273,19 @@ cfg = Configurator(
         "b_Btag": HistConf( [Axis(field="b_Btag", bins=24, start=0, stop=1, label=r"$Btag_{b}$")] ),
         "top_mass": HistConf( [Axis(field="top_mass", bins=100, start=0, stop=400, label=r"$M_{top}$ [GeV]")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
-        "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+        "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
+                         only_categories = ['SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+        "DNN": HistConf( [Axis(field="DNN", bins=1000, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+        "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
 
-        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+        "BDT_coarse": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
+                                only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+        "DNN_coarse": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                                only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+        "GNN_coarse": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+                                only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
         # 2D plots
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],

@@ -25,28 +25,28 @@ categories:
     observable: "GNN"
     mata_name: "Zee_SR"
   CR_mm_2J_HF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zmm_CR_HF"
   CR_mm_2J_LF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zmm_CR_LF"
   CR_mm_2J_CC:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zmm_CR_CC"
   CR_mm_4J_TT:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zmm_CR_TT"
   CR_ee_2J_HF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zee_CR_HF"
   CR_ee_2J_LF:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zee_CR_LF"
   CR_ee_2J_CC:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zee_CR_CC"
   CR_ee_4J_TT:
-    observable: "dijet_pt"
+    observable: "dijet_CvsL_j1"
     mata_name: "Zee_CR_TT"
 
 sample_to_process_map:
@@ -56,7 +56,7 @@ sample_to_process_map:
   ZH_Hto2B_Zto2L: "ZH_hbb"
   ggZH_Hto2C_Zto2L: "ggZH_hcc"
   ggZH_Hto2B_Zto2L: "ggZH_hbb"
-  TTTo2L2Nu: "TT"
+  TTTo2L2Nu: "TT_2L"
   DYJetsToLL_FxFx: "Zj_ll"
   DYJetsToLL_FxFx__DiJet_ll: "Zj_ll"
   DYJetsToLL_FxFx__DiJet_cx: "Zj_cj"

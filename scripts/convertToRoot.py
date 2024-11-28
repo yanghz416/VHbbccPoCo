@@ -90,8 +90,6 @@ def convertCoffeaToRoot(coffea_file_name, config):
                     print("\t list of available subsamples:",hists['variables'][variable][samp].keys())
                     sys.exit(1)
                 elif len(subsamples)==1:
-                    # Note: only nominal is done here.
-                    # Need to loop over variations to get shape systematics (todo)
                     if isData:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
                     else:
@@ -99,11 +97,15 @@ def convertCoffeaToRoot(coffea_file_name, config):
                 else:
                     print("\t Subsamples:", subsamples)
                     # We need to add all the histograms for sub-samples
+                    # First get one (indexed 0)
                     if isData:
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
                     else:
+                        # Note: only nominal is done here.
+                        # Need to loop over variations to get shape systematics (todo)
                         myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
 
+                    # Here loop over the rest of subsamples (indexed 1 to all) and sum
                     for i in range(1,len(subsamples)):
                         if isData:
                             hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat}]

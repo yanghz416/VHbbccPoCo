@@ -20,7 +20,8 @@
 	conda install conda-forge::lightgbm
     conda install conda-forge::tensorflow
     conda install pytorch::pytorch
-    conda install setuptools==70.*    
+    conda install conda-forge:alive-progress
+    conda install conda-forge:optuna
     ```
     For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
 3. Checkout *this* repo:
@@ -38,7 +39,7 @@
 	build-datasets --cfg samples_Run3.json -o -ws T2_DE_RWTH -ws T2_DE_DESY -ws T1_DE_KIT_Disk -ws T2_CH_CERN -ir
 	cd ../
     ```
-    Use `-p 12` with `build-datasets` to parallelizing with 12 cores, e.g.
+    Use `-p 12` with `build-datasets` to parallelizing with 12 cores.
 6. Run with the `futures` executor (test before large submission):
     ```
     runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_VHcc_Test --executor futures -s 10 -lf 1 -lc 1
@@ -46,9 +47,14 @@
 7. Run on condor with Parsl executor (only if the previous step was successeful):
     ```
     runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_VHcc_v01 --executor parsl-condor@RWTH -s 60
-    ```
+    ```  
+	Note: use `dask@lxplus` executor if running at CERN.
+	
 8. Make some plots:
    ```
    make-plots -inp output_VHcc_v01 -op VHccPoCo/params/plotting.yaml
    ```
    The plot parameters can be changed by editing `VHccPoCo/params/plotting.yaml`.
+
+9. Produce shapes for limit setting with `scripts/convertToRoot.py` script.
+   * See details in [scripts/README.md](scripts/README.md)
