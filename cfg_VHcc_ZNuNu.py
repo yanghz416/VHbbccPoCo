@@ -86,12 +86,11 @@ cfg = Configurator(
                 "TTToSemiLeptonic",
                 #"TTTo2L2Nu",
                 "TTToHadrons",
-                #"WminusH_HToCC_WToLNu",
-                #"WminusH_Hto2C_WtoLNu",
-                #"WplusH_HToCC_WToLNu",
-                #"WplusH_Hto2C_WtoLNu",
+                "SingleTop",
                 "ZH_Hto2C_Zto2Nu",
-                "ZH_Hto2B_Zto2Nu"
+                "ggZH_Hto2C_Zto2Nu",
+                "ZH_Hto2B_Zto2Nu",
+                "ggZH_Hto2B_Zto2Nu"
 
             ],
             "samples_exclude" : [],

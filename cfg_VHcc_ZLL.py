@@ -59,9 +59,9 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
-parameters['run_dnn'] = True
+parameters['run_dnn'] = False
 parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
@@ -88,8 +88,11 @@ cfg = Configurator(
                 #"DYJetsToLL_MiNNLO",
                 #"DYJetsToLL_MiNNLO_ZptWei",
                 "TTTo2L2Nu",
+                "SingleTop",
                 "ZH_Hto2C_Zto2L",
-                "ZH_Hto2B_Zto2L"
+                "ggZH_Hto2C_Zto2L",
+                "ZH_Hto2B_Zto2L",
+                "ggZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']

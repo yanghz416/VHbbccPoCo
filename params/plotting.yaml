@@ -10,13 +10,17 @@ plotting_style:
       - ZZ
     Hcc:
       - ZH_Hto2C_Zto2L
+      - ggZH_Hto2C_Zto2L
       - WH_Hto2C_WtoLNu
       - ZH_Hto2C_Zto2Nu
+      - ggZH_Hto2C_Zto2Nu
     Hbb:
       - ZH_Hto2B_Zto2L
+      - ggZH_Hto2B_Zto2L
       - WminusH_Hto2B_WtoLNu
       - WplusH_Hto2B_WtoLNu
       - ZH_Hto2B_Zto2Nu
+      - ggZH_Hto2B_Zto2Nu
 
 
   exclude_samples:
@@ -60,6 +64,7 @@ plotting_style:
     WJetsToLNu_FxFx: W+jets
     ZJetsToNuNu_FxFx: ZNuNu
     ZJetsToNuNu_NJPT_FxFx: ZNunu
+    SingleTop: STop
 
     DYJetsToLL_MLM__DiJet_incl: Z+jets
     DYJetsToLL_MLM__DiJet_bx: Z+bj
@@ -93,6 +98,7 @@ plotting_style:
     ZJetsToNuNu_FxFx: "#ADFF2F"
     VV: "#FFA07A"
     QCD: "#D3D3D3"
+    SingleTop: "#2B193D"
 
     DYJetsToLL_MLM__DiJet_bx:  "#196f3d"
     DYJetsToLL_MLM__DiJet_cx:  "#52be80"
