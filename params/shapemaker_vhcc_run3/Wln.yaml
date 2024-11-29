@@ -56,7 +56,7 @@ sample_to_process_map:
   WminusH_Hto2B_WtoLNu: "WH_hbb"
   WplusH_Hto2B_WtoLNu: "WH_hbb"
   TTTo2L2Nu: "TT_2L"
-  TTToSemiLeptonic: "TT_1L"
+  TTToSemiLeptonic: "TT"
   TTToHadrons: "TT_Had"
   WJetsToLNu_FxFx: "Wj_ll"
   WJetsToLNu_FxFx__DiJet_ll: "Wj_ll"

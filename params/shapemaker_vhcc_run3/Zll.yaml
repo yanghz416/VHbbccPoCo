@@ -18,36 +18,68 @@ categories:
   SR_ll_2J_cJ:
     observable: "GNN"
     mata_name: "Zll_SR"
-  SR_mm_2J_cJ:
+  SR_mm_2J_cJ_loZPT:
     observable: "GNN"
-    mata_name: "Zmm_SR"
-  SR_ee_2J_cJ:
+    mata_name: "Zmm_SR_loZPT"
+  SR_ee_2J_cJ_loZPT:
     observable: "GNN"
-    mata_name: "Zee_SR"
-  CR_mm_2J_HF:
+    mata_name: "Zee_SR_loZPT"
+  SR_mm_2J_cJ_hiZPT:
+    observable: "GNN"
+    mata_name: "Zmm_SR_hiZPT"
+  SR_ee_2J_cJ_hiZPT:
+    observable: "GNN"
+    mata_name: "Zee_SR_hiZPT"
+    
+  CR_mm_2J_HF_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zmm_CR_HF"
-  CR_mm_2J_LF:
+    mata_name: "Zmm_CR_HF_loZPT"
+  CR_mm_2J_LF_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zmm_CR_LF"
-  CR_mm_2J_CC:
+    mata_name: "Zmm_CR_LF_loZPT"
+  CR_mm_2J_CC_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zmm_CR_CC"
-  CR_mm_4J_TT:
+    mata_name: "Zmm_CR_CC_loZPT"
+  CR_mm_4J_TT_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zmm_CR_TT"
-  CR_ee_2J_HF:
+    mata_name: "Zmm_CR_TT_loZPT"
+  CR_ee_2J_HF_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zee_CR_HF"
-  CR_ee_2J_LF:
+    mata_name: "Zee_CR_HF_loZPT"
+  CR_ee_2J_LF_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zee_CR_LF"
-  CR_ee_2J_CC:
+    mata_name: "Zee_CR_LF_loZPT"
+  CR_ee_2J_CC_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zee_CR_CC"
-  CR_ee_4J_TT:
+    mata_name: "Zee_CR_CC_loZPT"
+  CR_ee_4J_TT_loZPT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Zee_CR_TT"
+    mata_name: "Zee_CR_TT_loZPT"
+    
+  CR_mm_2J_HF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zmm_CR_HF_hiZPT"
+  CR_mm_2J_LF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zmm_CR_LF_hiZPT"
+  CR_mm_2J_CC_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zmm_CR_CC_hiZPT"
+  CR_mm_4J_TT_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zmm_CR_TT_hiZPT"
+  CR_ee_2J_HF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zee_CR_HF_hiZPT"
+  CR_ee_2J_LF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zee_CR_LF_hiZPT"
+  CR_ee_2J_CC_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zee_CR_CC_hiZPT"
+  CR_ee_4J_TT_hiZPT:
+    observable: "dijet_CvsL_j1"
+    mata_name: "Zee_CR_TT_hiZPT"
 
 sample_to_process_map:
   DATA_EGamma: "data_obs"
@@ -56,7 +88,7 @@ sample_to_process_map:
   ZH_Hto2B_Zto2L: "ZH_hbb"
   ggZH_Hto2C_Zto2L: "ggZH_hcc"
   ggZH_Hto2B_Zto2L: "ggZH_hbb"
-  TTTo2L2Nu: "TT_2L"
+  TTTo2L2Nu: "TT"
   DYJetsToLL_FxFx: "Zj_ll"
   DYJetsToLL_FxFx__DiJet_ll: "Zj_ll"
   DYJetsToLL_FxFx__DiJet_cx: "Zj_cj"

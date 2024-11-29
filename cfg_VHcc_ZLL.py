@@ -96,7 +96,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_postEE']
+            "year": ['2022_preEE']
             #"year": ['2023_preBPix']
         },
 
@@ -140,24 +140,34 @@ cfg = Configurator(
         "SR_ll_2J_cJ": [Zll_2j(), ctag_j1, dijet_mass_cut],
         
         "SR_mm_2J_cJ_loZPT": [Zll_2j('mu'), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
-        "SR_ee_2J_cJ_hiZPT": [Zll_2j('el'), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
-        "SR_mm_2J_cJ_loZPT": [Zll_2j('mu'), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "SR_ee_2J_cJ_loZPT": [Zll_2j('el'), ctag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "SR_mm_2J_cJ_hiZPT": [Zll_2j('mu'), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
         "SR_ee_2J_cJ_hiZPT": [Zll_2j('el'), ctag_j1, dijet_mass_cut, dilep_pt(150,2000)],
         
-        "CR_ee_2J_LF": [Zll_2j('el'), antictag_j1, dijet_mass_cut],
-        "CR_ee_2J_HF": [Zll_2j('el'), btag_j1, dijet_mass_cut],
-        "CR_ee_2J_CC": [Zll_2j('el'), ctag_j1, dijet_invmass_cut],
-        "CR_ee_4J_TT": [ll_antiZ_4j('el'), btag_j1, dijet_mass_cut],
+        "CR_ee_2J_LF_loZPT": [Zll_2j('el'), antictag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "CR_ee_2J_HF_loZPT": [Zll_2j('el'), btag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "CR_ee_2J_CC_loZPT": [Zll_2j('el'), ctag_j1, dijet_invmass_cut, dilep_pt(60,150)],
+        "CR_ee_4J_TT_loZPT": [ll_antiZ_4j('el'), btag_j1, dijet_mass_cut, dilep_pt(60,150)],
         
-        "CR_mm_2J_LF": [Zll_2j('mu'), antictag_j1, dijet_mass_cut],
-        "CR_mm_2J_HF": [Zll_2j('mu'), btag_j1, dijet_mass_cut],
-        "CR_mm_2J_CC": [Zll_2j('mu'), ctag_j1, dijet_invmass_cut],
-        "CR_mm_4J_TT": [ll_antiZ_4j('mu'), btag_j1, dijet_mass_cut],
+        "CR_mm_2J_LF_loZPT": [Zll_2j('mu'), antictag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "CR_mm_2J_HF_loZPT": [Zll_2j('mu'), btag_j1, dijet_mass_cut, dilep_pt(60,150)],
+        "CR_mm_2J_CC_loZPT": [Zll_2j('mu'), ctag_j1, dijet_invmass_cut, dilep_pt(60,150)],
+        "CR_mm_4J_TT_loZPT": [ll_antiZ_4j('mu'), btag_j1, dijet_mass_cut, dilep_pt(60,150)],
 
-        #"CR_ll_2J_LF": [Zll_2j('both'), antictag_j1, dijet_mass_cut],
-        #"CR_ll_2J_HF": [Zll_2j('both'), btag_j1, dijet_mass_cut],
-        #"CR_ll_2J_CC": [Zll_2j('both'), ctag_j1, dijet_invmass_cut],
-        #"CR_ll_4J_TT": [ll_antiZ_4j('both'), btag_j1, dijet_mass_cut],
+        "CR_ee_2J_LF_hiZPT": [Zll_2j('el'), antictag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "CR_ee_2J_HF_hiZPT": [Zll_2j('el'), btag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "CR_ee_2J_CC_hiZPT": [Zll_2j('el'), ctag_j1, dijet_invmass_cut, dilep_pt(150,2000)],
+        "CR_ee_4J_TT_hiZPT": [ll_antiZ_4j('el'), btag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        
+        "CR_mm_2J_LF_hiZPT": [Zll_2j('mu'), antictag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "CR_mm_2J_HF_hiZPT": [Zll_2j('mu'), btag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+        "CR_mm_2J_CC_hiZPT": [Zll_2j('mu'), ctag_j1, dijet_invmass_cut, dilep_pt(150,2000)],
+        "CR_mm_4J_TT_hiZPT": [ll_antiZ_4j('mu'), btag_j1, dijet_mass_cut, dilep_pt(150,2000)],
+
+        "CR_ll_2J_LF": [Zll_2j('both'), antictag_j1, dijet_mass_cut],
+        "CR_ll_2J_HF": [Zll_2j('both'), btag_j1, dijet_mass_cut],
+        "CR_ll_2J_CC": [Zll_2j('both'), ctag_j1, dijet_invmass_cut],
+        "CR_ll_4J_TT": [ll_antiZ_4j('both'), btag_j1, dijet_mass_cut],
     },
     
     columns = {
@@ -245,7 +255,7 @@ cfg = Configurator(
         **jet_hists(coll="JetGood", pos=1),
 
         **jet_hists(coll="JetsCvsL", pos=0),
-	    **jet_hists(coll="JetsCvsL", pos=1),
+	**jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
         

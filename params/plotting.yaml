@@ -11,8 +11,6 @@ plotting_style:
     Hcc:
       - ZH_Hto2C_Zto2L
       - WH_Hto2C_WtoLNu
-      - WminusH_Hto2C_WtoLNu
-      - WplusH_Hto2C_WtoLNu
       - ZH_Hto2C_Zto2Nu
     Hbb:
       - ZH_Hto2B_Zto2L
@@ -115,6 +113,9 @@ plotting_style:
       BDT: [0.7, 1]
       DNN: [0.7, 1]
       GNN: [0.7, 1]
+      BDT_coarse: [0.7, 1]
+      DNN_coarse: [0.7, 1]
+      GNN_coarse: [0.7, 1]
 
   print_info:
     category: True
