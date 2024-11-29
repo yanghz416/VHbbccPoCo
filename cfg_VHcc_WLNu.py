@@ -59,9 +59,9 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
-parameters['run_dnn'] = True
+parameters['run_dnn'] = False
 parameters['run_gnn'] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
@@ -89,6 +89,7 @@ cfg = Configurator(
                 "DYJetsToLL_FxFx",
                 "TTToSemiLeptonic",
                 "TTTo2L2Nu",
+                "SingleTop",
                 #"TTToHadrons",
                 "WH_Hto2C_WtoLNu",
                 "WminusH_Hto2B_WtoLNu",
@@ -98,7 +99,7 @@ cfg = Configurator(
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2022_preEE']
+            "year": ['2022_preEE','2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
