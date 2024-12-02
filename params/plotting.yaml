@@ -56,8 +56,8 @@ plotting_style:
     # WminusH_Hto2C_WtoLNu: 2000
     # WplusH_Hto2C_WtoLNu: 2000
     # WH_Hto2C_WtoLNu: 2000
-    Hcc: 10000
-    Hbb: 10000
+    Hcc: 4000
+    Hbb: 4000
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)

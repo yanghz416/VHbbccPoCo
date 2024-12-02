@@ -10,6 +10,7 @@ import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
 import MVA
 from MVA.gnnmodels import GraphAttentionClassifier
+from MVA.training import process_gnn_inputs
 
 import CommonSelectors
 from CommonSelectors import *
@@ -58,7 +59,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZNuNu"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -128,8 +129,7 @@ cfg = Configurator(
     },
 
     workflow = VHccBaseProcessor,
-
-    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZNuNu"} if parameters["save_arrays"] else {},
+    workflow_options = {"dump_columns_as_arrays_per_chunk": f"{outputdir}/Saved_columnar_arrays_ZNuNu"},
 
 
     skim = [get_HLTsel(primaryDatasets=["MET"]),
@@ -156,27 +156,37 @@ cfg = Configurator(
     columns = {
         "common": {
             "bycategory": {
+                "SR_Znn_2J_cJ": [
+                    ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                        "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                        "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
+                                        "JetGood_btagCvL","JetGood_btagCvB",
+                                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                        "Z_pt","Z_eta","Z_phi","Z_m",
+                                        "MET_pt","MET_phi","nPV"] + [
+                                        "GNN"
+                                        ] if parameters['run_gnn'] else [], flatten=False),
+                ],
+                "presel_Met_2J_no_ctag": [
+                    ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                                        "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                                        "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
+                                        "JetGood_btagCvL","JetGood_btagCvB",
+                                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                                        "Z_pt","Z_eta","Z_phi","Z_m",
+                                        "MET_pt","MET_phi","nPV"], flatten=False),
+                ]
+            }
+        },
+    } if parameters["save_arrays"] else {
+        "common": {
+            "bycategory": {
                     "SR_Znn_2J_cJ": [
-                        ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                            "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
-                                            "JetGood_btagCvL","JetGood_btagCvB",
-                                            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                            "Z_pt","Z_eta","Z_phi","Z_m",
-                                            "MET_pt","MET_phi","nPV"], flatten=False),
-                    ],
-                    "presel_Met_2J_no_ctag": [
-                        ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                            "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
-                                            "JetGood_btagCvL","JetGood_btagCvB",
-                                            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                            "Z_pt","Z_eta","Z_phi","Z_m",
-                                            "MET_pt","MET_phi","nPV"], flatten=False),
+                        ColOut("events", ["GNN"], flatten=False),
                     ]
                 }
         },
-    },
+    } if parameters['run_gnn'] else {},
 
     weights = {
         "common": {
@@ -257,7 +267,7 @@ cfg = Configurator(
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=80, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
 

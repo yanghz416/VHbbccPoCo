@@ -10,6 +10,7 @@ import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
 import MVA
 from MVA.gnnmodels import GraphAttentionClassifier
+from MVA.training import process_gnn_inputs
 
 import CommonSelectors
 from CommonSelectors import *
@@ -59,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -170,7 +171,9 @@ cfg = Configurator(
                                       "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                       "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                                       "W_pt","W_eta","W_phi","W_mt",
-                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"], flatten=False),
+                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"] + [
+                                        "GNN"
+                                      ] if parameters['run_gnn'] else [], flatten=False),
                 ],
                 "baseline_1L2j": [
                     ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
@@ -187,7 +190,15 @@ cfg = Configurator(
                 ]
             }
         },
-    } if parameters["save_arrays"] else {},
+    } if parameters["save_arrays"] else {
+        "common": {
+            "bycategory": {
+                    "SR_Wln_2J_cJ": [
+                        ColOut("events", ["GNN"], flatten=False),
+                    ]
+                }
+        },
+    } if parameters['run_gnn'] else {},
 
     weights = {
         "common": {
@@ -281,7 +292,7 @@ cfg = Configurator(
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
-        "GNN": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=80, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
         # 2D plots

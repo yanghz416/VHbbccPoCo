@@ -18,6 +18,7 @@ import inspect
 
 import torch
 from MVA.gnnmodels import GraphAttentionClassifier
+from MVA.training import process_gnn_inputs
 
 from pocket_coffea.utils.utils import dump_ak_array
 from pocket_coffea.workflows.base import BaseProcessorABC
@@ -297,90 +298,94 @@ class VHccBaseProcessor(BaseProcessorABC):
     def evaluateGNN(self,data):
         # model = torch.jit.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file) #TODO This would be the most elegant way, but the current model does not work with torch.jit
 
-        modelparams = pickle.load(open(self.params.Models.GNN[self.channel][self.events.metadata["year"]].params,'rb'))
+        modelparams = pickle.load(open(self.params.Models.GNN["Global"].params,'rb'))
         model = GraphAttentionClassifier(**modelparams)
-        model.load_state_dict(torch.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file,weights_only=True,map_location=self.device))
+        model.load_state_dict(torch.load(self.params.Models.GNN["Global"].model_file,weights_only=True,map_location=self.device))
         model.eval()
 
+        eramap = {  "2022_preEE":   0,
+                    "2022_postEE":  1,
+                    "2023_preBPix": 2,
+                    "2023_postBPix":3,
+                }
+
+        data["era"] = eramap[self._year]
+        ln = len(data)
+
         if self.proc_type=="ZLL":
-            varsdict = {
-                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
-                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
-                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
-                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
-                'll'    : ["ll_pt","ll_eta","ll_phi","ll_mass"],
-                'glo'   : ["MET_pt","MET_phi","nPV"],
-                'cat'   : ["LeptonCategory"]
-            }
-            lcount = 2
-            catpad = 0
+            data["V_pt"] = data["ll_pt"]
+            data["V_eta"] = data["ll_eta"]
+            data["V_phi"] = data["ll_phi"]
+            data["V_mass"] = data["ll_mass"]
+            data["W_m"] = ak.zeros_like(data["MET_pt"])
+            data["channel"] = ak.ones_like(data["MET_pt"])*2
+
         elif self.proc_type=="WLNu":
-            varsdict = {
-                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
-                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
-                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
-                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
-                'll'    : ["W_pt","W_eta","W_phi","W_mt"],
-                'glo'   : ["MET_pt","MET_phi","nPV","W_m"],
-                'cat'   : ["LeptonCategory"]
-            }
-            lcount = 1
-            catpad = 0
+            data["V_pt"] = data["W_pt"]
+            data["V_eta"] = data["W_eta"]
+            data["V_phi"] = data["W_phi"]
+            data["V_mass"] = data["W_mt"]
+            data["channel"] = ak.ones_like(data["MET_pt"])
+
         elif self.proc_type=="ZNuNu":
-            varsdict = {
-                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
-                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
-                'lep'   : [],
-                'lepp4' : [],
-                'll'    : ["Z_pt","Z_eta","Z_phi","Z_m"],
-                'glo'   : ["MET_pt","MET_phi","nPV"],
-                'cat'   : []
-            }
-            lcount = 1
-            catpad = None
+            data["V_pt"] = data["Z_pt"]
+            data["V_eta"] = data["Z_eta"]
+            data["V_phi"] = data["Z_phi"]
+            data["V_mass"] = data["Z_m"]
+            data["W_m"] = ak.zeros_like(data["MET_pt"])
+            data["channel"] = ak.zeros_like(data["MET_pt"])
+            data["LeptonCategory"] = ak.zeros_like(data["MET_pt"])
+
+        optionaljagged = ['LeptonGood_miniPFRelIso_all',
+            'LeptonGood_pfRelIso03_all', 'LeptonGood_pt',
+            'LeptonGood_eta', 'LeptonGood_phi',
+            'LeptonGood_mass'
+        ]
+        for opt in optionaljagged:
+            if opt not in data.fields:
+                data[opt] = np.zeros([ln, 1]).tolist()
 
 
-        pads = {
-            'jet'   : 6,
-            'jetp4' : 6,
-            'lep'   : lcount,
-            'lepp4' : lcount,
-            'll'    : 0,
-            'glo'   : 0,
-            'cat'   : catpad
-        }
+        varslist =  ["JetGood_btagCvL","JetGood_btagCvB",
+                    "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                    "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                    "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                    "V_pt","V_eta","V_phi","V_mass",
+                    "MET_pt","MET_phi","nPV","W_m",
+                    "LeptonCategory","channel","era"]
 
-        tensordict = {}  
-        for arr in varsdict:  
-            maxelem = pads[arr] 
-            if maxelem is None or len(varsdict[arr])==0:
-                tensordict[arr] = torch.tensor([1])
-                continue           
-            for field in varsdict[arr]:
-                var = data[field]
-                
-                if maxelem > 0:
-                    N = np.max(ak.num(var, axis=1))  
-                    padded = ak.fill_none(ak.pad_none(var,N,axis=1),0)
-                else: 
-                    padded = var
-                if arr not in tensordict:
-                    tensordict[arr] = []
-                dtype = torch.float32
-                if arr == 'cat': dtype = torch.int64
-                tensordict[arr].append(torch.tensor(padded,dtype=dtype))
+        batch_size = 1024*8
+        all_predictions = []
 
-            stacked = torch.stack(tensordict[arr],dim=-1)
-            if maxelem > 0:
-                stacked = self.resize_tensor(stacked,maxelem)
-            tensordict[arr] = stacked
+        for start_idx in range(0, ln, batch_size):
+            batch_data = data[start_idx:start_idx + batch_size]
+
+            X = batch_data[varslist]
+            tensordict, _ = process_gnn_inputs(X, removenans=False)
+
+            with torch.no_grad():
+                batch_prediction = model(
+                    tensordict["jet"],
+                    tensordict["jetP4"],
+                    tensordict["lep"],
+                    tensordict["lepP4"],
+                    tensordict["VP4"],
+                    tensordict["global"],
+                    tensordict["category"]
+                )[:, 0]
+
+            all_predictions.append(batch_prediction.cpu())
+
+            del tensordict
+            gc.collect()
+
+        all_predictions = torch.cat(all_predictions)
+        all_predictions = torch.nan_to_num(all_predictions)
+
+        return all_predictions.numpy()
+
         
-        with torch.no_grad():
-            prediction = model(tensordict["jet"],tensordict["jetp4"],tensordict["lep"],tensordict["lepp4"],tensordict["ll"],tensordict["glo"],tensordict["cat"])[:,0]
-        
-        del model, tensordict
-
-        return prediction.detach().cpu().numpy()    
+            
     
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
