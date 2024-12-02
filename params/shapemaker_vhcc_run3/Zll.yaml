@@ -2,7 +2,7 @@
 input:
   channel: "2L"
   eras: ["2022_preEE"]
-  variation: "nominal"
+  variations: ["nominal", "pileupUp", "pileupDown"]
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -17,37 +17,69 @@ config:
 categories:
   SR_ll_2J_cJ:
     observable: "GNN"
-    mata_name: "Zll_SR"
-  SR_mm_2J_cJ:
+    new_name: "Zll_SR"
+  SR_mm_2J_cJ_loZPT:
     observable: "GNN"
-    mata_name: "Zmm_SR"
-  SR_ee_2J_cJ:
+    new_name: "Zmm_SR_loZPT"
+  SR_ee_2J_cJ_loZPT:
     observable: "GNN"
-    mata_name: "Zee_SR"
-  CR_mm_2J_HF:
-    observable: "dijet_pt"
-    mata_name: "Zmm_CR_HF"
-  CR_mm_2J_LF:
-    observable: "dijet_pt"
-    mata_name: "Zmm_CR_LF"
-  CR_mm_2J_CC:
-    observable: "dijet_pt"
-    mata_name: "Zmm_CR_CC"
-  CR_mm_4J_TT:
-    observable: "dijet_pt"
-    mata_name: "Zmm_CR_TT"
-  CR_ee_2J_HF:
-    observable: "dijet_pt"
-    mata_name: "Zee_CR_HF"
-  CR_ee_2J_LF:
-    observable: "dijet_pt"
-    mata_name: "Zee_CR_LF"
-  CR_ee_2J_CC:
-    observable: "dijet_pt"
-    mata_name: "Zee_CR_CC"
-  CR_ee_4J_TT:
-    observable: "dijet_pt"
-    mata_name: "Zee_CR_TT"
+    new_name: "Zee_SR_loZPT"
+  SR_mm_2J_cJ_hiZPT:
+    observable: "GNN"
+    new_name: "Zmm_SR_hiZPT"
+  SR_ee_2J_cJ_hiZPT:
+    observable: "GNN"
+    new_name: "Zee_SR_hiZPT"
+    
+  CR_mm_2J_HF_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_HF_loZPT"
+  CR_mm_2J_LF_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_LF_loZPT"
+  CR_mm_2J_CC_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_CC_loZPT"
+  CR_mm_4J_TT_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_TT_loZPT"
+  CR_ee_2J_HF_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_HF_loZPT"
+  CR_ee_2J_LF_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_LF_loZPT"
+  CR_ee_2J_CC_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_CC_loZPT"
+  CR_ee_4J_TT_loZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_TT_loZPT"
+    
+  CR_mm_2J_HF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_HF_hiZPT"
+  CR_mm_2J_LF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_LF_hiZPT"
+  CR_mm_2J_CC_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_CC_hiZPT"
+  CR_mm_4J_TT_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zmm_CR_TT_hiZPT"
+  CR_ee_2J_HF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_HF_hiZPT"
+  CR_ee_2J_LF_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_LF_hiZPT"
+  CR_ee_2J_CC_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_CC_hiZPT"
+  CR_ee_4J_TT_hiZPT:
+    observable: "dijet_CvsL_j1"
+    new_name: "Zee_CR_TT_hiZPT"
 
 sample_to_process_map:
   DATA_EGamma: "data_obs"
