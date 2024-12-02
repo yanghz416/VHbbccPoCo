@@ -1,8 +1,7 @@
-
 input:
   channel: "1L"
   eras: ["2022_preEE"]
-  variation: "nominal"
+  variations: ["nominal", "pileupUp", "pileupDown"]
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -17,37 +16,37 @@ config:
 categories:
   SR_Wln_2J_cJ:
     observable: "GNN"
-    mata_name: "Wln_SR"
+    new_name: "Wln_SR"
   SR_Wmn_2J_cJ:
     observable: "GNN"
-    mata_name: "Wmn_SR"
+    new_name: "Wmn_SR"
   SR_Wen_2J_cJ:
     observable: "GNN"
-    mata_name: "Wen_SR"
+    new_name: "Wen_SR"
   CR_Wmn_2J_HF:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wmn_CR_HF"
+    new_name: "Wmn_CR_HF"
   CR_Wmn_2J_LF:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wmn_CR_LF"
+    new_name: "Wmn_CR_LF"
   CR_Wmn_2J_CC:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wmn_CR_CC"
+    new_name: "Wmn_CR_CC"
   CR_Wmn_4J_TT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wmn_CR_TT"
+    new_name: "Wmn_CR_TT"
   CR_Wen_2J_HF:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wen_CR_HF"
+    new_name: "Wen_CR_HF"
   CR_Wen_2J_LF:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wen_CR_LF"
+    new_name: "Wen_CR_LF"
   CR_Wen_2J_CC:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wen_CR_CC"
+    new_name: "Wen_CR_CC"
   CR_Wen_4J_TT:
     observable: "dijet_CvsL_j1"
-    mata_name: "Wen_CR_TT"
+    new_name: "Wen_CR_TT"
 
 sample_to_process_map:
   DATA_EGamma: "data_obs"

@@ -13,12 +13,12 @@
 	pip install -e .
     ```
 	Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
-	Afterwards install additional packages needed for BDT/DNN training and evaluation. Keep using conda, since using pip might 
+	Afterwards install additional packages needed for BDT/DNN training and evaluation. Keep using conda, since using pip might
 	alter the environment, leading to conflicts.
     ```
 	conda install conda-forge::xrootd
 	conda install conda-forge::lightgbm
-    conda install conda-forge::tensorflow
+	conda install conda-forge::tensorflow
     conda install pytorch::pytorch
     conda install conda-forge:alive-progress
     conda install conda-forge:optuna
@@ -47,9 +47,9 @@
 7. Run on condor with Parsl executor (only if the previous step was successeful):
     ```
     runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_VHcc_v01 --executor parsl-condor@RWTH -s 60
-    ```  
+    ```
 	Note: use `dask@lxplus` executor if running at CERN.
-	
+
 8. Make some plots:
    ```
    make-plots -inp output_VHcc_v01 -op VHccPoCo/params/plotting.yaml

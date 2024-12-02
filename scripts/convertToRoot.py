@@ -31,7 +31,7 @@ def convertCoffeaToRoot(coffea_file_name, config):
     inputfile = coffea_file_name
     Channel = config["input"]["channel"]
     eras = config["input"]["eras"]
-    variation = config["input"]["variation"]
+    variations = config["input"]["variations"]
 
     example_variable = config["config"]["example_variable"]
     example_data = config["config"]["example_data"]
@@ -41,13 +41,13 @@ def convertCoffeaToRoot(coffea_file_name, config):
 
     hists = load(inputfile)
 
-    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation)
+    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variations[0])
 
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category
 
     categ_to_var = {
-        category: [details['observable'], details['mata_name']]
+        category: [details['observable'], details['new_name']]
         for category, details in config["categories"].items()
     }
 
@@ -73,49 +73,52 @@ def convertCoffeaToRoot(coffea_file_name, config):
                 variable = var_and_name[0]
                 newCatName = var_and_name[1]
 
-                if isData:
-                    if ('DATA_DoubleMu' in samp and 'mm' in cat) \
-                       or ('DATA_EGamma' in samp and 'ee' in cat) \
-                       or ('DATA_SingleMu' in samp and 'mn' in cat) \
-                       or ('DATA_EGamma' in samp and 'en' in cat) \
-                       or ('DATA_MET' in samp and 'nn' in cat):
-                        pass
-                    else:
-                        # This shall not pass!
-                        continue
-                subsamples = [sname for sname in hists['variables'][variable][samp].keys() if era in sname]
-                #print("\t Subsamples:", subsamples)
-                if len(subsamples)==0:
-                    print("Something is wrong. Probably ERA is not correct:", era)
-                    print("\t list of available subsamples:",hists['variables'][variable][samp].keys())
-                    sys.exit(1)
-                elif len(subsamples)==1:
+                for variation in variations:
                     if isData:
-                        myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
-                    else:
-                        myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
-                else:
-                    print("\t Subsamples:", subsamples)
-                    # We need to add all the histograms for sub-samples
-                    # First get one (indexed 0)
-                    if isData:
-                        myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
-                    else:
-                        # Note: only nominal is done here.
-                        # Need to loop over variations to get shape systematics (todo)
-                        myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
-
-                    # Here loop over the rest of subsamples (indexed 1 to all) and sum
-                    for i in range(1,len(subsamples)):
-                        if isData:
-                            hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat}]
+                        if variation!='nominal':
+                            continue
+                        if ('DATA_DoubleMu' in samp and 'mm' in cat) \
+                           or ('DATA_EGamma' in samp and 'ee' in cat) \
+                           or ('DATA_SingleMu' in samp and 'mn' in cat) \
+                           or ('DATA_EGamma' in samp and 'en' in cat) \
+                           or ('DATA_MET' in samp and 'nn' in cat):
+                            pass
                         else:
-                            hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
-                        myHist = myHist + hist_i
+                            # This shall not pass!
+                            continue
+                    subsamples = [sname for sname in hists['variables'][variable][samp].keys() if era in sname]
+                    #print("\t Subsamples:", subsamples)
+                    if len(subsamples)==0:
+                        print("Something is wrong. Probably ERA is not correct:", era)
+                        print("\t list of available subsamples:",hists['variables'][variable][samp].keys())
+                        sys.exit(1)
+                    elif len(subsamples)==1:
+                        if isData:
+                            myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
+                        else:
+                            myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
+                    else:
+                        print("\t Subsamples:", subsamples)
+                        # We need to add all the histograms for sub-samples
+                        # First get one (indexed 0)
+                        if isData:
+                            myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
+                        else:
+                            # Note: only nominal is done here.
+                            # Need to loop over variations to get shape systematics (todo)
+                            myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
 
-                output_dict[era+'_'+newCatName+'/'+proc+'_Shape_'+f'{variation}'] = myHist
-                
-        shapes_file_name = config["output"]["shapes_file_name"]+"_"+era+"_"+Channel+".root"        
+                        # Here loop over the rest of subsamples (indexed 1 to all) and sum
+                        for i in range(1,len(subsamples)):
+                            if isData:
+                                hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat}]
+                            else:
+                                hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
+                            myHist = myHist + hist_i
+
+                    output_dict[era+'_'+newCatName+'/'+proc+'_'+f'{variation}'] = myHist
+
+        shapes_file_name = config["output"]["shapes_file_name"]+"_"+era+"_"+Channel+".root"
         with uproot.recreate(shapes_file_name) as root_file:
             for shape, histogram in output_dict.items():
                 root_file[shape] = histogram
