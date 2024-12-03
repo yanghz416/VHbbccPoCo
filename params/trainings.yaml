@@ -44,7 +44,7 @@ Models:
       '2018':
         model_file: '${config_dir:}/../MVA/BDT_models/ZH_Hto2C_Zto2L_2022_postEE_model_DY.txt'
       '2022_preEE':
-        model_file: '${config_dir:}/../MVA/BDT_models/ZH_Hto2C_Zto2L_2022_postEE_model_DY.txt'
+        model_file: '${config_dir:}/../MVA/BDT_models/model_DY.txt'
       '2022_postEE':
         model_file: '${config_dir:}/../MVA/BDT_models/ZH_Hto2C_Zto2L_2022_postEE_model_DY.txt'
       '2023_preBPix':

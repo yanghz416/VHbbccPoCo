@@ -23,7 +23,7 @@ def get_inputs(channel,model_type='gnn'):
                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
                     "dijet_pt_max","dijet_pt_min",
                     "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                    "MET_pt","MET_phi","nPV","LeptonCategory"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"]
         if channel == "WLnu":
             inps = ["dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
                     "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
@@ -44,19 +44,19 @@ def get_inputs(channel,model_type='gnn'):
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                     "ll_pt","ll_eta","ll_phi","ll_mass",
-                    "MET_pt","MET_phi","nPV","LeptonCategory"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"]
         if channel == "WLNu":
             inps = ["JetGood_btagCvL","JetGood_btagCvB",
                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                     "W_pt","W_eta","W_phi","W_mt",
-                    "MET_pt","MET_phi","nPV","W_m","LeptonCategory"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"]
         if channel == "ZNuNu":
             inps = ["JetGood_btagCvL","JetGood_btagCvB",
                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                     "Z_pt","Z_eta","Z_phi","Z_m",
-                    "MET_pt","MET_phi","nPV"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV"]
 
 
     inps = ["EventNr"]+inps
@@ -169,7 +169,7 @@ def addmissingcols(df):
                 "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                 "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                 "V_pt","V_eta","V_phi","V_mass",
-                "MET_pt","MET_phi","nPV","W_m",
+                "PuppiMET_pt","PuppiMET_phi","nPV","W_m",
                 "LeptonCategory","weight"]
 
     return df[cols]
@@ -362,7 +362,7 @@ def process_gnn_inputs(df,intype="pd",removenans=True,verbose=False):
     lepelems =  ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                 "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"]
     flatelems = ["V_pt","V_eta","V_phi","V_mass",
-                "MET_pt","MET_phi","nPV","W_m",
+                "PuppiMET_pt","PuppiMET_phi","nPV","W_m",
                 "LeptonCategory","channel","era"]
     
     X = df[jetelems + lepelems + flatelems]

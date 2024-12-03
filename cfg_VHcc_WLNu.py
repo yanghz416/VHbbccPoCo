@@ -1,7 +1,7 @@
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
-from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
+from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags, get_JetVetoMap
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.columns_manager import ColOut
@@ -60,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -130,6 +130,7 @@ cfg = Configurator(
 
     skim = [get_HLTsel(primaryDatasets=["SingleMuon","SingleEle"]),
             get_nObj_min(3, 20., "Jet"), # in default jet collection there are leptons. So we ask for 1lep+2jets=3Jet objects
+            get_JetVetoMap(),
             get_nPVgood(1), eventFlags, goldenJson],
 
     preselections = [lep_met_2jets],
@@ -171,7 +172,7 @@ cfg = Configurator(
                                       "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                       "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                                       "W_pt","W_eta","W_phi","W_mt",
-                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"] + [
+                                      "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"] + [
                                         "GNN"
                                       ] if parameters['run_gnn'] else [], flatten=False),
                 ],
@@ -186,7 +187,7 @@ cfg = Configurator(
                                       "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                                       "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                                       "W_pt","W_eta","W_phi","W_mt",
-                                      "MET_pt","MET_phi","nPV","W_m","LeptonCategory"], flatten=False),
+                                      "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"], flatten=False),
                 ]
             }
         },
@@ -257,8 +258,8 @@ cfg = Configurator(
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
 
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=700, label=r"Jet HT [GeV]")] ),
-        "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=0, stop=200, label=r"MET $p_T$ [GeV]")] ),
-        "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
+        "met_pt": HistConf( [Axis(coll="PuppiMET", field="pt", bins=50, start=0, stop=200, label=r"PuppiMET $p_T$ [GeV]")] ),
+        "met_phi": HistConf( [Axis(coll="PuppiMET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"PuppiMET $phi$")] ),
 
         "dijet_m" : HistConf( [Axis(field="dijet_m", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),

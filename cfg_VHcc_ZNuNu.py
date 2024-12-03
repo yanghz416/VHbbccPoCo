@@ -1,7 +1,7 @@
 from pocket_coffea.utils.configurator import Configurator
 from pocket_coffea.lib.cut_definition import Cut
 from pocket_coffea.lib.cut_functions import get_nObj_min, get_HLTsel
-from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags
+from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags, get_JetVetoMap
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.columns_manager import ColOut
@@ -59,7 +59,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZNuNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -98,7 +98,7 @@ cfg = Configurator(
             #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
@@ -134,6 +134,7 @@ cfg = Configurator(
 
     skim = [get_HLTsel(primaryDatasets=["MET"]),
             get_nObj_min(2, 32., "Jet"),
+            get_JetVetoMap(),
             get_nPVgood(1), eventFlags, goldenJson],
 
     preselections = [met_2jets_0lep],
@@ -163,7 +164,7 @@ cfg = Configurator(
                                         "JetGood_btagCvL","JetGood_btagCvB",
                                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                         "Z_pt","Z_eta","Z_phi","Z_m",
-                                        "MET_pt","MET_phi","nPV"] + [
+                                        "PuppiMET_pt","PuppiMET_phi","nPV"] + [
                                         "GNN"
                                         ] if parameters['run_gnn'] else [], flatten=False),
                 ],
@@ -174,7 +175,7 @@ cfg = Configurator(
                                         "JetGood_btagCvL","JetGood_btagCvB",
                                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                         "Z_pt","Z_eta","Z_phi","Z_m",
-                                        "MET_pt","MET_phi","nPV"], flatten=False),
+                                        "PuppiMET_pt","PuppiMET_phi","nPV"], flatten=False),
                 ]
             }
         },
@@ -257,8 +258,8 @@ cfg = Configurator(
 
 
         "HT":  HistConf( [Axis(field="JetGood_Ht", bins=100, start=0, stop=900, label=r"Jet HT [GeV]")] ),
-        "met_pt": HistConf( [Axis(coll="MET", field="pt", bins=50, start=100, stop=600, label=r"MET $p_T$ [GeV]")] ),
-        "met_phi": HistConf( [Axis(coll="MET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"MET $phi$")] ),
+        "met_pt": HistConf( [Axis(coll="PuppiMET", field="pt", bins=50, start=100, stop=600, label=r"PuppiMET $p_T$ [GeV]")] ),
+        "met_phi": HistConf( [Axis(coll="PuppiMET", field="phi", bins=64, start=-math.pi, stop=math.pi, label=r"PuppiMET $phi$")] ),
 
         "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),

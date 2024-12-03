@@ -37,7 +37,7 @@ from pocket_coffea.lib.objects import (
 import awkward as ak
 import numpy as np
 
-def get_nu_4momentum(Lepton, MET):
+def get_nu_4momentum(Lepton, PuppiMET):
     mW = 80.38
 
     # Convert pt, eta, phi, m to px, py, pz, E
@@ -46,8 +46,8 @@ def get_nu_4momentum(Lepton, MET):
     pz = Lepton.pt * np.sinh(Lepton.eta)
     E = np.sqrt(Lepton.mass**2 + Lepton.pt**2 * np.cosh(Lepton.eta)**2)
     
-    MET_px = MET.pt * np.cos(MET.phi)
-    MET_py = MET.pt * np.sin(MET.phi)
+    MET_px = PuppiMET.pt * np.cos(PuppiMET.phi)
+    MET_py = PuppiMET.pt * np.sin(PuppiMET.phi)
     
     MisET2 = (MET_px**2 + MET_py**2)
     mu = (mW**2) / 2 + MET_px * px + MET_py * py
@@ -317,24 +317,24 @@ class VHccBaseProcessor(BaseProcessorABC):
             data["V_eta"] = data["ll_eta"]
             data["V_phi"] = data["ll_phi"]
             data["V_mass"] = data["ll_mass"]
-            data["W_m"] = ak.zeros_like(data["MET_pt"])
-            data["channel"] = ak.ones_like(data["MET_pt"])*2
+            data["W_m"] = ak.zeros_like(data["PuppiMET_pt"])
+            data["channel"] = ak.ones_like(data["PuppiMET_pt"])*2
 
         elif self.proc_type=="WLNu":
             data["V_pt"] = data["W_pt"]
             data["V_eta"] = data["W_eta"]
             data["V_phi"] = data["W_phi"]
             data["V_mass"] = data["W_mt"]
-            data["channel"] = ak.ones_like(data["MET_pt"])
+            data["channel"] = ak.ones_like(data["PuppiMET_pt"])
 
         elif self.proc_type=="ZNuNu":
             data["V_pt"] = data["Z_pt"]
             data["V_eta"] = data["Z_eta"]
             data["V_phi"] = data["Z_phi"]
             data["V_mass"] = data["Z_m"]
-            data["W_m"] = ak.zeros_like(data["MET_pt"])
-            data["channel"] = ak.zeros_like(data["MET_pt"])
-            data["LeptonCategory"] = ak.zeros_like(data["MET_pt"])
+            data["W_m"] = ak.zeros_like(data["PuppiMET_pt"])
+            data["channel"] = ak.zeros_like(data["PuppiMET_pt"])
+            data["LeptonCategory"] = ak.zeros_like(data["PuppiMET_pt"])
 
         optionaljagged = ['LeptonGood_miniPFRelIso_all',
             'LeptonGood_pfRelIso03_all', 'LeptonGood_pt',
@@ -351,7 +351,7 @@ class VHccBaseProcessor(BaseProcessorABC):
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                     "V_pt","V_eta","V_phi","V_mass",
-                    "MET_pt","MET_phi","nPV","W_m",
+                    "PuppiMET_pt","PuppiMET_phi","nPV","W_m",
                     "LeptonCategory","channel","era"]
 
         batch_size = 1024*8
@@ -402,8 +402,8 @@ class VHccBaseProcessor(BaseProcessorABC):
         for var in p4vars:
             self.events["ll_"+var] = self.events.ll[var]
 
-        self.events["MET_pt"] = self.events.MET.pt
-        self.events["MET_phi"] = self.events.MET.phi
+        self.events["PuppiMET_pt"] = self.events.PuppiMET.pt
+        self.events["PuppiMET_phi"] = self.events.PuppiMET.phi
         self.events["nPV"] = self.events.PV.npvsGood
 
 
@@ -471,7 +471,7 @@ class VHccBaseProcessor(BaseProcessorABC):
                         "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                         "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                         "ll_pt","ll_eta","ll_phi","ll_mass",
-                        "MET_pt","MET_phi","nPV","LeptonCategory"]
+                        "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"]
 
             ak_gnn = self.events[gnn_vars] #TODO: use odd_events instead
             
@@ -514,11 +514,11 @@ class VHccBaseProcessor(BaseProcessorABC):
                 
         if self.proc_type=="WLNu":
             self.events["MET_used"] = ak.zip({
-                                        "pt": self.events.MET.pt,
-                                        "eta": ak.zeros_like(self.events.MET.pt),
-                                        "phi": self.events.MET.phi,
-                                        "mass": ak.zeros_like(self.events.MET.pt),
-                                        "charge": ak.zeros_like(self.events.MET.pt),
+                                        "pt": self.events.PuppiMET.pt,
+                                        "eta": ak.zeros_like(self.events.PuppiMET.pt),
+                                        "phi": self.events.PuppiMET.phi,
+                                        "mass": ak.zeros_like(self.events.PuppiMET.pt),
+                                        "charge": ak.zeros_like(self.events.PuppiMET.pt),
                                         },with_name="PtEtaPhiMCandidate")
             self.events["lead_lep"] = ak.firsts(self.events.LeptonGood)
             self.events["W_candidate"] = self.events.lead_lep + self.events.MET_used
@@ -556,8 +556,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
             self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
             
-            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
-            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
+            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,0]))
+            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,1]))
         
             self.events["WH_deltaPhi"] = np.abs(self.events.W_candidate.delta_phi(self.events.dijet_csort))
             self.events["deltaPhi_l1_j1"] = np.abs(delta_phi(self.events.lead_lep.phi, self.events.dijet_csort.j1Phi))
@@ -591,7 +591,7 @@ class VHccBaseProcessor(BaseProcessorABC):
                         "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                         "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                         "W_pt","W_eta","W_phi","W_mt",
-                        "MET_pt","MET_phi","nPV","W_m","LeptonCategory"]
+                        "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"]
 
             ak_gnn = self.events[gnn_vars]
 
@@ -628,11 +628,11 @@ class VHccBaseProcessor(BaseProcessorABC):
         if self.proc_type=="ZNuNu":
             ### General
             self.events["MET_used"] = ak.zip({
-                                        "pt": self.events.MET.pt,
-                                        "eta": ak.zeros_like(self.events.MET.pt),
-                                        "phi": self.events.MET.phi,
-                                        "mass": ak.zeros_like(self.events.MET.pt),
-                                        "charge": ak.zeros_like(self.events.MET.pt),
+                                        "pt": self.events.PuppiMET.pt,
+                                        "eta": ak.zeros_like(self.events.PuppiMET.pt),
+                                        "phi": self.events.PuppiMET.phi,
+                                        "mass": ak.zeros_like(self.events.PuppiMET.pt),
+                                        "charge": ak.zeros_like(self.events.PuppiMET.pt),
                                         },with_name="PtEtaPhiMCandidate")
             self.events["Z_candidate"] = self.events.MET_used
             self.events["Z_pt"] = self.events.Z_candidate.pt
@@ -654,8 +654,8 @@ class VHccBaseProcessor(BaseProcessorABC):
             
             self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.Z_candidate.pt
             self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_csort))
-            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,0]))
-            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.MET.delta_phi(self.events.JetGood[:,1]))
+            self.events["deltaPhi_jet1_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,0]))
+            self.events["deltaPhi_jet2_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,1]))
 
             # odd_events = self.events[odd_event_mask]
 
@@ -669,7 +669,7 @@ class VHccBaseProcessor(BaseProcessorABC):
             gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                         "Z_pt","Z_eta","Z_phi","Z_m",
-                        "MET_pt","MET_phi","nPV"]
+                        "PuppiMET_pt","PuppiMET_phi","nPV"]
 
             ak_gnn = self.events[gnn_vars]
             
