@@ -178,7 +178,7 @@ cfg = Configurator(
                                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                                     "ll_pt","ll_eta","ll_phi","ll_mass",
                                     "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"] + [
-                                        "GNN"
+                                        "GNN","GNN_transformed"
                                     ] if parameters['run_gnn'] else [], flatten=False),
                     ],
                     "baseline_2L2J_no_ctag": [
@@ -201,7 +201,7 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                     "SR_ll_2J_cJ": [
-                        ColOut("events", ["GNN"], flatten=False),
+                        ColOut("events", ["GNN","GNN_transformed"], flatten=False),
                     ]
                 }
         },
@@ -275,6 +275,7 @@ cfg = Configurator(
         "dilep_l2j2": HistConf( [Axis(field="deltaPhi_l2_j2", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi (\ell_2, j_2)$")] ),
 
         "dijet_m" : HistConf( [Axis(field="dijet_m", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
+        "dijet_m_zoom" : HistConf( [Axis(field="dijet_m", bins=50, start=50, stop=200, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_pt" : HistConf( [Axis(field="dijet_pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
         "dijet_dr" : HistConf( [Axis(field="dijet_dr", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_deltaPhi": HistConf( [Axis(field="dijet_deltaPhi", bins=50, start=0, stop=math.pi, label=r"$\Delta \phi_{jj}$")] ),
@@ -300,8 +301,18 @@ cfg = Configurator(
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ','SR_ll_2J_cJ_loPT','SR_ll_2J_cJ_hiPT']),
 
-        "GNN": HistConf( [Axis(field="GNN", bins=80, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
+        
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
+        
+        "GNN_view": HistConf( [Axis(field="GNN", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
+
+        "GNN_transformed_view": HistConf( [Axis(field="GNN_transformed", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ']),
+
         
         
         # 2D histograms:

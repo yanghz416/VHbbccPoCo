@@ -173,10 +173,10 @@ cfg = Configurator(
                                       "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                                       "W_pt","W_eta","W_phi","W_mt",
                                       "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"] + [
-                                        "GNN"
+                                        "GNN","GNN_transformed"
                                       ] if parameters['run_gnn'] else [], flatten=False),
                 ],
-                "baseline_1L2j": [
+                "presel_Wln_2J": [
                     ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
                                       "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
                                       "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
@@ -195,7 +195,7 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                     "SR_Wln_2J_cJ": [
-                        ColOut("events", ["GNN"], flatten=False),
+                        ColOut("events", ["GNN","GNN_transformed"], flatten=False),
                     ]
                 }
         },
@@ -250,6 +250,7 @@ cfg = Configurator(
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
 
         "dijet_nom_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
+        "dijet_nom_m_zoom" : HistConf( [Axis(coll="dijet", field="mass", bins=50, start=50, stop=200, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_nom_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_nom_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),
 
@@ -293,8 +294,18 @@ cfg = Configurator(
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
 
-        "GNN": HistConf( [Axis(field="GNN", bins=80, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
+        "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+        
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+
+        "GNN_view": HistConf( [Axis(field="GNN", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+        
+        "GNN_transformed_view": HistConf( [Axis(field="GNN_transformed", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
+
 
         # 2D plots
         "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],

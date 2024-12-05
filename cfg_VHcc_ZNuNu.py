@@ -165,10 +165,10 @@ cfg = Configurator(
                                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                                         "Z_pt","Z_eta","Z_phi","Z_m",
                                         "PuppiMET_pt","PuppiMET_phi","nPV"] + [
-                                        "GNN"
+                                        "GNN","GNN_transformed"
                                         ] if parameters['run_gnn'] else [], flatten=False),
                 ],
-                "presel_Met_2J_no_ctag": [
+                "baseline_Met_2J_ptcut": [
                     ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
                                         "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
                                         "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi", "Z_pt",
@@ -183,7 +183,7 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                     "SR_Znn_2J_cJ": [
-                        ColOut("events", ["GNN"], flatten=False),
+                        ColOut("events", ["GNN","GNN_transformed"], flatten=False),
                     ]
                 }
         },
@@ -237,6 +237,7 @@ cfg = Configurator(
 
 
         "dijet_nom_m" : HistConf( [Axis(coll="dijet", field="mass", bins=100, start=0, stop=700, label=r"$M_{jj}$ [GeV]")] ),
+        "dijet_nom_m_zoom" : HistConf( [Axis(coll="dijet", field="mass", bins=50, start=50, stop=200, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_nom_dr" : HistConf( [Axis(coll="dijet", field="deltaR", bins=50, start=0, stop=5, label=r"$\Delta R_{jj}$")] ),
         "dijet_nom_pt" : HistConf( [Axis(coll="dijet", field="pt", bins=100, start=0, stop=500, label=r"$p_T{jj}$ [GeV]")] ),
 
@@ -268,8 +269,22 @@ cfg = Configurator(
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
         "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-        "GNN": HistConf( [Axis(field="GNN", bins=80, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+
+        # "GNN": HistConf( [Axis(field="GNN", bins=[0.,0.61661112,0.92695928,0.98426646,0.99647886,0.99835193,1.], label="GNN")],
+        #                  only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+
+        "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ']),
+
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ']),
+
+        "GNN_view": HistConf( [Axis(field="GNN", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ']),
+
+        "GNN_transformed_view": HistConf( [Axis(field="GNN_transformed", bins=20, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ']),
+        
 
 
         # 2D plots

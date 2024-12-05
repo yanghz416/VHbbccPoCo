@@ -496,8 +496,10 @@ class VHccBaseProcessor(BaseProcessorABC):
 
                 if self.run_gnn:
                     self.events["GNN"] = self.evaluateGNN(ak_gnn)
+                    self.events["GNN_transformed"] = np.power(self.events["GNN"],9)
                 else:
                     self.events["GNN"] = np.zeros_like(self.events["BDT"])
+                    self.events["GNN_transformed"] = np.zeros_like(self.events["BDT"])
             else:
                 df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
 
@@ -621,8 +623,10 @@ class VHccBaseProcessor(BaseProcessorABC):
 
             if self.run_gnn:
                 self.events["GNN"] = self.evaluateGNN(ak_gnn)
+                self.events["GNN_transformed"] = np.power(self.events["GNN"],9)
             else:
                 self.events["GNN"] = np.zeros_like(self.events["BDT"])
+                self.events["GNN_transformed"] = np.zeros_like(self.events["BDT"])
 
 
         if self.proc_type=="ZNuNu":
@@ -690,7 +694,9 @@ class VHccBaseProcessor(BaseProcessorABC):
                 self.events["DNN"] = np.zeros_like(self.events["BDT"])
             if self.run_gnn:
                 self.events["GNN"] = self.evaluateGNN(ak_gnn)
+                self.events["GNN_transformed"] = np.power(self.events["GNN"],9)
             else:
                 self.events["GNN"] = np.zeros_like(self.events["BDT"])
+                self.events["GNN_transformed"] = np.zeros_like(self.events["BDT"])
             
         
