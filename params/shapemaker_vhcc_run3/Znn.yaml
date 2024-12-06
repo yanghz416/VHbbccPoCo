@@ -1,8 +1,7 @@
-
 input:
   channel: "0L"
   eras: ["2022_preEE"]
-  variation: "nominal"
+  variation: ["nominal","pileupUp","pileupDown"]
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -17,19 +16,19 @@ config:
 categories:
   SR_Znn_2J_cJ:
     observable: "GNN"
-    mata_name: "Znn_SR"
+    new_name: "Znn_SR"
   CR_Znn_2J_HF:
-    observable: "dijet_pt"
-    mata_name: "Znn_CR_HF"
+    observable: "dijet_CvsL_j1"
+    new_name: "Znn_CR_HF"
   CR_Znn_2J_LF:
-    observable: "dijet_pt"
-    mata_name: "Znn_CR_LF"
+    observable: "dijet_CvsL_j1"
+    new_name: "Znn_CR_LF"
   CR_Znn_2J_CC:
-    observable: "dijet_pt"
-    mata_name: "Znn_CR_CC"
+    observable: "dijet_CvsL_j1"
+    new_name: "Znn_CR_CC"
   CR_Znn_4J_TT:
-    observable: "dijet_pt"
-    mata_name: "Znn_CR_TT"
+    observable: "dijet_CvsL_j1"
+    new_name: "Znn_CR_TT"
 
 sample_to_process_map:
   DATA_MET: "data_obs"
@@ -37,8 +36,9 @@ sample_to_process_map:
   ZH_Hto2B_Zto2Nu: "ZH_hbb"
   ggZH_Hto2C_Zto2Nu: "ZH_hcc"
   ggZH_Hto2B_Zto2Nu: "ZH_hbb"
-  TTTo2L2Nu: "TT"
-  TTToHadrons: "TT"
+  TTTo2L2Nu: "TT_2L"
+  TTToSemiLeptonic: "TT"
+  TTToHadrons: "TT_Had"
   SingleTop: "ST"
   ZJetsToNuNu_NJPT_FxFx__DiJet_ll: "Zj_ll"
   ZJetsToNuNu_NJPT_FxFx__DiJet_cx: "Zj_cj"

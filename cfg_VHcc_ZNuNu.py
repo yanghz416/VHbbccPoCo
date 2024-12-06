@@ -98,7 +98,7 @@ cfg = Configurator(
             #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
 
-            "year": ['2022_preEE','2022_postEE']
+            "year": ['2022_preEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
@@ -265,27 +265,25 @@ cfg = Configurator(
         "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
-                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-        "DNN": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
-                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-
-        # "GNN": HistConf( [Axis(field="GNN", bins=[0.,0.61661112,0.92695928,0.98426646,0.99647886,0.99835193,1.], label="GNN")],
-        #                  only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
-
+        "BDT": HistConf( [Axis(field="BDT", bins=10000, start=0, stop=1, label="BDT")],
+                         only_categories = ['SR_Znn_2J_cJ']),
+        "DNN": HistConf( [Axis(field="DNN", bins=10000, start=0, stop=1, label="DNN")],
+                         only_categories = ['SR_Znn_2J_cJ']),
         "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Znn_2J_cJ']),
 
+        "BDT_coarse": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
+                                only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+        "DNN_coarse": HistConf( [Axis(field="DNN", bins=24, start=0, stop=1, label="DNN")],
+                                only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+        "GNN_coarse": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
+                                only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
+      
         "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Znn_2J_cJ']),
+                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
-        "GNN_view": HistConf( [Axis(field="GNN", bins=20, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Znn_2J_cJ']),
-
-        "GNN_transformed_view": HistConf( [Axis(field="GNN_transformed", bins=20, start=0, stop=1, label="GNN")],
-                         only_categories = ['SR_Znn_2J_cJ']),
-        
-
+        "GNN_transformed_coarse": HistConf( [Axis(field="GNN_transformed", bins=24, start=0, stop=1, label="GNN")],
+                         only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
         # 2D plots
 	    "Njet_Ht": HistConf([ Axis(coll="events", field="nJetGood",bins=[0,2,3,4,8],
