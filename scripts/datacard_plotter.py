@@ -22,7 +22,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 blinded_region = blinding_config.get(cat, {})
 
                 # Collect histograms
-                stack_components = {"TT": None, "VJet": None, "VV": None, "ZH_hbb": None}
+                stack_components = {"TT": None, "VJet": None, "VV": None, "ZH_hbb": None, "ZH_hcc": None}
                 signal_hist = None
                 data_hist = None
 
@@ -40,6 +40,13 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                     hist = root_file[signal_name]
                     values, edges = hist.to_numpy(flow=False)
                     signal_hist = (values, edges)
+                    
+                # Load signal histogram
+                signal_cc_name = f"{era}_{newCatName}/ZH_hcc_Shape_nominal"
+                if signal_cc_name in root_file:
+                    hist = root_file[signal_cc_name]
+                    values, edges = hist.to_numpy(flow=False)
+                    signal_cc_hist = (values, edges)
 
                 # Load data histogram
                 data_name = f"{era}_{newCatName}/data_obs_Shape_nominal"
@@ -94,7 +101,12 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 if signal_hist:
                     values, edges = signal_hist
                     values *= signal_scaling
-                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="black", linestyle="--", label=f"Signal x{signal_scaling}")
+                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#ff0000", linestyle="--", label=f"Signal x{signal_scaling}")
+                    
+                if signal_cc_hist:
+                    values, edges = signal_cc_hist
+                    values *= signal_scaling
+                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#b700ff", linestyle="--", label=f"Signal x{signal_scaling}")
 
                 # Plot data
                 if data_hist:
