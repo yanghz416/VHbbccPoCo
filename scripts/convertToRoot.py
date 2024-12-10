@@ -124,6 +124,8 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
         with uproot.recreate(shapes_file_name) as root_file:
             for shape, histogram in output_dict.items():
                 root_file[shape] = histogram
+                
+    return shapes_file_name
 
 if __name__ == "__main__":
 
@@ -138,6 +140,13 @@ if __name__ == "__main__":
     config_path = args.config
     config = load_config(config_path)
     coffea_file_name = args.inputfile
-    convertCoffeaToRoot(coffea_file_name, config, args.era)
+    root_file = convertCoffeaToRoot(coffea_file_name, config, args.era)
+    
+    # Add plotting step
+    categ_to_var = {
+        category: [details['observable'], details['new_name']]
+        for category, details in config["categories"].items()
+    }
+    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
 
     print("... and goodbye.")
