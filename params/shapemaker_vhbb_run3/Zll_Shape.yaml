@@ -16,8 +16,12 @@ config:
 
 categories:
   SR_2L2B_ll:
-    observable: "nBJets"
+    observable: "GNN"
     new_name: "Zll_SR"
+    
+  SR_ll_2J_cJ:
+    observable: "GNN"
+    new_name: "Zll_cc_SR"
 #   SR_2L2B_ee:
 #     observable: "nBJets"
 #     new_name: "Zee_SR"
@@ -68,7 +72,7 @@ categories:
 sample_to_process_map:
   DATA_EGamma: "data_obs_egamma"
   DATA_DoubleMuon: "data_obs_doublemuon"
-  # ZH_Hto2C_Zto2L: "ZH_hcc"
+  ZH_Hto2C_Zto2L: "ZH_hcc"
   ZH_Hto2B_Zto2L: "ZH_hbb"
   # ggZH_Hto2C_Zto2L: "ggZH_hcc"
   ggZH_Hto2B_Zto2L: "ggZH_hbb"
@@ -88,6 +92,15 @@ sample_to_merge_list:
   ST: ["SingleTop"]
   VJet: ["DYJetsToLL_FxFx__DiJet_ll", "DYJetsToLL_FxFx__DiJet_cx", "DYJetsToLL_FxFx__DiJet_bx"]
   data_obs: ["DATA_EGamma", "DATA_DoubleMuon"]
+  
+# bin_merging: 
+#     2022_postEE_Zll_SR: 
+#         categories: ["2022_preEE_Zll_SR"] 
+#         signal_processes: ["ZH_hbb", "ZH_hcc"] 
+#         target_uncertainty: 0.3 
+#         target_significance_loss: 0.005 
+#         minimum_signal: 0 
+#         epsilon: 0.05
   
 plotting:
   enable: True

@@ -4,6 +4,7 @@ import argparse
 import uproot
 from coffea.util import load, save
 from variableBinning import doRebinDict, rebinHist
+from datacard_plotter import plot_histograms
 
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as file:
@@ -11,7 +12,7 @@ def load_config(config_path="config.yaml"):
     return config
 
 
-def testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation):
+def testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variations):
     # information printing
     print("The structure of the COFFEA file:")
     print('\t top keys:\n', hists.keys())
@@ -24,7 +25,7 @@ def testFileStructure(hists, example_variable, example_data, example_MC, example
         print(f'\n\t Subsamples (for {example_subsample}):\n', hists["variables"][example_variable][example_subsample].keys())
     era0 = eras[0]
     print(f'\n\t A Histogram (for {example_MC}:):\n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'])
-    print('\n\t Draw it: \n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'][{'cat':example_category, 'variation': variation}])
+    print('\n\t Draw it: \n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'][{'cat':example_category, 'variation': variations}])
 
 
 def convertCoffeaToRoot(coffea_file_name, config, inputera):
@@ -35,7 +36,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
     if inputera is not None:
         eras = [inputera]
     variations = config["input"]["variations"]
-
+    
     example_variable = config["config"]["example_variable"]
     example_data = config["config"]["example_data"]
     example_MC = config["config"]["example_MC"]
@@ -59,6 +60,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
     samples = hists["variables"][example_variable].keys()
 
     map_sampleName_to_processName = config.get("sample_to_process_map", {})
+    sample_to_merge_list = config.get("sample_to_merge_list", {})
 
     for era in eras:
         for samp in samples:
@@ -72,10 +74,8 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
 
             for cat, var_and_name in categ_to_var.items():
                 #print('\t Converting histogram for:', cat, var_and_name)
-
                 variable = var_and_name[0]
                 newCatName = var_and_name[1]
-
                 for variation in variations:
                     if isData:
                         if variation!='nominal':
@@ -111,21 +111,74 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                             # Note: only nominal is done here.
                             # Need to loop over variations to get shape systematics (todo)
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
-
+                        
                         # Here loop over the rest of subsamples (indexed 1 to all) and sum
                         for i in range(1,len(subsamples)):
                             if isData:
-                                hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat}]
+                                # hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat}]
+                                hist_i = hists['variables'][variable][samp][subsamples[i]][{'cat': cat}]
                             else:
-                                hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
+                                # hist_i = myHist = hists['variables'][variable][samp][subsamples[i]][{'cat':cat, 'variation': variation}]
+                                hist_i = hists['variables'][variable][samp][subsamples[i]][{'cat': cat, 'variation': variation}]
                             myHist = myHist + hist_i
 
                     output_dict[era+'_'+newCatName+'/'+proc+'_'+f'{variation}'] = myHist
+                    
+        # Add merged histograms for categories in sample_to_merge_list
+        for merged_name, merge_samples in sample_to_merge_list.items():
+            print(f'Creating merged histogram for {merged_name}')
+            for cat, var_and_name in categ_to_var.items():
+                variable = var_and_name[0]
+                newCatName = var_and_name[1]
+
+                for variation in variations:  # Iterate over all variations (nominal, Up, Down)
+                    merged_hist = None
+                    for samp in merge_samples:
+                        proc = map_sampleName_to_processName.get(samp, None)
+                        if proc is None:
+                            print(f"Sample {samp} not found in sample_to_process_map. Skipping...")
+                            continue
+                        hist_key = era + '_' + newCatName + '/' + proc + '_' + f'{variation}'
+                        if hist_key not in output_dict:
+                            print(f"Histogram for {samp} not found in output_dict. Skipping...")
+                            continue
+                        if merged_hist is None:
+                            merged_hist = output_dict[hist_key]
+                        else:
+                            merged_hist = merged_hist + output_dict[hist_key]
+
+                    if merged_hist is not None:
+                        merged_key = era + '_' + newCatName + '/' + merged_name + '_' + f'{variation}'
+                        output_dict[merged_key] = merged_hist
+                        print(f"Merged histogram saved for {merged_key}")
+
+        # Explicitly handle data merging
+        if "data_obs" in sample_to_merge_list:
+            print(f"Merging data samples into data_obs")
+            for cat, var_and_name in categ_to_var.items():
+                variable = var_and_name[0]
+                newCatName = var_and_name[1]
+
+                merged_data_hist = None
+                for data_sample in sample_to_merge_list["data_obs"]:
+                    data_key = era + '_' + newCatName + '/' + data_sample + '_nominal'
+                    if data_key not in output_dict:
+                        print(f"Data sample {data_sample} not found in output_dict. Skipping...")
+                        continue
+                    if merged_data_hist is None:
+                        merged_data_hist = output_dict[data_key]
+                    else:
+                        merged_data_hist = merged_data_hist + output_dict[data_key]
+
+                if merged_data_hist is not None:
+                    merged_data_key = era + '_' + newCatName + '/data_obs_Shape_nominal'
+                    output_dict[merged_data_key] = merged_data_hist
+                    print(f"Merged data histogram saved for {merged_data_key}")
+
 
         shapes_file_name = config["output"]["shapes_file_name"]+"_"+era+"_"+Channel+".root"
         
         # Do rebinning
-        
         if("bin_merging" in config.keys()):
             # calculate the bin merging
             mergeDict = dict()
@@ -150,7 +203,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                         output_dict[key] = rebinHist(output_dict[key], mergeDict[directory])
                     else:
                         output_dict[key] = output_dict[key]
-            
+                        
         # save root files
         with uproot.recreate(shapes_file_name) as root_file:
             for shape, histogram in output_dict.items():
@@ -167,7 +220,7 @@ if __name__ == "__main__":
     parser.add_argument( "-c", "--config", dest="config", type=str, default="config.yaml", help="Path to the configuration YAML file.")
     parser.add_argument( "-e", "--era", type=str, default=None, help="Override era in the config")
     args = parser.parse_args()
-    
+
     config_path = args.config
     config = load_config(config_path)
     coffea_file_name = args.inputfile
@@ -178,7 +231,7 @@ if __name__ == "__main__":
         category: [details['observable'], details['new_name']]
         for category, details in config["categories"].items()
     }
-    # This doesn't work as plot_histograms is not defined
-    # plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
+    
+    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
 
     print("... and goodbye.")
