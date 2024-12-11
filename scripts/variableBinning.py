@@ -304,6 +304,90 @@ def doRebin(fileName, regionDirectories, signalProcesses, targetUncert=0.3,
             mergeDict[val] = binMerging
     return(mergeDict)
 
+
+
+def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
+                sigLoss=0.01, minimumSignal=0, epsilon=0.05, doPlot=False):
+    """
+    Load a dictionary mimicing a root file, find the signal and background 
+    histograms in a particular directory, and runs the rebinning algorithm on 
+    them
+    
+    Arguments:
+        histDict: root file to read from
+        regionDirectories: list of directories to read from
+        signalProcesses: list of strings corresponding to the signal process
+        targetUncert: maximum value for bkg bin uncertainty over bkg bin counts,
+                      default is 0.3
+        sigLoss: amount the significance can drop with each bin merging, 
+                 default is 1%
+        minimumSignal: minimum number of signal events in the last bin, 
+                       default is 0
+        epsilon: how much the monotonically decreasing nature can be violated
+                 from the left, default 5%
+        doPlot: whether to show the final plots, default false
+    Returns:
+        mergeDict: dictionary mapping from directories to rebinnings
+    
+    """
+    print(regionDirectories)
+    # Make sure it is formated correctly
+    for x in range(len(regionDirectories)):
+        reg = regionDirectories[x].strip()
+        if(reg[-1]!="/"):
+            reg+="/"
+        regionDirectories[x] = reg
+    # dictionary with the rebinning
+    mergeDict = dict()
+    bkg = None
+    sig = None
+    # check each key in the root file
+    for key in histDict.keys():
+        
+        # Don't want data or the top directories
+        if("data" in key or "/" not in key or "nominal" not in key):
+            continue
+        regionFound = False
+        
+        # Check if this key is in one of the directories we want
+        for region in regionDirectories:
+            if(region in key):
+                regionFound = True
+        if(not regionFound):
+            continue
+            
+        # Check if it's a signal process or background process
+        # Get the boost histogram
+        sigProcess = False
+        for proc in signalProcesses:
+            if(proc in key):
+                sigProcess = True
+        if(sigProcess):
+            print("Sig:", key)
+            if(sig is None):
+                sig = histDict[key]
+            else:
+                sig += histDict[key]
+        elif(bkg is None):
+            print("Bkg:", key)
+            bkg = histDict[key]
+        else:
+            print("Bkg:", key)
+            bkg += histDict[key]
+            
+    # get the original bins, then do the rebinning
+    originalBins = bkg.axes.edges[0]
+    bkg, sig = lowerVariance(bkg, sig, targetUncert, doPlot=doPlot)
+    bkg, sig = lowerBins(bkg, sig, sigLoss, epsilon=epsilon, doPlot=doPlot)
+    newBins = bkg.axes.edges[0]
+    
+    # Find the bin merging locations
+    binMerging = np.searchsorted(originalBins, newBins)
+    
+    # Store these mreged bins for each relavent region 
+    for val in regionDirectories:
+        mergeDict[val] = binMerging
+
 def rebinHist(histogram, bins):
     """
     Merge neighboring bins to makes sure the uncertainty is properly low 
