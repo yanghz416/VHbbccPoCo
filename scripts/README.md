@@ -5,6 +5,24 @@ Usage:
 ```
 python VHccPoCo/scripts/convertToRoot.py  path/to/output_all.coffea -c path/to/params/shape_config.yaml
 ```
+To perform the bin merging with this add the follow sections to the yaml config file:
+
+bin_merging:
+  2022_preEE_Zll_SR: 
+    categories: ["2022_preEE_Zll_SR"]
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+    
+Here, bin_merging is a required section label. The labels at the level of 2022_preEE_Zll_SR define a specific instance of the bin merging. The value of the lable isn't used anywhere, it just defines a region. For each instance of the bin merging the arguments are as follows:
+   - categories: list of all SRs to consider for the merging. This can be one or more but must be a list.
+   - signal_processes: list of all processes to use for signal. This can be one or more but must be a list.
+   - target_uncertainty: (optional, defaults to 0.3), targetUncert in variableBinning.py
+   - target_significance_loss: (optional, defaults to 0.005), sigLoss in variableBinning.py
+   - minimum_signal: (optional, defaults to 0), minimumSignal in variableBinning.py
+   - epsilon: (optional, defaults to 0.05), epsilon in variableBinning.py
 
 2. `compute_ctagSF_calibration.py` - a script to compute normalisation corrections after c-tagger shape correction scale factors.
    -  `plot_shapes_comparison.py` - a script to make plots and validate the above corrections.
