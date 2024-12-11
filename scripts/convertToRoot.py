@@ -3,6 +3,7 @@ import yaml
 import argparse
 import uproot
 from coffea.util import load, save
+from variableBinning import doRebinDict, rebinHist
 
 def load_config(config_path="config.yaml"):
     with open(config_path, "r") as file:
@@ -98,6 +99,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                         if isData:
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
                         else:
+                            print(variable, samp, subsamples[0], cat, variation)
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                     else:
                         print("\t Subsamples:", subsamples)
@@ -121,9 +123,40 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                     output_dict[era+'_'+newCatName+'/'+proc+'_'+f'{variation}'] = myHist
 
         shapes_file_name = config["output"]["shapes_file_name"]+"_"+era+"_"+Channel+".root"
+        
+        # Do rebinning
+        
+        if("bin_merging" in config.keys()):
+            # calculate the bin merging
+            mergeDict = dict()
+            for sr in config["bin_merging"]:
+                # categories and signal_processes are required
+                categories = config["bin_merging"][sr]["categories"]
+                signal_processes = config["bin_merging"][sr]["signal_processes"]
+                # these four are not required and have default values
+                target_uncertainty = 0.3 if "target_uncertainty" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["target_uncertainty"]
+                target_significance_loss = 0.005 if "target_significance_loss" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["target_significance_loss"]
+                minimum_signal = 0 if "minimum_signal" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["minimum_signal"]
+                epsilon = 0.05 if "epsilon" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["epsilon"]
+                
+                # merge one set of signal regions using the nominal variations
+                mergeDict.update(doRebinDict(output_dict, categories, signal_processes, targetUncert=target_uncertainty,
+                                sigLoss=target_significance_loss, minimumSignal=minimum_signal, epsilon=epsilon, doPlot=False))
+            # Perform the bin merging
+            for key in output_dict.keys():
+                if("/") in key:
+                    directory = key.split("/")[0]+"/"
+                    if(directory in mergeDict):
+                        output_dict[key] = rebinHist(output_dict[key], mergeDict[directory])
+                    else:
+                        output_dict[key] = output_dict[key]
+            
+        # save root files
         with uproot.recreate(shapes_file_name) as root_file:
             for shape, histogram in output_dict.items():
                 root_file[shape] = histogram
+                
+    return shapes_file_name
 
 if __name__ == "__main__":
 
@@ -134,10 +167,18 @@ if __name__ == "__main__":
     parser.add_argument( "-c", "--config", dest="config", type=str, default="config.yaml", help="Path to the configuration YAML file.")
     parser.add_argument( "-e", "--era", type=str, default=None, help="Override era in the config")
     args = parser.parse_args()
-
+    
     config_path = args.config
     config = load_config(config_path)
     coffea_file_name = args.inputfile
-    convertCoffeaToRoot(coffea_file_name, config, args.era)
+    root_file = convertCoffeaToRoot(coffea_file_name, config, args.era)
+    
+    # Add plotting step
+    categ_to_var = {
+        category: [details['observable'], details['new_name']]
+        for category, details in config["categories"].items()
+    }
+    # This doesn't work as plot_histograms is not defined
+    # plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
 
     print("... and goodbye.")
