@@ -12,7 +12,7 @@ def load_config(config_path="config.yaml"):
     return config
 
 
-def testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variations):
+def testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variation):
     # information printing
     print("The structure of the COFFEA file:")
     print('\t top keys:\n', hists.keys())
@@ -25,7 +25,7 @@ def testFileStructure(hists, example_variable, example_data, example_MC, example
         print(f'\n\t Subsamples (for {example_subsample}):\n', hists["variables"][example_variable][example_subsample].keys())
     era0 = eras[0]
     print(f'\n\t A Histogram (for {example_MC}:):\n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'])
-    print('\n\t Draw it: \n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'][{'cat':example_category, 'variation': variations}])
+    print('\n\t Draw it: \n', hists["variables"][example_variable][example_MC][f'{example_MC}_{era0}'][{'cat':example_category, 'variation': variation}])
 
 
 def convertCoffeaToRoot(coffea_file_name, config, inputera):
