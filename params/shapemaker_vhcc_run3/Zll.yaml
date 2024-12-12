@@ -128,4 +128,19 @@ bin_merging:
     target_significance_loss: 0.005
     minimum_signal: 0
     epsilon: 0.05
-  
+
+plotting:
+  enable: True
+  signal_scaling: 50
+  signal_scaling_cc: 1000
+  blinding:
+    SR_ll_2J_cJ:
+      GNN: [700, 1000]
+    SR_mm_2J_cJ_loZPT:
+      GNN: [700, 1000]
+    SR_ee_2J_cJ_loZPT:
+      GNN: [700, 1000]
+    SR_mm_2J_cJ_hiZPT:
+      GNN: [700, 1000]
+    SR_ee_2J_cJ_hiZPT:
+      GNN: [700, 1000]

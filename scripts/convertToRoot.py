@@ -190,7 +190,10 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
             mergeDict = dict()
             for sr in config["bin_merging"]:
                 # categories and signal_processes are required
-                categories = [f"{era}_{sr}"]
+                if "categories" in config["bin_merging"][sr]:
+                    categories = config["bin_merging"][sr]["categories"]
+                else:
+                    categories = [f"{era}_{sr}"]
                 signal_processes = config["bin_merging"][sr]["signal_processes"]
                 # these four are not required and have default values
                 target_uncertainty = 0.3 if "target_uncertainty" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["target_uncertainty"]
@@ -238,7 +241,15 @@ if __name__ == "__main__":
         for category, details in config["categories"].items()
     }
 
-    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
+    samplelist = None
+    if "sample_to_merge_list" not in config:
+        samplelist = config["sample_to_process_map"].values()
+        samplelist = [s for s in samplelist if "data" not in s]
+
+    plotdir = '/'.join(args.inputfile.split('/')[:-1])+"/plot_datacards"
+    os.system(f"mkdir -p "+plotdir)
+
+    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var, plotdir, samplelist, "")
 
 
     print("... and goodbye.")
