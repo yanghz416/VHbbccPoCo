@@ -99,3 +99,5 @@ plotting:
       GNN: [700, 1000]
     SR_Wmn_2J_cJ:
       GNN: [700, 1000]
+  flatx:
+    - GNN
