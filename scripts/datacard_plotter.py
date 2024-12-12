@@ -1,5 +1,6 @@
 import uproot
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import numpy as np
 import copy
 
@@ -82,7 +83,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 labels = {"TT": "TT", "VJet": "VJet", "VV": "VV", "ZH_hbb": "ZH_hbb", "ZH_hcc": "ZH_hcc"}
                 bottoms = None
                 stack_uncertainty = None  # Initialize stack uncertainty
-                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color']
+                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color'] + [cm.viridis(i) for i in range(0, 256, 51)]
                 colid = 0
                 for proc, hist_data in stack_components.items():
                     if hist_data is not None:
