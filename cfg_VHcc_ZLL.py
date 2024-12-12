@@ -5,14 +5,14 @@ from pocket_coffea.lib.cut_functions import get_nPVgood, goldenJson, eventFlags,
 from pocket_coffea.parameters.cuts import passthrough
 from pocket_coffea.parameters.histograms import *
 from pocket_coffea.lib.weights.common.common import common_weights
-import workflow_VHcc
 from pocket_coffea.lib.columns_manager import ColOut
 import click
+import workflow_VHcc
 from workflow_VHcc import VHccBaseProcessor
-import vjet_weights 
-from vjet_weights import *
 import CommonSelectors
 from CommonSelectors import *
+import vjet_weights 
+from vjet_weights import *
 import MVA
 from MVA.gnnmodels import GraphAttentionClassifier
 from MVA.training import process_gnn_inputs
