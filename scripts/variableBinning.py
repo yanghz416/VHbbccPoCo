@@ -330,7 +330,9 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
         mergeDict: dictionary mapping from directories to rebinnings
     
     """
+
     print("Will rebin:",regionDirectories)
+
     # Make sure it is formated correctly
     for x in range(len(regionDirectories)):
         reg = regionDirectories[x].strip()
@@ -343,6 +345,7 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
     sig = None
     # check each key in the root file
     for key in histDict.keys():
+
         # Don't want data or the top directories
         if("data" in key or "/" not in key or "nominal" not in key):
             continue
@@ -362,12 +365,14 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
             if(proc in key):
                 sigProcess = True
         if(sigProcess):
+
             print("\tSig:", key)
             if(sig is None):
                 sig = histDict[key]
             else:
                 sig += histDict[key]
         elif(bkg is None):
+
             print("\tBkg:", key)
             bkg = histDict[key]
         else:
