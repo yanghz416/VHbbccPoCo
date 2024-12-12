@@ -101,3 +101,4 @@ plotting:
       GNN: [700, 1000]
   flatx:
     - GNN
+

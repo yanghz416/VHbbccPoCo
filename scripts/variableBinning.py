@@ -330,7 +330,6 @@ def doRebinDict(histDictOrig, regionDirectories, signalProcesses, targetUncert=0
     """
 
     histDict = copy.deepcopy(histDictOrig)
-
     print("Will rebin:",regionDirectories)
 
     # Make sure it is formated correctly
