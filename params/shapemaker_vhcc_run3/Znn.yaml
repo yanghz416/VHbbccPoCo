@@ -1,7 +1,7 @@
 input:
   channel: "0L"
   eras: ["2022_preEE"]
-  variation: ["nominal","pileupUp","pileupDown"]
+  variations: auto
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -49,3 +49,11 @@ sample_to_process_map:
   WW: "WW"
   WZ: "WZ"
   ZZ: "ZZ"
+
+bin_merging:
+  Znn_SR:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05

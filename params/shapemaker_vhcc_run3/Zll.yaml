@@ -2,7 +2,7 @@
 input:
   channel: "2L"
   eras: ["2022_preEE"]
-  variations: ["nominal", "pileupUp", "pileupDown"]
+  variations: auto
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -32,53 +32,53 @@ categories:
     new_name: "Zee_SR_hiZPT"
     
   CR_mm_2J_HF_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_HF_loZPT"
   CR_mm_2J_LF_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_LF_loZPT"
   CR_mm_2J_CC_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_CC_loZPT"
   CR_mm_4J_TT_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_TT_loZPT"
   CR_ee_2J_HF_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_HF_loZPT"
   CR_ee_2J_LF_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_LF_loZPT"
   CR_ee_2J_CC_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_CC_loZPT"
   CR_ee_4J_TT_loZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_TT_loZPT"
     
   CR_mm_2J_HF_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_HF_hiZPT"
   CR_mm_2J_LF_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_LF_hiZPT"
   CR_mm_2J_CC_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_CC_hiZPT"
   CR_mm_4J_TT_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zmm_CR_TT_hiZPT"
   CR_ee_2J_HF_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_HF_hiZPT"
   CR_ee_2J_LF_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_LF_hiZPT"
   CR_ee_2J_CC_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_CC_hiZPT"
   CR_ee_4J_TT_hiZPT:
-    observable: "dijet_CvsL_j1"
+    observable: "dijet_CvsL_j2"
     new_name: "Zee_CR_TT_hiZPT"
 
 sample_to_process_map:
@@ -96,3 +96,36 @@ sample_to_process_map:
   WW: "WW"
   WZ: "WZ"
   ZZ: "ZZ"
+
+bin_merging:
+  Zll_SR:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Zmm_SR_loZPT:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Zee_SR_loZPT:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Zmm_SR_hiZPT:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Zee_SR_hiZPT:
+    signal_processes: ["ggZH_hcc", "ZH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  

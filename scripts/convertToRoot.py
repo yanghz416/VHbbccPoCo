@@ -44,7 +44,13 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
 
     hists = load(inputfile)
 
-    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variations[0])
+    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, "nominal")
+
+    if variations == "auto":
+        hist = hists["variables"][example_variable][example_MC][f'{example_MC}_{eras[0]}']
+        variations = list(hist.axes["variation"])
+        print("\nUsing the following systematics:",variations)
+
 
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category
@@ -99,7 +105,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                         if isData:
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
                         else:
-                            print(variable, samp, subsamples[0], cat, variation)
+                            # print(variable, samp, subsamples[0], cat, variation)          # This is too verbose
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                     else:
                         print("\t Subsamples:", subsamples)
@@ -131,7 +137,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
             mergeDict = dict()
             for sr in config["bin_merging"]:
                 # categories and signal_processes are required
-                categories = config["bin_merging"][sr]["categories"]
+                categories = [f"{era}_{sr}"]
                 signal_processes = config["bin_merging"][sr]["signal_processes"]
                 # these four are not required and have default values
                 target_uncertainty = 0.3 if "target_uncertainty" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["target_uncertainty"]
@@ -147,6 +153,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                 if("/") in key:
                     directory = key.split("/")[0]+"/"
                     if(directory in mergeDict):
+                        # print("\t\tRebinning",key)
                         output_dict[key] = rebinHist(output_dict[key], mergeDict[directory])
                     else:
                         output_dict[key] = output_dict[key]
