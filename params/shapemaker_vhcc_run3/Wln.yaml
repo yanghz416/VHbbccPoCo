@@ -1,7 +1,7 @@
 input:
   channel: "1L"
   eras: ["2022_preEE"]
-  variations: ["nominal", "pileupUp", "pileupDown"]
+  variations: auto
 
 output:
   shapes_file_name: "vhcc_shapes"
@@ -52,8 +52,8 @@ sample_to_process_map:
   DATA_EGamma: "data_obs"
   DATA_SingleMuon: "data_obs"
   WH_Hto2C_WtoLNu: "WH_hcc"
-  WminusH_Hto2B_WtoLNu: "WH_hbb"
-  WplusH_Hto2B_WtoLNu: "WH_hbb"
+  WminusH_Hto2B_WtoLNu: "WHminus_hbb"
+  WplusH_Hto2B_WtoLNu: "WHplus_hbb"
   TTTo2L2Nu: "TT_2L"
   TTToSemiLeptonic: "TT"
   TTToHadrons: "TT_Had"
@@ -67,3 +67,35 @@ sample_to_process_map:
   WW: "WW"
   WZ: "WZ"
   ZZ: "ZZ"
+
+bin_merging:
+  Wln_SR:
+    signal_processes: ["WH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Wen_SR:
+    signal_processes: ["WH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+  Wmn_SR:
+    signal_processes: ["WH_hcc"]
+    target_uncertainty: 0.3
+    target_significance_loss: 0.005
+    minimum_signal: 0
+    epsilon: 0.05
+
+plotting:
+  enable: True
+  signal_scaling: 50
+  signal_scaling_cc: 1000
+  blinding:
+    SR_Wln_2J_cJ:
+      GNN: [700, 1000]
+    SR_Wen_2J_cJ:
+      GNN: [700, 1000]
+    SR_Wmn_2J_cJ:
+      GNN: [700, 1000]

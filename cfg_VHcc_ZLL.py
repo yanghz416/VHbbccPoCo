@@ -60,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -81,7 +81,7 @@ cfg = Configurator(
                 "DATA_EGamma",   # in 2018/2022/2023
                 ##"DATA_SingleMuon",
                 ##"DATA_SingleElectron",
-	        "WW", "WZ", "ZZ",
+                "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
                 #"DYJetsToLL_MLM",
                 #"WJetsToLNu_FxFx",
@@ -100,7 +100,7 @@ cfg = Configurator(
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
 
-            "year": ['2022_preEE']
+            "year": ['2022_postEE']
             #"year": ['2023_preBPix']
         },
 
@@ -251,12 +251,12 @@ cfg = Configurator(
             },
             "bysample": { }
         },
-        #"shape": {
-        #    "common":{
-        #        #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
-        #        "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
-        #    }
-        #}
+        "shape": {
+           "common":{
+               #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+               "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+           }
+        }
     },
 
     variables = {
@@ -308,13 +308,13 @@ cfg = Configurator(
         "met_pt": HistConf( [Axis(coll="PuppiMET", field="pt", bins=50, start=0, stop=200, label=r"PuppiMET $p_T$ [GeV]")] ),
         "met_phi": HistConf( [Axis(coll="PuppiMET", field="phi", bins=50, start=-math.pi, stop=math.pi, label=r"PuppiMET $phi$")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=10000, start=0, stop=1, label="BDT")],
+        "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ',
                                             'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
-        "DNN": HistConf( [Axis(field="DNN", bins=10000, start=0, stop=1, label="DNN")],
+        "DNN": HistConf( [Axis(field="DNN", bins=1000, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ',
                                             'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
-        "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
                                             'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
         
@@ -328,7 +328,7 @@ cfg = Configurator(
                                 only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
                                                    'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
         
-        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_mm_2J_cJ','SR_ee_2J_cJ','SR_ll_2J_cJ',
                                             'SR_mm_2J_cJ_loZPT','SR_mm_2J_cJ_hiZPT','SR_ee_2J_cJ_loZPT','SR_ee_2J_cJ_hiZPT']),
 

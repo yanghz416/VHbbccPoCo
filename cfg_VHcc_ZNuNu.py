@@ -101,7 +101,7 @@ cfg = Configurator(
             #"year": ['2017'],
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
 
-            "year": ['2022_preEE']
+            "year": ['2022_preEE','2022_postEE']
         },
         "subsamples": {
             'DYJetsToLL_MLM': {
