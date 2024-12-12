@@ -63,7 +63,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
 parameters["save_gnn_arrays"] = False

@@ -154,7 +154,8 @@ cfg = Configurator(
 	"CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_Znn_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_Znn_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, four_jets, btag_j1, dijet_mass_cut],
-        "CR_Znn_4J_1L_TT": [dijet_pt_cut, jet_met_dphi_cut, four_jets, btag_j1, dijet_mass_cut, get_nObj_min(1, 20., "LeptonGood")]
+        #"CR_Znn_4J_1L_TT": [dijet_pt_cut, jet_met_dphi_cut, four_jets, btag_j1, dijet_mass_cut, get_nObj_min(1, 20., "LeptonGood")]
+        # The above would not work, since we require 0 lep at pre-selection... but do we really need it?
     },
 
     columns = {
@@ -276,11 +277,11 @@ cfg = Configurator(
         "met_deltaPhi_j1": HistConf( [Axis(field="deltaPhi_jet1_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 1)")] ),
         "met_deltaPhi_j2": HistConf( [Axis(field="deltaPhi_jet2_MET", bins=64, start=0, stop=math.pi, label=r"$\Delta\phi$(MET, jet 2)")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=2000, start=0, stop=1, label="BDT")],
+        "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
                          only_categories = ['SR_Znn_2J_cJ']),
         "DNN": HistConf( [Axis(field="DNN", bins=100, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ']),
-        "GNN": HistConf( [Axis(field="GNN", bins=2000, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Znn_2J_cJ']),
 
         "BDT_coarse": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
@@ -290,7 +291,7 @@ cfg = Configurator(
         "GNN_coarse": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
                                 only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
-        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=2000, start=0, stop=1, label="GNN")],
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Znn_2J_cJ','baseline_Met_2J_ptcut']),
 
         "GNN_transformed_coarse": HistConf( [Axis(field="GNN_transformed", bins=24, start=0, stop=1, label="GNN")],

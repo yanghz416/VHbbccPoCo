@@ -60,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -77,23 +77,23 @@ cfg = Configurator(
         "filter" : {
             "samples": [
                 "DATA_DoubleMuon",
-                ### #"DATA_DoubleEG", # in 2016/2017
-                ### "DATA_EGamma",   # in 2018/2022/2023
-                ### ##"DATA_SingleMuon",
-                ### ##"DATA_SingleElectron",
-	        ### "WW", "WZ", "ZZ",
+                #"DATA_DoubleEG", # in 2016/2017
+                "DATA_EGamma",   # in 2018/2022/2023
+                ##"DATA_SingleMuon",
+                ##"DATA_SingleElectron",
+	        "WW", "WZ", "ZZ",
                 "DYJetsToLL_FxFx",
-                ### #"DYJetsToLL_MLM",
-                ### #"WJetsToLNu_FxFx",
-                ### #"TTToSemiLeptonic",
-                ### #"DYJetsToLL_MiNNLO",
-                ### #"DYJetsToLL_MiNNLO_ZptWei",
-                ### "TTTo2L2Nu",
-                ### "SingleTop",
-                ### "ZH_Hto2C_Zto2L",
-                ### "ggZH_Hto2C_Zto2L",
-                ### "ZH_Hto2B_Zto2L",
-                ### "ggZH_Hto2B_Zto2L"
+                #"DYJetsToLL_MLM",
+                #"WJetsToLNu_FxFx",
+                #"TTToSemiLeptonic",
+                #"DYJetsToLL_MiNNLO",
+                #"DYJetsToLL_MiNNLO_ZptWei",
+                "TTTo2L2Nu",
+                "SingleTop",
+                "ZH_Hto2C_Zto2L",
+                "ggZH_Hto2C_Zto2L",
+                "ZH_Hto2B_Zto2L",
+                "ggZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
