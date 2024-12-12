@@ -1,8 +1,10 @@
 import uproot
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import numpy as np
+import copy
 
-def plot_histograms(root_file_path, config, eras, categ_to_var):
+def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_datacards", samplelist=None,brstr="Shape_"):
     """
     Generate CMS-style stack plots for histograms directly from a ROOT file.
 
@@ -13,6 +15,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
     - categ_to_var: Mapping of categories to variables and names.
     """
     signal_scaling = config["plotting"].get("signal_scaling", 1)
+    signal_scaling_cc = config["plotting"].get("signal_scaling_cc", 100)
     blinding_config = config["plotting"].get("blinding", {})
 
     with uproot.open(root_file_path) as root_file:
@@ -22,38 +25,50 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 blinded_region = blinding_config.get(cat, {})
 
                 # Collect histograms
-                stack_components = {"TT": None, "VJet": None, "VV": None, "ZH_hbb": None, "ZH_hcc": None}
+                if samplelist is None:
+                    stack_components = {"TT": None, "VJet": None, "VV": None, "ZH_hbb": None, "ZH_hcc": None}
+                else:
+                    stack_components = {i:None for i in samplelist}
                 signal_hist = None
+                signal_cc_hist = None
                 data_hist = None
 
                 # Load histograms for stack components
                 for proc in stack_components.keys():
-                    hist_name = f"{era}_{newCatName}/{proc}_Shape_nominal"
+                    hist_name = f"{era}_{newCatName}/{proc}_{brstr}nominal"
                     if hist_name in root_file:
                         hist = root_file[hist_name]
                         values, edges = hist.to_numpy(flow=False)
-                        stack_components[proc] = (values, edges)
+                        stack_components[proc] = copy.deepcopy((values, edges))
 
                 # Load signal histogram
-                signal_name = f"{era}_{newCatName}/ZH_hbb_Shape_nominal"
+                signal_name = f"{era}_{newCatName}/ZH_hbb_{brstr}nominal"
                 if signal_name in root_file:
                     hist = root_file[signal_name]
                     values, edges = hist.to_numpy(flow=False)
-                    signal_hist = (values, edges)
+                    signal_hist = copy.deepcopy((values, edges))
                     
                 # Load signal histogram
-                signal_cc_name = f"{era}_{newCatName}/ZH_hcc_Shape_nominal"
+                signal_cc_name = f"{era}_{newCatName}/ZH_hcc_{brstr}nominal"
                 if signal_cc_name in root_file:
                     hist = root_file[signal_cc_name]
                     values, edges = hist.to_numpy(flow=False)
-                    signal_cc_hist = (values, edges)
+                    signal_cc_hist = copy.deepcopy((values, edges))
 
                 # Load data histogram
-                data_name = f"{era}_{newCatName}/data_obs_Shape_nominal"
+                data_name = f"{era}_{newCatName}/data_obs_{brstr}nominal"
                 if data_name in root_file:
                     hist = root_file[data_name]
-                    values, edges = hist.to_numpy(flow=False)
-                    data_hist = (values, edges)
+                    values, edges = hist.to_numpy(flow=False)      
+                    # Blinding logic
+                    if blinded_region and variable in blinded_region:
+                        lower, upper = blinded_region[variable]
+                        lower = float(lower) if isinstance(lower, (int, str)) else lower
+                        upper = float(upper) if isinstance(upper, (int, str)) else upper
+                        mask = (edges[:-1] > (lower if lower is not None else -float('inf'))) & \
+                                (edges[:-1] < (upper if upper is not None else float('inf')))
+                        values[mask] = 0  # Blind the region
+                    data_hist = copy.deepcopy((values, edges))
 
                 # Prepare plot
                 fig = plt.figure(figsize=(6, 6))
@@ -68,30 +83,30 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 labels = {"TT": "TT", "VJet": "VJet", "VV": "VV", "ZH_hbb": "ZH_hbb", "ZH_hcc": "ZH_hcc"}
                 bottoms = None
                 stack_uncertainty = None  # Initialize stack uncertainty
+                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color'] + [cm.viridis(i) for i in range(0, 256, 51)]
+                colid = 0
                 for proc, hist_data in stack_components.items():
                     if hist_data is not None:
                         values, edges = hist_data
                         bin_centers = edges[:-1] + np.diff(edges) / 2  # Compute bin centers
                         bin_widths = np.diff(edges)  # Compute bin widths
 
-                        # Blinding logic
-                        if blinded_region and variable in blinded_region:
-                            lower, upper = blinded_region[variable]
-                            lower = float(lower) if isinstance(lower, (int, str)) else lower
-                            upper = float(upper) if isinstance(upper, (int, str)) else upper
-                            mask = (edges[:-1] > (lower if lower is not None else -float('inf'))) & \
-                                   (edges[:-1] < (upper if upper is not None else float('inf')))
-                            values[mask] = 0  # Blind the region
-
                         # Use bin centers for alignment with signal and data
-                        ax_main.bar(bin_centers, values, width=bin_widths, bottom=bottoms, color=colors[proc], label=labels[proc])
+                        if proc in colors:
+                            col = colors[proc]
+                            lab = labels[proc]
+                        else:
+                            col = color_cycle[colid]
+                            lab = proc
+                            colid += 1
+                        ax_main.bar(bin_centers, values, width=bin_widths, bottom=bottoms, color=col, label=lab)
                         if bottoms is None:
                             bottoms = values
                         else:
                             bottoms += values
                             
                 # Calculate stack uncertainties (upper and lower bounds)
-                stack_uncertainty = np.sqrt(bottoms)
+                stack_uncertainty = np.sqrt(bottoms)            #TODO: This is not right; fix it with per sample Poisson
 
                 # Plot statistical uncertainty band on the upper plot
                 ax_main.fill_between(bin_centers, bottoms - stack_uncertainty, bottoms + stack_uncertainty, 
@@ -105,22 +120,22 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                     
                 if signal_cc_hist:
                     values, edges = signal_cc_hist
-                    values *= signal_scaling
-                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#b700ff", linestyle="--", label=f"Signal x{signal_scaling}")
+                    values *= signal_scaling_cc
+                    
+                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#b700ff", linestyle="--", label=f"Signal x{signal_scaling_cc}")
 
                 # Plot data
                 if data_hist:
                     values, edges = data_hist
                     bin_centers = edges[:-1] + np.diff(edges) / 2
                     ax_main.errorbar(bin_centers, values, yerr=np.sqrt(values), fmt="o", color="black", label="Data")
-
                 # Ratio plot: Data/MC
                 if data_hist and bottoms is not None:
                     data_values, edges = data_hist
                     bin_centers = edges[:-1] + np.diff(edges) / 2
 
                     # Ensure no division by zero
-                    safe_bottoms = np.where(bottoms == 0, 1e-10, bottoms)
+                    safe_bottoms = np.where(bottoms <= 0, 1e-10, bottoms)
                     ratio = data_values / safe_bottoms
                     ratio_unc = np.sqrt(data_values) / safe_bottoms  # Uncertainty in the ratio
                     
@@ -141,7 +156,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
 
                 # Formatting for the main plot
                 ax_main.set_ylabel("Events")
-                ax_main.legend()
+                ax_main.legend(ncol=2)
                 ax_main.grid(axis="y", linestyle="--", alpha=0.5)
                 ax_main.tick_params(axis="x", labelbottom=False)  # Hide x-axis labels on the upper plot
 
@@ -156,7 +171,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 ax_main.text(1, 1.02, f"{era}: {newCatName}", fontsize=12, ha="right", transform=ax_main.transAxes)
 
                 # Save plot
-                plot_file = f"plot_datacards/stack_plot_{newCatName}_{era}.png"
+                plot_file = f"{plotdir}/stack_plot_{newCatName}_{era}.png"
                 plt.savefig(plot_file, dpi=300, bbox_inches="tight")
                 print(f"Saved plot: {plot_file}")
 
@@ -166,7 +181,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var):
                 ax_main.grid(axis="y", linestyle="--", alpha=0.5)  # Update grid for log scale
 
                 # Save log scale plot
-                plot_file_log = f"plot_datacards/stack_plot_{newCatName}_{era}_log.png"
+                plot_file_log = f"{plotdir}/stack_plot_{newCatName}_{era}_log.png"
                 plt.savefig(plot_file_log, dpi=300, bbox_inches="tight")
                 print(f"Saved log-scale plot: {plot_file_log}")
 

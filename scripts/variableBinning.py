@@ -131,7 +131,7 @@ def lowerBins(bkgHist, sigHist, sigLoss=0.01, minimumSignal=0.0, epsilon=0.05, d
         plt.errorbar(np.linspace(0.5, len(bkgHist.values())-0.5,len(bkgHist.values())), bkgHist.values(), yerr=np.sqrt(bkgHist.variances()), ls="none")
         plt.yscale("log")
         plt.legend()
-        plt.show()
+        plt.savefig("rebinplot1.png")
     
     return(bkgHist, sigHist)
     
@@ -168,7 +168,7 @@ def lowerVariance(bkgHist, sigHist, targetUncert, doPlot=False):
         plt.errorbar(np.linspace(0.5, len(bkgHist.values())-0.5,len(bkgHist.values())), bkgHist.values(), yerr=np.sqrt(bkgHist.variances()), ls="none")
         plt.yscale("log")
         plt.legend()
-        plt.show()
+        plt.savefig("rebinplot2.png")
         
     # start lists with the merged bins, values, and variances
     finalBins = [bins[-1]]
@@ -224,7 +224,7 @@ def lowerVariance(bkgHist, sigHist, targetUncert, doPlot=False):
         plt.errorbar(np.linspace(0.5, len(bkgHist.values())-0.5,len(bkgHist.values())), bkgHist.values(), yerr=np.sqrt(bkgHist.variances()), ls="none")
         plt.yscale("log")
         plt.legend()
-        plt.show()
+        plt.savefig("rebinplot3.png")
     
     return(bkgHist, sigHist)
 
@@ -330,7 +330,9 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
         mergeDict: dictionary mapping from directories to rebinnings
     
     """
-    print(regionDirectories)
+
+    print("Will rebin:",regionDirectories)
+
     # Make sure it is formated correctly
     for x in range(len(regionDirectories)):
         reg = regionDirectories[x].strip()
@@ -343,7 +345,7 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
     sig = None
     # check each key in the root file
     for key in histDict.keys():
-        
+
         # Don't want data or the top directories
         if("data" in key or "/" not in key or "nominal" not in key):
             continue
@@ -363,16 +365,18 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
             if(proc in key):
                 sigProcess = True
         if(sigProcess):
-            print("Sig:", key)
+
+            print("\tSig:", key)
             if(sig is None):
                 sig = histDict[key]
             else:
                 sig += histDict[key]
         elif(bkg is None):
-            print("Bkg:", key)
+
+            print("\tBkg:", key)
             bkg = histDict[key]
         else:
-            print("Bkg:", key)
+            print("\tBkg:", key)
             bkg += histDict[key]
             
     # get the original bins, then do the rebinning
@@ -387,6 +391,8 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
     # Store these mreged bins for each relavent region 
     for val in regionDirectories:
         mergeDict[val] = binMerging
+
+    return mergeDict
 
 def rebinHist(histogram, bins):
     """

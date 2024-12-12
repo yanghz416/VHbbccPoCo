@@ -45,7 +45,13 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
 
     hists = load(inputfile)
 
-    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, variations[0])
+    testFileStructure(hists, example_variable, example_data, example_MC, example_subsample, eras, example_category, "nominal")
+
+    if variations == "auto":
+        hist = hists["variables"][example_variable][example_MC][f'{example_MC}_{eras[0]}']
+        variations = list(hist.axes["variation"])
+        print("\nUsing the following systematics:",variations)
+
 
     # Here we decide which histograms are used for coffea -> root conversion
     # and, possibly, a NEW name of the category
@@ -99,7 +105,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                         if isData:
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat}]
                         else:
-                            print(variable, samp, subsamples[0], cat, variation)
+                            # print(variable, samp, subsamples[0], cat, variation)          # This is too verbose
                             myHist = hists['variables'][variable][samp][subsamples[0]][{'cat':cat, 'variation': variation}]
                     else:
                         print("\t Subsamples:", subsamples)
@@ -184,7 +190,10 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
             mergeDict = dict()
             for sr in config["bin_merging"]:
                 # categories and signal_processes are required
-                categories = config["bin_merging"][sr]["categories"]
+                if "categories" in config["bin_merging"][sr]:
+                    categories = config["bin_merging"][sr]["categories"]
+                else:
+                    categories = [f"{era}_{sr}"]
                 signal_processes = config["bin_merging"][sr]["signal_processes"]
                 # these four are not required and have default values
                 target_uncertainty = 0.3 if "target_uncertainty" not in config["bin_merging"][sr].keys() else config["bin_merging"][sr]["target_uncertainty"]
@@ -203,7 +212,7 @@ def convertCoffeaToRoot(coffea_file_name, config, inputera):
                         output_dict[key] = rebinHist(output_dict[key], mergeDict[directory])
                     else:
                         output_dict[key] = output_dict[key]
-                        
+
         # save root files
         with uproot.recreate(shapes_file_name) as root_file:
             for shape, histogram in output_dict.items():
@@ -220,7 +229,7 @@ if __name__ == "__main__":
     parser.add_argument( "-c", "--config", dest="config", type=str, default="config.yaml", help="Path to the configuration YAML file.")
     parser.add_argument( "-e", "--era", type=str, default=None, help="Override era in the config")
     args = parser.parse_args()
-
+    
     config_path = args.config
     config = load_config(config_path)
     coffea_file_name = args.inputfile
@@ -231,7 +240,16 @@ if __name__ == "__main__":
         category: [details['observable'], details['new_name']]
         for category, details in config["categories"].items()
     }
-    
-    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var)
+
+    samplelist = None
+    if "sample_to_merge_list" not in config:
+        samplelist = config["sample_to_process_map"].values()
+        samplelist = [s for s in samplelist if "data" not in s]
+
+    plotdir = '/'.join(args.inputfile.split('/')[:-1])+"/plot_datacards"
+    os.system(f"mkdir -p "+plotdir)
+
+    plot_histograms(root_file, config, config["input"]["eras"], categ_to_var, plotdir, samplelist, "")
+
 
     print("... and goodbye.")

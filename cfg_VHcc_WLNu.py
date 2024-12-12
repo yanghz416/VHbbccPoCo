@@ -60,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -93,6 +93,7 @@ cfg = Configurator(
                 "SingleTop",
                 #"TTToHadrons",
                 "WH_Hto2C_WtoLNu",
+                "WH_Hto2B_WtoLNu"
             ],
             "samples_exclude" : [],
             #"year": ['2017']
@@ -230,6 +231,12 @@ cfg = Configurator(
             },
             "bysample": {}
         },
+        "shape": {
+           "common":{
+               #"inclusive": [ "JES_Total_AK4PFchs", "JER_AK4PFchs" ] # For Run2UL
+               "inclusive": [ "JES_Total_AK4PFPuppi", "JER_AK4PFPuppi" ] # For Run3
+           }
+        }
     },
 
 
@@ -287,11 +294,11 @@ cfg = Configurator(
         "b_Btag": HistConf( [Axis(field="b_Btag", bins=24, start=0, stop=1, label=r"$Btag_{b}$")] ),
         "top_mass": HistConf( [Axis(field="top_mass", bins=100, start=0, stop=400, label=r"$M_{top}$ [GeV]")] ),
 
-        "BDT": HistConf( [Axis(field="BDT", bins=10000, start=0, stop=1, label="BDT")],
+        "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
                          only_categories = ['SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
-        "DNN": HistConf( [Axis(field="DNN", bins=10000, start=0, stop=1, label="DNN")],
+        "DNN": HistConf( [Axis(field="DNN", bins=1000, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
-        "GNN": HistConf( [Axis(field="GNN", bins=10000, start=0, stop=1, label="GNN")],
+        "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
 
         "BDT_coarse": HistConf( [Axis(field="BDT", bins=24, start=0, stop=1, label="BDT")],
@@ -301,7 +308,7 @@ cfg = Configurator(
         "GNN_coarse": HistConf( [Axis(field="GNN", bins=24, start=0, stop=1, label="GNN")],
                                 only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ','presel_Wln_2J']),
       
-        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=10000, start=0, stop=1, label="GNN")],
+        "GNN_transformed": HistConf( [Axis(field="GNN_transformed", bins=1000, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),        
         "GNN_transformed_coarse": HistConf( [Axis(field="GNN_transformed", bins=24, start=0, stop=1, label="GNN")],
                          only_categories = ['SR_Wln_2J_cJ','SR_Wmn_2J_cJ','SR_Wen_2J_cJ']),
