@@ -6,8 +6,15 @@ plotting_style:
       - TTToHadrons
     VV:
       - WW
-      - WZ
-      - ZZ
+    VZbb:
+      - WZ__DiJet_Zbb
+      - ZZ__DiJet_Zbb
+    VZcc:
+      - WZ__DiJet_Zcc
+      - ZZ__DiJet_Zcc
+    VZll:
+      - WZ__DiJet_noHeavyZ
+      - ZZ__DiJet_noHeavyZ
     Hcc:
       - ZH_Hto2C_Zto2L
       - ggZH_Hto2C_Zto2L
@@ -34,6 +41,9 @@ plotting_style:
     - WJetsToLNu_FxFx__DiJet_incl
     - ZJetsToNuNu_NJPT_FxFx__DiJet_incl
 
+    - WZ__DiJet_incl
+    - ZZ__DiJet_incl
+
     ## - DYJetsToLL_MLM__DiJet_bx
     ## - DYJetsToLL_MLM__DiJet_cx
     ## - DYJetsToLL_MLM__DiJet_ll
@@ -55,7 +65,9 @@ plotting_style:
     # WplusH_Hto2C_WtoLNu: 2000
     # WH_Hto2C_WtoLNu: 2000
     Hcc: 4000
-    Hbb: 4000
+    Hbb: 1000
+    VZcc: 500
+    VZbb: 100
       
   labels_mc:
     DYJetsToLL_MLM: Z+jets (LO)
@@ -88,6 +100,9 @@ plotting_style:
 
     Hcc: "$H\\to cc$"
     Hbb: "$H\\to bb$"
+    VZbb: "$V(Z\\to bb)$"
+    VZcc: "$V(Z\\to cc)$"
+    VZll: "$V(Z\\to qq)$"
     
   colors_mc:
     Top: "#00BFFF"

@@ -60,7 +60,7 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -104,21 +104,7 @@ cfg = Configurator(
             #"year": ['2023_preBPix']
         },
 
-        "subsamples": {
-        #    'DYJetsToLL_MLM': {
-        #        'DiJet_incl': [passthrough],
-        #        'DiJet_bx': [DiJet_bx],
-        #        'DiJet_cx': [DiJet_cx],
-        #        'DiJet_ll': [DiJet_ll],
-        #    },
-            'DYJetsToLL_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            }
-        }
-
+        "subsamples": subsampleDict
     },
 
     workflow = VHccBaseProcessor,
@@ -270,7 +256,7 @@ cfg = Configurator(
         **jet_hists(coll="JetGood", pos=1),
 
         **jet_hists(coll="JetsCvsL", pos=0),
-	**jet_hists(coll="JetsCvsL", pos=1),
+        **jet_hists(coll="JetsCvsL", pos=1),
 
         "nJet": HistConf( [Axis(field="nJet", bins=15, start=0, stop=15, label=r"nJet direct from NanoAOD")] ),
         
@@ -298,6 +284,7 @@ cfg = Configurator(
         "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
         "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
         "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
+        "tofit" : HistConf( [Axis(field="dijet_CvsL_max", bins=5, start=0, stop=1, label=r"$CvsL_{j1}$ [GeV]")] ),
         
         "dijet_csort_m" : HistConf( [Axis(coll="dijet_csort", field="mass", bins=100, start=0, stop=600, label=r"$M_{jj}$ [GeV]")] ),
         "dijet_csort_pt" : HistConf( [Axis(coll="dijet_csort", field="pt", bins=100, start=0, stop=400, label=r"$p_T{jj}$ [GeV]")] ),

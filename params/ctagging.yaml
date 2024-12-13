@@ -22,10 +22,10 @@ ctagging:
     tagger: PNet
     wp: None
   '2022_postEE':
-    tagger: RobustParT
+    tagger: PNet
     wp: None
   '2023_preBPix':
-    tagger: RobustParT
+    tagger: PNet
     wp: None
   '2023_postBPix':
     tagger: PNet
