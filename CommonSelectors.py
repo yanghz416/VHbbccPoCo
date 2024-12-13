@@ -1,5 +1,6 @@
-import awkward as ak
+import awkward as ak, numpy as np
 from pocket_coffea.lib.cut_definition import Cut
+from pocket_coffea.parameters.cuts import passthrough
 
 def diLepton(events, params, year, sample, **kwargs):
 
@@ -294,16 +295,22 @@ def DeltaPhiJetMetCut(events, params, **kwargs):
 
 def TrueJetFlavors(events, params, **kwargs):
     gen_jets = events.GenJet
+    gen_parts = events.GenPart
     
     cGenJetTot = ak.sum((gen_jets.hadronFlavour == 4) & (gen_jets.pt > 20) & (abs(gen_jets.eta) < 2.4), axis=1)
     bGenJetTot = ak.sum((gen_jets.hadronFlavour == 5) & (gen_jets.pt > 20) & (abs(gen_jets.eta) < 2.4), axis=1)
+    bPartonsFromZ = ak.sum((np.abs(gen_parts.pdgId)==5) & (gen_parts[gen_parts.genPartIdxMother].pdgId == 23), axis=1)
+    cPartonsFromZ = ak.sum((np.abs(gen_parts.pdgId)==4) & (gen_parts[gen_parts.genPartIdxMother].pdgId == 23), axis=1)
 
     tag_cc = (cGenJetTot >= 2)
     tag_bb = (bGenJetTot >= 2)
+    tag_Zcc = (bPartonsFromZ >= 2)
+    tag_Zbb = (cPartonsFromZ >= 2)
     tag_bc = (bGenJetTot == 1) & (cGenJetTot == 1)
     tag_cl = (cGenJetTot == 1) & (bGenJetTot == 0)
     tag_bl = (bGenJetTot == 1) & (cGenJetTot == 0)
     tag_ll = (cGenJetTot == 0) & (bGenJetTot == 0)
+    tag_noHeavyZ = (cPartonsFromZ < 2) & (bPartonsFromZ < 2)
 
     mask = (  ((params['jj_flav']=='cc') & tag_cc) |
               ((params['jj_flav']=='bb') & tag_bb) |
@@ -312,7 +319,10 @@ def TrueJetFlavors(events, params, **kwargs):
               ((params['jj_flav']=='bl') & tag_bl) |
               ((params['jj_flav']=='bx') & (tag_bb | tag_bc | tag_bl)) |
               ((params['jj_flav']=='cx') & (tag_cc | tag_cl)) |
-              ((params['jj_flav']=='ll') & tag_ll)
+              ((params['jj_flav']=='ll') & tag_ll) |
+              ((params['jj_flav']=='noHeavyZ') & tag_noHeavyZ) |
+              ((params['jj_flav']=='Zbb') & tag_Zbb) |
+              ((params['jj_flav']=='Zcc') & tag_Zcc) 
             )
     
     #mask = ( (params['jj_flav']=='cc') & tag_cc)
@@ -349,6 +359,61 @@ DiJet_ll = Cut(
     params={"jj_flav": "ll"}
 )
 
+DiJet_Zbb = Cut(
+    name="DiJet_Zbb",
+    function=TrueJetFlavors,
+    params={"jj_flav": "Zbb"}
+)
+DiJet_Zcc = Cut(
+    name="DiJet_Zcc",
+    function=TrueJetFlavors,
+    params={"jj_flav": "Zcc"}
+)
+DiJet_noHeavyZ = Cut(
+    name="DiJet_noHeavyZ",
+    function=TrueJetFlavors,
+    params={"jj_flav": "noHeavyZ"}
+)
+
+subsampleDict = {
+                'DYJetsToLL_MLM': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_bx': [DiJet_bx],
+                    'DiJet_cx': [DiJet_cx],
+                    'DiJet_ll': [DiJet_ll],
+                },
+                'DYJetsToLL_FxFx': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_bx': [DiJet_bx],
+                    'DiJet_cx': [DiJet_cx],
+                    'DiJet_ll': [DiJet_ll],
+                },
+                'WJetsToLNu_FxFx': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_bx': [DiJet_bx],
+                    'DiJet_cx': [DiJet_cx],
+                    'DiJet_ll': [DiJet_ll],
+                },
+                'ZJetsToNuNu_NJPT_FxFx': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_bx': [DiJet_bx],
+                    'DiJet_cx': [DiJet_cx],
+                    'DiJet_ll': [DiJet_ll],
+                },
+                'WZ': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_Zbb': [DiJet_Zbb],
+                    'DiJet_Zcc': [DiJet_Zcc],
+                    'DiJet_noHeavyZ': [DiJet_noHeavyZ],
+                },
+                'ZZ': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_Zbb': [DiJet_Zbb],
+                    'DiJet_Zcc': [DiJet_Zcc],
+                    'DiJet_noHeavyZ': [DiJet_noHeavyZ],
+                }
+    }
+
 one_jet = Cut(
     name="one_jet",
     function=NJets,
@@ -369,7 +434,7 @@ ctag_j1 = Cut(
     name="ctag_j1",
     function=jettag,
     params={
-        "tagger": 'RobustParT',
+        "tagger": 'PNet',
         "ctag": True,
         "btag": False,
         "cut_CvL": 0.2,
@@ -380,7 +445,7 @@ antictag_j1 = Cut(
     name="antictag_j1",
     function=jettag,
     params={
-        "tagger": 'RobustParT',
+        "tagger": 'PNet',
         "ctag": False,
         "btag": False,
         "cut_CvL": 0.2,
@@ -391,7 +456,7 @@ btag_j1 = Cut(
     name="btag_j1",
     function=jettag,
     params={
-        "tagger": 'RobustParT',
+        "tagger": 'PNet',
         "ctag": True,
         "btag": True,
         "cut_CvL": 0.2,

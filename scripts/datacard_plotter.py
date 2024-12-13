@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import numpy as np
 import copy
+from functools import partial
+
+def extendarr(arr):
+    return np.append(arr,arr[-1])
 
 def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_datacards", samplelist=None,brstr="Shape_"):
     """
@@ -17,6 +21,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
     signal_scaling = config["plotting"].get("signal_scaling", 1)
     signal_scaling_cc = config["plotting"].get("signal_scaling_cc", 100)
     blinding_config = config["plotting"].get("blinding", {})
+    flatx = config["plotting"].get("flatx", [])
 
     with uproot.open(root_file_path) as root_file:
         for era in eras:
@@ -39,6 +44,8 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                     if hist_name in root_file:
                         hist = root_file[hist_name]
                         values, edges = hist.to_numpy(flow=False)
+
+                        if variable in flatx: edges = range(len(edges))
                         stack_components[proc] = copy.deepcopy((values, edges))
 
                 # Load signal histogram
@@ -46,6 +53,8 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 if signal_name in root_file:
                     hist = root_file[signal_name]
                     values, edges = hist.to_numpy(flow=False)
+
+                    if variable in flatx: edges = range(len(edges))
                     signal_hist = copy.deepcopy((values, edges))
                     
                 # Load signal histogram
@@ -53,6 +62,8 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 if signal_cc_name in root_file:
                     hist = root_file[signal_cc_name]
                     values, edges = hist.to_numpy(flow=False)
+                    
+                    if variable in flatx: edges = range(len(edges))
                     signal_cc_hist = copy.deepcopy((values, edges))
 
                 # Load data histogram
@@ -68,6 +79,8 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                         mask = (edges[:-1] > (lower if lower is not None else -float('inf'))) & \
                                 (edges[:-1] < (upper if upper is not None else float('inf')))
                         values[mask] = 0  # Blind the region
+                        
+                    if variable in flatx: edges = range(len(edges))
                     data_hist = copy.deepcopy((values, edges))
 
                 # Prepare plot
@@ -109,20 +122,20 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 stack_uncertainty = np.sqrt(bottoms)            #TODO: This is not right; fix it with per sample Poisson
 
                 # Plot statistical uncertainty band on the upper plot
-                ax_main.fill_between(bin_centers, bottoms - stack_uncertainty, bottoms + stack_uncertainty, 
-                                     color="gray", alpha=0.3, step="mid", label="Stat. Unc.")
+                ax_main.fill_between(edges, extendarr(bottoms - stack_uncertainty), extendarr(bottoms + stack_uncertainty), 
+                                     color="gray", alpha=0.3, step="post", label="Stat. Unc.")
 
                 # Plot signal
                 if signal_hist:
                     values, edges = signal_hist
                     values *= signal_scaling
-                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#ff0000", linestyle="--", label=f"Signal x{signal_scaling}")
+                    ax_main.step(edges, extendarr(values), where="post", color="#ff0000", linestyle="--", label=f"Signal x{signal_scaling}")
                     
                 if signal_cc_hist:
                     values, edges = signal_cc_hist
                     values *= signal_scaling_cc
-                    
-                    ax_main.step(edges, np.append(values, values[-1]), where="post", color="#b700ff", linestyle="--", label=f"Signal x{signal_scaling_cc}")
+
+                    ax_main.step(edges, extendarr(values), where="post", color="#b700ff", linestyle="--", label=f"Signal x{signal_scaling_cc}")
 
                 # Plot data
                 if data_hist:
@@ -133,7 +146,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 if data_hist and bottoms is not None:
                     data_values, edges = data_hist
                     bin_centers = edges[:-1] + np.diff(edges) / 2
-
+                    
                     # Ensure no division by zero
                     safe_bottoms = np.where(bottoms <= 0, 1e-10, bottoms)
                     ratio = data_values / safe_bottoms
@@ -146,8 +159,8 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                     # Plot the ratio
                     ax_ratio.errorbar(bin_centers, ratio, yerr=ratio_unc, fmt="o", color="black", label="Data/MC")
                     # Plot uncertainty band
-                    ax_ratio.fill_between(bin_centers, 1 - ratio_band, 1 + ratio_band, 
-                                          color="gray", alpha=0.3, step="mid", label="Stat. Unc.")
+                    ax_ratio.fill_between(edges, extendarr(1 - ratio_band), extendarr(1 + ratio_band), 
+                                          color="gray", alpha=0.3, step="post", label="Stat. Unc.")
                     
                     ax_ratio.axhline(1, color="gray", linestyle="--")  # Reference line at ratio=1
                     ax_ratio.set_ylabel("Data/MC")
@@ -156,12 +169,13 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
 
                 # Formatting for the main plot
                 ax_main.set_ylabel("Events")
-                ax_main.legend(ncol=2)
+                ax_main.legend(ncol=3,fontsize=8,loc="upper right")
+
                 ax_main.grid(axis="y", linestyle="--", alpha=0.5)
                 ax_main.tick_params(axis="x", labelbottom=False)  # Hide x-axis labels on the upper plot
 
                 # Formatting for the ratio plot
-                ax_ratio.set_xlabel(variable)
+                ax_ratio.set_xlabel(variable + " (bin #)" if variable in flatx else "")
                 ax_ratio.set_ylabel("Data/MC")
                 ax_ratio.grid(axis="y", linestyle="--", alpha=0.5)
 

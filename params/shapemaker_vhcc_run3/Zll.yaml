@@ -144,3 +144,5 @@ plotting:
       GNN: [700, 1000]
     SR_ee_2J_cJ_hiZPT:
       GNN: [700, 1000]
+  flatx:
+    - GNN

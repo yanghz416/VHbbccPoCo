@@ -63,7 +63,7 @@ files_Run3 = [
 parameters["proc_type"] = "ZNuNu"
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["save_gnn_arrays"] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
@@ -103,32 +103,7 @@ cfg = Configurator(
 
             "year": ['2022_preEE','2022_postEE']
         },
-        "subsamples": {
-            'DYJetsToLL_MLM': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            },
-            'DYJetsToLL_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            },
-            'WJetsToLNu_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-		'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            },
-            'ZJetsToNuNu_NJPT_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-		'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            }
-        }
+        "subsamples": subsampleDict
     },
 
     workflow = VHccBaseProcessor,
@@ -151,7 +126,7 @@ cfg = Configurator(
         "SR_Znn_2J_cJ":  [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_mass_cut],
 
         "CR_Znn_2J_LF": [dijet_pt_cut, jet_met_dphi_cut, antictag_j1, dijet_mass_cut],
-	"CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
+        "CR_Znn_2J_HF": [dijet_pt_cut, jet_met_dphi_cut, btag_j1, dijet_mass_cut],
         "CR_Znn_2J_CC": [dijet_pt_cut, jet_met_dphi_cut, ctag_j1, dijet_invmass_cut],
         "CR_Znn_4J_TT": [dijet_pt_cut, jet_met_dphi_cut, four_jets, btag_j1, dijet_mass_cut],
         #"CR_Znn_4J_1L_TT": [dijet_pt_cut, jet_met_dphi_cut, four_jets, btag_j1, dijet_mass_cut, get_nObj_min(1, 20., "LeptonGood")]
@@ -264,6 +239,7 @@ cfg = Configurator(
         "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
         "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
         "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
+        "tofit" : HistConf( [Axis(field="dijet_CvsL_max", bins=5, start=0, stop=1, label=r"$CvsL_{j1}$ [GeV]")] ),
 
         "Z_pt": HistConf( [Axis(field="Z_pt", bins=100, start=0, stop=400, label=r"$p_T{Z}$ [GeV]")] ),
         "dilep_dijet_ratio": HistConf( [Axis(field="ZH_pt_ratio", bins=100, start=0, stop=2, label=r"$\frac{p_T(jj)}{p_T(\ell\ell)}$")] ),
@@ -279,6 +255,7 @@ cfg = Configurator(
 
         "BDT": HistConf( [Axis(field="BDT", bins=1000, start=0, stop=1, label="BDT")],
                          only_categories = ['SR_Znn_2J_cJ']),
+      
         "DNN": HistConf( [Axis(field="DNN", bins=100, start=0, stop=1, label="DNN")],
                          only_categories = ['SR_Znn_2J_cJ']),
         "GNN": HistConf( [Axis(field="GNN", bins=1000, start=0, stop=1, label="GNN")],

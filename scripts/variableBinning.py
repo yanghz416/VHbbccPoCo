@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import boost_histogram as bh
-
+import copy
 import uproot
-
-
 
 def asimovSigSquare(s, b, b_var):
     """
@@ -306,7 +304,7 @@ def doRebin(fileName, regionDirectories, signalProcesses, targetUncert=0.3,
 
 
 
-def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
+def doRebinDict(histDictOrig, regionDirectories, signalProcesses, targetUncert=0.3,
                 sigLoss=0.01, minimumSignal=0, epsilon=0.05, doPlot=False):
     """
     Load a dictionary mimicing a root file, find the signal and background 
@@ -331,6 +329,7 @@ def doRebinDict(histDict, regionDirectories, signalProcesses, targetUncert=0.3,
     
     """
 
+    histDict = copy.deepcopy(histDictOrig)
     print("Will rebin:",regionDirectories)
 
     # Make sure it is formated correctly

@@ -63,7 +63,6 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-
 parameters["save_arrays"] = True
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
@@ -92,9 +91,9 @@ cfg = Configurator(
                 #"WJetsToLNu_NJPT_FxFx",
                 #"WJetsToLNu_MLM",
                 #"WJetsToQQ_MLM",
-                #"DYJetsToLL_FxFx",
+                "DYJetsToLL_FxFx",
                 "TTToSemiLeptonic",
-                #"TTTo2L2Nu",
+                "TTTo2L2Nu",
                 "SingleTop",
                 #"TTToHadrons",
                 "WH_Hto2C_WtoLNu",
@@ -104,29 +103,9 @@ cfg = Configurator(
             #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP', '2017', '2018']
             #"year": ['2022_preEE','2022_postEE']
-            "year": ['2022_preEE']
+            "year": ['2022_preEE','2022_postEE']
         },
-        "subsamples": {
-            'DYJetsToLL_MLM': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            },
-            'DYJetsToLL_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            },
-            'WJetsToLNu_FxFx': {
-                'DiJet_incl': [passthrough],
-                'DiJet_bx': [DiJet_bx],
-                'DiJet_cx': [DiJet_cx],
-                'DiJet_ll': [DiJet_ll],
-            }
-        },
-
+        "subsamples": subsampleDict
     },
 
     workflow = VHccBaseProcessor,
@@ -217,7 +196,7 @@ cfg = Configurator(
             #}
         },
         "bysample": {
-            #"DYJetsToLL_FxFx": {"inclusive": ["weight_vjet"] },
+            "DYJetsToLL_FxFx": {"inclusive": ["weight_vjet"] },
             "WJetsToLNu_FxFx": {"inclusive": ["weight_vjet"] },
         }
     },
@@ -283,6 +262,7 @@ cfg = Configurator(
         "dijet_CvsL_j2" : HistConf( [Axis(field="dijet_CvsL_min", bins=24, start=0, stop=1, label=r"$CvsL_{j2}$ [GeV]")] ),
         "dijet_CvsB_j1" : HistConf( [Axis(field="dijet_CvsB_max", bins=24, start=0, stop=1, label=r"$CvsB_{j1}$ [GeV]")] ),
         "dijet_CvsB_j2" : HistConf( [Axis(field="dijet_CvsB_min", bins=24, start=0, stop=1, label=r"$CvsB_{j2}$ [GeV]")] ),
+        "tofit" : HistConf( [Axis(field="dijet_CvsL_max", bins=5, start=0, stop=1, label=r"$CvsL_{j1}$ [GeV]")] ),
 
         "W_mt" : HistConf( [Axis(field="W_mt", bins=100, start=-10, stop=200, label=r"$Mt_{l\nu}$ [GeV]")] ),
         "W_m": HistConf( [Axis(field="W_m", bins=100, start=0, stop=200, label=r"$M_{l\nu}$ [GeV]")] ),
