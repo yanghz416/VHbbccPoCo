@@ -112,6 +112,9 @@ def apply_norm(dr,SR,coffeafile,df):
     # thiswt = df['weight'].sum()
     # print(f"\tGenweight sum = {thiswt}")
 
+    if sumw==0 or len(df)==0:
+        return None
+
     df['weight'] =  df['weight']/signofwt
     thiswt = ak.sum(df['weight'])
     print(f"\tReweighted sum = {thiswt}")
@@ -247,6 +250,9 @@ def load_data(dir_path, test, coffea):
 
             thisdf = load_files(dr,SR,colsMC,test)
             thisdf = apply_norm(dr,SR,coffeafile,thisdf)
+            if thisdf is None:
+                print(f"Found no selected events in {dr}. Skipping.")
+                continue
             del coffeafile
             thisdf = addmissingcols(thisdf)
             thisdf["channel"] = ich
@@ -422,21 +428,42 @@ def split_list(lst, m):
     
     return splits
 
-def train_gnn(X, y, signame, test, w=None, e=None, hyperparameter=False, ntrials=20, loadmodel=None):
+def train_gnn(X, y, signame, test, w=None, e=None, hyperparameter=False, ntrials=20, loadmodel=None, dumppt=None, loadpt=None):
     import torch, optuna
     from gnnmodels import runGNNtraining
 
-    print("Processing dataframes into tensors.")
+    if loadpt is None:
+        print("Processing dataframes into tensors.")
 
-    tensors, nanmask = process_gnn_inputs(X,verbose=True)
-    del X
-    gc.collect()
-    if nanmask is not None:
-        y = y[~nanmask.numpy()]
-        if w is not None: w = w[~nanmask.numpy()]
-        if e is not None: e = e[~nanmask.numpy()]
+        tensors, nanmask = process_gnn_inputs(X,verbose=True)
+        del X
+        gc.collect()
+        if nanmask is not None:
+            y = y[~nanmask.numpy()]
+            if w is not None: w = w[~nanmask.numpy()]
+            if e is not None: e = e[~nanmask.numpy()]
 
-    outdir = f"Models/global/gnn"
+        if dumppt is not None:
+            torch.save([tensors,y,w,e],dumppt)
+
+    else:
+        print("Loading dumped pt files:",loadpt)
+        tensors,y,w,e = None,None,None,None
+        for fl in loadpt:
+            thisload = torch.load(fl)
+            if tensors is None:
+                tensors,y,w,e = thisload
+            else:
+                for t in tensors:
+                    tensors[t] = torch.cat([tensors[t],thisload[0][t]])
+                y = np.concatenate([y,thisload[1]])
+                w = np.concatenate([w,thisload[2]])
+                e = np.concatenate([e,thisload[3]])
+            print("\tLoaded",fl)
+            del thisload
+            gc.collect()
+
+    outdir = f"Models/global_v3/gnn"
     print("Will store model in:",outdir)
 
     if hyperparameter:        
@@ -470,31 +497,35 @@ def main():
     parser.add_argument('--hyperparameter', action='store_true', help='Do hyperparameter optimization.')
     parser.add_argument('--ntrials', type=int, default=20, help='Number of trials for hyperparameter optimization.')
     parser.add_argument('--loadmodel', type=str, default=None, help='Load a previously trained .pt model.')
+    parser.add_argument('--dumppt', type=str, default="dict_dump.pt", help='Dump the loaded graphs to a pt file.')
+    # parser.add_argument('--dumpandexit', action='store_true', help='Exit after dumping the parquet; don\'t run the training at all.')
+    parser.add_argument('--loadpt', type=str, nargs='+', default=None, help='Load previously dumped pt files.')
     args = parser.parse_args() 
 
     if args.loadmodel and args.hyperparameter:
         raise ValueError("Cannot do hyperparameter optimization while loadmodel is specified.") 
 
-    signal_df, background_df= load_data(args.dir_path, args.test, args.coffea)
-    
     common_signal_name = "Hto2C"
+    if args.loadpt is None: 
+        signal_df, background_df= load_data(args.dir_path, args.test, args.coffea)     
+        signal_df['target'] = 1
+        background_df['target'] = 0
 
-    signal_df['target'] = 1
-    background_df['target'] = 0
+        df = ak.concatenate([signal_df, background_df])    
 
-    df = ak.concatenate([signal_df, background_df])    
+        print(f"Length of signal_df: {len(signal_df)}")
+        print(f"Length of background_df: {len(background_df)}")
+        
+        fields = df.fields
 
-    print(f"Length of signal_df: {len(signal_df)}")
-    print(f"Length of background_df: {len(background_df)}")
-    
-    fields = df.fields
+        X = df[[f for f in fields if f!='target' and f!='EventNr' and f!='weight']]
+        y = df['target']
+        e = df['EventNr']
+        w = df["weight"]
+    else:
+        X,y,w,e, = None,None,None,None
 
-    X = df[[f for f in fields if f!='target' and f!='EventNr' and f!='weight']]
-    y = df['target']
-    e = df['EventNr']
-    w = df["weight"]
-
-    train_gnn(X, y, common_signal_name, args.test, w, e, args.hyperparameter, args.ntrials, args.loadmodel)
+    train_gnn(X, y, common_signal_name, args.test, w, e, args.hyperparameter, args.ntrials, args.loadmodel, dumppt=args.dumppt, loadpt=args.loadpt)
 
 if __name__ == "__main__":
     main()

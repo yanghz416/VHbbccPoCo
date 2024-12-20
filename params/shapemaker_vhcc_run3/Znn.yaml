@@ -47,8 +47,14 @@ sample_to_process_map:
   WJetsToLNu_FxFx__DiJet_cx: "Wj_cj"
   WJetsToLNu_FxFx__DiJet_bx: "Wj_bj"
   WW: "WW"
-  WZ: "WZ"
-  ZZ: "ZZ"
+  # WZ: "WZ"
+  # ZZ: "ZZ"
+  WZ__DiJet_Zbb: "WZbb"
+  WZ__DiJet_Zcc: "WZcc"
+  WZ__DiJet_noHeavyZ: "WZqq"
+  ZZ__DiJet_Zbb: "ZZbb"
+  ZZ__DiJet_Zcc: "ZZcc"
+  ZZ__DiJet_noHeavyZ: "ZZqq"
 
 bin_merging:
   Znn_SR:
@@ -60,8 +66,8 @@ bin_merging:
 
 plotting:
   enable: True
-  signal_scaling: 50
-  signal_scaling_cc: 1000
+  signal_scaling: 1000
+  signal_scaling_cc: 4000
   blinding:
     SR_Znn_2J_cJ:
       GNN: [700, 1000]

@@ -24,28 +24,28 @@ categories:
     observable: "GNN"
     new_name: "Wen_SR"
   CR_Wmn_2J_HF:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wmn_CR_HF"
   CR_Wmn_2J_LF:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wmn_CR_LF"
   CR_Wmn_2J_CC:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wmn_CR_CC"
   CR_Wmn_4J_TT:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wmn_CR_TT"
   CR_Wen_2J_HF:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wen_CR_HF"
   CR_Wen_2J_LF:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wen_CR_LF"
   CR_Wen_2J_CC:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wen_CR_CC"
   CR_Wen_4J_TT:
-    observable: "dijet_CvsL_j1"
+    observable: "tofit"
     new_name: "Wen_CR_TT"
 
 sample_to_process_map:
@@ -54,6 +54,7 @@ sample_to_process_map:
   WH_Hto2C_WtoLNu: "WH_hcc"
   WminusH_Hto2B_WtoLNu: "WHminus_hbb"
   WplusH_Hto2B_WtoLNu: "WHplus_hbb"
+  WH_Hto2B_WtoLNu: "WH_hbb"
   TTTo2L2Nu: "TT_2L"
   TTToSemiLeptonic: "TT"
   TTToHadrons: "TT_Had"
@@ -65,8 +66,12 @@ sample_to_process_map:
   DYJetsToLL_FxFx__DiJet_cx: "Zj_cj"
   DYJetsToLL_FxFx__DiJet_bx: "Zj_bj"
   WW: "WW"
-  WZ: "WZ"
-  ZZ: "ZZ"
+  WZ__DiJet_Zbb: "WZbb"
+  WZ__DiJet_Zcc: "WZcc"
+  WZ__DiJet_noHeavyZ: "WZqq"
+  ZZ__DiJet_Zbb: "ZZbb"
+  ZZ__DiJet_Zcc: "ZZcc"
+  ZZ__DiJet_noHeavyZ: "ZZqq"
 
 bin_merging:
   Wln_SR:
@@ -90,8 +95,8 @@ bin_merging:
 
 plotting:
   enable: True
-  signal_scaling: 50
-  signal_scaling_cc: 1000
+  signal_scaling: 1000
+  signal_scaling_cc: 4000
   blinding:
     SR_Wln_2J_cJ:
       GNN: [700, 1000]

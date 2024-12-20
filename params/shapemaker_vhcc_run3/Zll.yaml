@@ -32,53 +32,53 @@ categories:
     new_name: "Zee_SR_hiZPT"
     
   CR_mm_2J_HF_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_HF_loZPT"
   CR_mm_2J_LF_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_LF_loZPT"
   CR_mm_2J_CC_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_CC_loZPT"
   CR_mm_4J_TT_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_TT_loZPT"
   CR_ee_2J_HF_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_HF_loZPT"
   CR_ee_2J_LF_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_LF_loZPT"
   CR_ee_2J_CC_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_CC_loZPT"
   CR_ee_4J_TT_loZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_TT_loZPT"
     
   CR_mm_2J_HF_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_HF_hiZPT"
   CR_mm_2J_LF_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_LF_hiZPT"
   CR_mm_2J_CC_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_CC_hiZPT"
   CR_mm_4J_TT_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zmm_CR_TT_hiZPT"
   CR_ee_2J_HF_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_HF_hiZPT"
   CR_ee_2J_LF_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_LF_hiZPT"
   CR_ee_2J_CC_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_CC_hiZPT"
   CR_ee_4J_TT_hiZPT:
-    observable: "dijet_CvsL_j2"
+    observable: "tofit"
     new_name: "Zee_CR_TT_hiZPT"
 
 sample_to_process_map:
@@ -94,8 +94,12 @@ sample_to_process_map:
   DYJetsToLL_FxFx__DiJet_bx: "Zj_bj"
   SingleTop: "ST"
   WW: "WW"
-  WZ: "WZ"
-  ZZ: "ZZ"
+  WZ__DiJet_Zbb: "WZbb"
+  WZ__DiJet_Zcc: "WZcc"
+  WZ__DiJet_noHeavyZ: "WZqq"
+  ZZ__DiJet_Zbb: "ZZbb"
+  ZZ__DiJet_Zcc: "ZZcc"
+  ZZ__DiJet_noHeavyZ: "ZZqq"
 
 bin_merging:
   Zll_SR:
@@ -131,8 +135,8 @@ bin_merging:
 
 plotting:
   enable: True
-  signal_scaling: 50
-  signal_scaling_cc: 1000
+  signal_scaling: 1000
+  signal_scaling_cc: 4000
   blinding:
     SR_ll_2J_cJ:
       GNN: [700, 1000]

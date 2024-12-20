@@ -60,10 +60,11 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = True
+parameters["save_arrays"] = False
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
+parameters["save_gnn_arrays"] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -96,12 +97,9 @@ cfg = Configurator(
                 "ggZH_Hto2B_Zto2L"
             ],
             "samples_exclude" : [],
-            #"year": ['2017']
             #"year": ['2016_PreVFP', '2016_PostVFP','2017','2018']
             #"year": ['2022_preEE','2022_postEE','2023_preBPix','2023_postBPix']
-
             "year": ['2022_postEE']
-            #"year": ['2023_preBPix']
         },
 
         "subsamples": subsampleDict
@@ -179,19 +177,19 @@ cfg = Configurator(
                                         "GNN","GNN_transformed"
                                     ] if parameters['run_gnn'] else [], flatten=False),
                     ],
-                    "baseline_2L2J_no_ctag": [
-                        ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
-                                    "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
-                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
-                                    "dijet_pt_max","dijet_pt_min",
-                                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    "JetGood_btagCvL","JetGood_btagCvB",
-                                    "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                    "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
-                                    "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                                    "ll_pt","ll_eta","ll_phi","ll_mass",
-                                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"], flatten=False),
-                    ]
+                    # "baseline_2L2J_no_ctag": [
+                    #     ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+                    #                 "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+                    #                 "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+                    #                 "dijet_pt_max","dijet_pt_min",
+                    #                 "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
+                    #                 "JetGood_btagCvL","JetGood_btagCvB",
+                    #                 "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                    #                 "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                    #                 "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                    #                 "ll_pt","ll_eta","ll_phi","ll_mass",
+                    #                 "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"], flatten=False),
+                    # ]
                 }
         },
         
@@ -203,7 +201,7 @@ cfg = Configurator(
                     ]
                 }
         },
-    } if parameters['run_gnn'] else {},
+    } if parameters["save_gnn_arrays"] else {},
 
     weights = {
         "common": {

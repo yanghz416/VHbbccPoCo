@@ -12,6 +12,7 @@ from contextlib import nullcontext
 plt.style.use(hep.style.CMS)
 import optuna
 import copy, pickle, gc
+import time
 
 def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
@@ -59,13 +60,13 @@ class GraphAttentionClassifier(nn.Module):
         self.num_heads = num_heads
         self.pairwisefeats = pairwisefeats
 
-        self.embedjets = nn.Linear(jet_dim+4+cat_embed_dim, hyperembeddim)
-        self.multihead_attention_jet = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
+        self.embedjets = nn.Linear(jet_dim+4+cat_embed_dim, hyperembeddim*2)
+        self.multihead_attention_jet = nn.MultiheadAttention(embed_dim=hyperembeddim*2, num_heads=num_heads, batch_first=True)
 
-        self.edgejet = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim)
-        self.conv1d_edgejet = nn.Conv1d(in_channels=pairwisefeats, out_channels=1, kernel_size=1)
-        self.multihead_attention_edgejet = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)        
-        self.edgejetbn = nn.BatchNorm1d(1)
+        self.edgejet = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim*2)
+        self.conv1d_edgejet = nn.Conv1d(in_channels=pairwisefeats, out_channels=num_heads, kernel_size=1)
+        self.multihead_attention_edgejet = nn.MultiheadAttention(embed_dim=hyperembeddim*2, num_heads=num_heads, batch_first=True)        
+        # self.edgejetbn = nn.BatchNorm1d(1)
 
         
         self.embedleps = nn.Linear(lep_dim+4+cat_embed_dim, hyperembeddim)
@@ -89,11 +90,12 @@ class GraphAttentionClassifier(nn.Module):
         self.embedglob = nn.Linear(globdim+cat_embed_dim, hyperembeddim)
 
         self.layer_norm = nn.LayerNorm(hyperembeddim)
+        self.layer_norm2x = nn.LayerNorm(hyperembeddim*2)
 
         catlen = 2+3+4
         self.embedcat = nn.Linear(catlen, cat_embed_dim)
 
-        self.fc1 = nn.Linear(hyperembeddim*10+catlen, attention_dim)
+        self.fc1 = nn.Linear(hyperembeddim*12+catlen, attention_dim)
         self.bn1 = nn.BatchNorm1d(attention_dim)
         self.fc2 = nn.Linear(attention_dim+catlen, attention_dim)
         self.bn2 = nn.BatchNorm1d(attention_dim)
@@ -318,11 +320,18 @@ class GraphAttentionClassifier(nn.Module):
         nnodes = jet_edge_features.shape[1]
         jet_edge_features_conc = jet_edge_features.view(jet_edge_features.shape[0], nnodes*nnodes, jet_edge_features.shape[3])   # BxN^2xF
 
-        e_attn = self.conv1d_edgejet(jet_edge_features_conc.permute(0,2,1))      #BxFxN^2
-        e_attn = F.relu(self.edgejetbn(e_attn))
-        e_attn = e_attn.view(e_attn.shape[0],e_attn.shape[1],nnodes,nnodes) #BxFxNxN
-        e_attn = e_attn.repeat(1, self.num_heads, 1, 1)
-        e_attn = e_attn.view(e_attn.shape[0]*e_attn.shape[1],e_attn.shape[2],e_attn.shape[3])  #B*FxNxN
+        # e_attn = self.conv1d_edgejet(jet_edge_features_conc.permute(0,2,1))      #BxFxN^2
+        # e_attn = F.relu(self.edgejetbn(e_attn))
+        # e_attn = e_attn.view(e_attn.shape[0],e_attn.shape[1],nnodes,nnodes) #BxFxNxN
+        # e_attn = e_attn.repeat(1, self.num_heads, 1, 1)
+        # e_attn = e_attn.view(e_attn.shape[0]*e_attn.shape[1],e_attn.shape[2],e_attn.shape[3])  #B*FxNxN
+
+        
+        e_attn = jet_edge_features_conc.permute(0, 2, 1)
+        e_attn = self.conv1d_edgejet(e_attn)
+        e_attn = F.relu(e_attn)
+        # e_attn = e_attn.view(e_attn.shape[0], e_attn.shape[1], nnodes, nnodes)
+        e_attn = e_attn.view(-1, nnodes, nnodes)
 
         jetmask = torch.all(jet == 0, dim=-1)
         edgemask = jetmask.unsqueeze(1) | jetmask.unsqueeze(2)
@@ -332,7 +341,7 @@ class GraphAttentionClassifier(nn.Module):
         jet = torch.cat([jet,jetp4,catinput],dim=2)
         jet = self.embedjets(jet)
         attn_output_jet, _ = self.multihead_attention_jet(jet, jet, jet, key_padding_mask=jetmask.float(), attn_mask=e_attn)
-        attn_output_jet = self.layer_norm(attn_output_jet)
+        attn_output_jet = self.layer_norm2x(attn_output_jet)
         pooled_output_jets = torch.sum(attn_output_jet, dim=1)
 
         
@@ -341,7 +350,7 @@ class GraphAttentionClassifier(nn.Module):
         catinput = cat_embed.unsqueeze(1).expand(-1, jet_edge_features.shape[1], -1)
         e = self.edgejet(torch.cat([jet_edge_features,catinput],dim=2))
         attn_output_edgejet, _ = self.multihead_attention_edgejet(e, e, e, key_padding_mask=edgemask)
-        attn_output_edgejet = self.layer_norm(attn_output_edgejet)        
+        attn_output_edgejet = self.layer_norm2x(attn_output_edgejet)        
         pooled_output_edgejet = torch.mean(attn_output_edgejet, dim=1)
 
 
@@ -418,37 +427,51 @@ def getinputs(data,device):
 def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None):
     from training import evaluate_model
     outhandle = outhandler(outdir)
-    outhandle.addcustom("signweighted")
-    ncpu=4
+    outhandle.addcustom("baseline")
+    ncpu=6
 
     if trial is not None:
-        lr = trial.suggest_float('lr', 5e-3, 1e-2)
+        lr = trial.suggest_float('lr', 5e-4, 4e-3)
         dropout = 0 #trial.suggest_float('dropout', 0., 0.1)
         attention_dim = trial.suggest_int('attn_dim', 128, 512, step=64)
-        hyperembeddim = trial.suggest_int('hyper_dim', 16, 48, step=8)
+        hyperembeddim = trial.suggest_int('hyper_dim', 16, 64, step=8)
 
         if not torch.cuda.is_available():
             raise NotImplementedError("Hyperparameter optimization expects GPU availability.")
-
+        
         if ngpu > 1:
-            gpu_id = trial.number % ngpu  # ngpu GPUs, alternate between GPU 0 and GPU 1
+            study = trial.study
+            gpu_id = trial.number % ngpu
+            if "free_gpu" in study.user_attrs:
+                attr = study.user_attrs["free_gpu"]
+                if attr is not None:
+                    study.set_user_attr("free_gpu",None)
+                    gpu_id = attr
+                    print(f"Got GPU {gpu_id} that was freed from a previous trial.")
+
             device = torch.device(f"cuda:{gpu_id}") # Set the GPU for this trial
+            torch.cuda.set_device(gpu_id)
             print(f"Optuna trial number {trial.number}, using device cuda:{gpu_id}")
             
             outhandle.addcustom(f"hyperparameter_LR{lr}_dropout{dropout}_attn{attention_dim}_emb{hyperembeddim}")
 
             # Set CPU affinity: Allow ncpu CPUs per job
             process_id = os.getpid()
-            cputouse = cpulist[gpu_id]
-            ncpu = len(cputouse)
-            os.sched_setaffinity(process_id, cputouse)
-            print(f"Optuna trial number {trial.number}, using cpus:",cputouse)
+            ncpu = 6
+            # cputouse = cpulist[gpu_id]
+            # ncpu = len(cputouse)
+            # os.sched_setaffinity(process_id, cputouse)
+            # print(f"Optuna trial number {trial.number}, using cpus:",cputouse)
+
+            # def set_cpu_affinity(worker_id):
+            #     os.sched_setaffinity(0, [cputouse[worker_id]])
     else:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         lr = outhandle.getenv("LR",0.007)
         dropout = outhandle.getenv("DROPOUT",0.)
         attention_dim = int(outhandle.getenv("ATTENTION",512))        
         hyperembeddim = int(outhandle.getenv("DIM",48))
+    set_cpu_affinity = None
     # if test:
     print("Device:", device)
 
@@ -466,12 +489,12 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
         nloaders = ncpu
 
     nepochs = 200
-    schedulerpatience = 5
-    decayrate = 0.7
-    earlystop = 20
+    schedulerpatience = 3
+    decayrate = 0.5
+    earlystop = 12
     reportevery = 1
 
-    batch_size = 1024*64
+    batch_size = 1024*32
     val_batch_size = 1024*32
     if test:
         batch_size = 16
@@ -536,12 +559,12 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
         print("Using weighted sampling. Will use non-weighted loss.")
         train_weights = graph.weights[train_indices]
         train_sampler = WeightedRandomSampler(weights=train_weights, num_samples=train_size, replacement=True)
-        train_loader = DataLoader(train_subset, batch_size=batch_size, sampler=train_sampler, num_workers=nloaders, pin_memory=True)    
+        train_loader = DataLoader(train_subset, batch_size=batch_size, sampler=train_sampler, num_workers=nloaders, pin_memory=True, worker_init_fn=set_cpu_affinity)    
     else:
         print("Using normal sampling. Will use weighted loss.")
-        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, num_workers=nloaders, pin_memory=True)
+        train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, num_workers=nloaders, pin_memory=True,worker_init_fn=set_cpu_affinity)
 
-    val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True)
+    val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True, worker_init_fn=set_cpu_affinity)
 
     print(f"Train data size to model size ratio: {train_size/modelsize}")
     if train_size/modelsize < 10:
@@ -567,6 +590,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
 
         with nullcontext() as epochbar:
             for iepoch in range(nepochs):
+                start_time = time.time()
                 model.train()
                 total_loss = 0.
                 with alive_bar(len(train_loader),title=f"Epoch {iepoch} training") if trial is None else nullcontext() as batchbar:
@@ -621,16 +645,19 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
 
                 scheduler.step(avg_val_loss)
                 nowlr = optimizer.param_groups[-1]['lr']
+                end_time = time.time()
+                elapsed_minutes = (end_time - start_time) / 60
+
                 status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
                 if trial is not None:
-                    status = f"Trial: {trial.number}, Epoch: {iepoch}, "+ status
+                    status = f"Trial: {trial.number}, Epoch: {iepoch}, Time: {elapsed_minutes:.1f} mins, "+ status
 
                 trainlosses.append(avg_train_loss)
                 vallosses.append(avg_val_loss)
                 bestlosses.append(bestloss)
                 lrs.append(nowlr)
 
-                if iepoch > 0 and iepoch % reportevery == 0:
+                if iepoch % reportevery == 0:
                     print(status)
                     dumploss(trainlosses,bestlosses,f"{outdir}/losses_inprogress.png",lrcurve=lrs,valloss=vallosses)
                     torch.save(bestmodel,f"{outdir}/checkpoints/gnn_{iepoch}.pt")
@@ -673,7 +700,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
         for era in [0,1]:
             val_indices = ((e % 2 == 1) & (graph.data["category"][:,1]==ch) & (graph.data["category"][:,2]==era)).nonzero(as_tuple=True)[0]
             val_subset = Subset(graph, val_indices)    
-            val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True)
+            val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True, worker_init_fn=set_cpu_affinity)
             for data in val_loader:
                 jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
                 with torch.no_grad():
@@ -691,6 +718,9 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     if trial is not None:
         del model,jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
         gc.collect()
+        study = trial.study
+        study.set_user_attr("free_gpu",gpu_id)
+        print(f"Trial {trial.number}: Freeing GPU id {gpu_id}")
         return bestloss
         # return auc
 

@@ -63,8 +63,8 @@ files_Run3 = [
 parameters["proc_type"] = "ZNuNu"
 parameters['run_dnn'] = False
 parameters['run_gnn'] = True
-parameters["save_arrays"] = True
-parameters["save_gnn_arrays"] = False
+parameters["save_arrays"] = False
+parameters["save_gnn_arrays"] = True
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -147,15 +147,15 @@ cfg = Configurator(
                                         "GNN","GNN_transformed"
                                         ] if parameters['run_gnn'] else [], flatten=False),
                 ],
-                "baseline_Met_2J_ptcut": [
-                    ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                        "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                        "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi",
-                                        "JetGood_btagCvL","JetGood_btagCvB",
-                                        "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                        "Z_pt","Z_eta","Z_phi","Z_m",
-                                        "PuppiMET_pt","PuppiMET_phi","nPV"], flatten=False),
-                ]
+                # "baseline_Met_2J_ptcut": [
+                #     ColOut("events", [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+                #                         "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+                #                         "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi",
+                #                         "JetGood_btagCvL","JetGood_btagCvB",
+                #                         "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                #                         "Z_pt","Z_eta","Z_phi","Z_m",
+                #                         "PuppiMET_pt","PuppiMET_phi","nPV"], flatten=False),
+                # ]
             }
         },
     } if parameters["save_arrays"] else {

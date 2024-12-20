@@ -489,7 +489,7 @@ dijet_mass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": False,
-        "mjj": {'low': 70, 'high': 250}
+        "mjj": {'low': 70, 'high': 180}
     },
 )
 
@@ -498,7 +498,7 @@ dijet_invmass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": True,
-	"mjj": {'low': 70, 'high': 250}
+	"mjj": {'low': 70, 'high': 180}
     },
 )
 
