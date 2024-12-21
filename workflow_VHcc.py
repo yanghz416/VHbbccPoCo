@@ -130,39 +130,12 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events.ElectronGood, self.events.MuonGood
         )
         
+        if "jet_tagger" not in inspect.signature(jet_selection).parameters:
+            raise NotImplementedError("Looks like this is an old version of PocketCoffea where jet_selection was defined in a different way. Please update to the latest version.")
         myJetTagger = self.params.ctagging[self._year]["tagger"]
-        self.myJetTagger = myJetTagger
-
-        
-        
-        self.newjetdefiniton = "jet_tagger" in inspect.signature(jet_selection).parameters
-        # This is a hack for now until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
-        if self.newjetdefiniton:
-            self.events["JetGood"], self.jetGoodMask = jet_selection(
-                self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
-            )
-        else:
-            self.events["JetGood"], self.jetGoodMask = jet_selection(
-                self.events, "Jet", self.params, self._year, "LeptonGood"
-            )
-            if self.myJetTagger == "PNet":
-                B   = "btagPNetB"
-                CvL = "btagPNetCvL"
-                CvB = "btagPNetCvB"
-            elif self.myJetTagger == "DeepFlav":
-                B   = "btagDeepFlavB"
-                CvL = "btagDeepFlavCvL"
-                CvB = "btagDeepFlavCvB"
-            elif self.myJetTagger == "RobustParT":
-                B   = "btagRobustParTAK4B"
-                CvL = "btagRobustParTAK4CvL"
-                CvB = "btagRobustParTAK4CvB"
-            else:
-                raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
-            self.events.JetGood["btagB"] = self.events.JetGood[B]
-            self.events.JetGood["btagCvL"] = self.events.JetGood[CvL]
-            self.events.JetGood["btagCvB"] = self.events.JetGood[CvB]
-            
+        self.events["JetGood"], self.jetGoodMask = jet_selection(
+            self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
+        )            
         
         self.events['EventNr'] = self.events.event
         
@@ -383,8 +356,6 @@ class VHccBaseProcessor(BaseProcessorABC):
         all_predictions = torch.nan_to_num(all_predictions)
 
         return all_predictions.numpy()
-
-        
             
     
     # Function that defines common variables employed in analyses and save them as attributes of `events`
@@ -412,14 +383,8 @@ class VHccBaseProcessor(BaseProcessorABC):
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
 
-        if self.newjetdefiniton:
-            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
-            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
-        else:
-            #TODO: This is temporary
-            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
-            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
-
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
+        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
         #self.events["dijet_pt"] = self.events.dijet.pt
         
         if self.proc_type=="ZLL":
