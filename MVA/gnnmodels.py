@@ -82,6 +82,9 @@ class GraphAttentionClassifier(nn.Module):
         self.embedjjl = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim)
         self.multihead_attention_jjl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
 
+        self.embedjjj = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim*2)
+        self.multihead_attention_jjj = nn.MultiheadAttention(embed_dim=hyperembeddim*2, num_heads=num_heads, batch_first=True)
+
         self.embedjll = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim)
         self.multihead_attention_jll = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
         self.embedjjll = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim)
@@ -95,7 +98,7 @@ class GraphAttentionClassifier(nn.Module):
         catlen = 2+3+4
         self.embedcat = nn.Linear(catlen, cat_embed_dim)
 
-        self.fc1 = nn.Linear(hyperembeddim*12+catlen, attention_dim)
+        self.fc1 = nn.Linear(hyperembeddim*14+catlen, attention_dim)
         self.bn1 = nn.BatchNorm1d(attention_dim)
         self.fc2 = nn.Linear(attention_dim+catlen, attention_dim)
         self.bn2 = nn.BatchNorm1d(attention_dim)
@@ -285,7 +288,7 @@ class GraphAttentionClassifier(nn.Module):
         return tensor[:, indices[0], indices[1], :]
         
 
-    def pairprocess(self,p4_1,p4_2,embed,mha=None,pool=True,catembed=None):
+    def pairprocess(self,p4_1,p4_2,embed,mha=None,pool=True,catembed=None,layernorm=None):
         ij, _ = self.pairwise_interaction(p4_1,p4_2)
         ij = ij.reshape(ij.shape[0],ij.shape[1]*ij.shape[2],ij.shape[3])
         if catembed is not None:
@@ -294,7 +297,8 @@ class GraphAttentionClassifier(nn.Module):
         ij_embed = embed(ij)
         if mha is not None:
             ij_embed, _ = mha(ij_embed,ij_embed,ij_embed)
-            ij_embed = self.layer_norm(ij_embed)
+            if layernorm is None: ij_embed = self.layer_norm(ij_embed)
+            else: ij_embed = layernorm(ij_embed)
         if pool:
             ij_pooled = torch.mean(ij_embed, dim=1)
             return ij_pooled
@@ -384,6 +388,9 @@ class GraphAttentionClassifier(nn.Module):
         # jj with lep interactions            
         jjl_out = self.pairprocess(jjp4,lepp4,self.embedjjl,self.multihead_attention_jjl,catembed=cat_embed)
 
+        # jjj interaction: FSR recovery       
+        jjj_out = self.pairprocess(jjp4,jetp4,self.embedjjj,self.multihead_attention_jjj,catembed=cat_embed,layernorm=self.layer_norm2x)
+
         # j with ll interactions
         ll = ll.unsqueeze(1)
         jll_out = self.pairprocess(jetp4,ll,self.embedjll,self.multihead_attention_jll,catembed=cat_embed)
@@ -394,7 +401,7 @@ class GraphAttentionClassifier(nn.Module):
         #global
         global_out = self.embedglob(torch.cat([glo,cat_embed],dim=1))
 
-        mhalist = [pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,ll_emb,jl_out,jjl_out,jll_out,jjll_out,global_out,catconc]
+        mhalist = [pooled_output_jets,pooled_output_edgejet,pooled_output_leps,pooled_output_edgelep,ll_emb,jl_out,jjl_out,jjj_out,jll_out,jjll_out,global_out,catconc]
         allout = torch.cat(mhalist,dim=1)
 
         # Feedforward neural network
@@ -431,10 +438,10 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     ncpu=6
 
     if trial is not None:
-        lr = trial.suggest_float('lr', 5e-4, 4e-3)
+        lr = trial.suggest_float('lr', 4e-4, 4e-3)
         dropout = 0 #trial.suggest_float('dropout', 0., 0.1)
-        attention_dim = trial.suggest_int('attn_dim', 128, 512, step=64)
-        hyperembeddim = trial.suggest_int('hyper_dim', 16, 64, step=8)
+        attention_dim = trial.suggest_int('attn_dim', 64, 512, step=64)
+        hyperembeddim = trial.suggest_int('hyper_dim', 12, 40, step=4)
 
         if not torch.cuda.is_available():
             raise NotImplementedError("Hyperparameter optimization expects GPU availability.")
@@ -712,7 +719,7 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
             yvals = torch.cat(truth,dim=0).cpu()
             ywts = torch.cat(wts,dim=0).cpu()
             # return out,yvals,ywts,outdir
-
+            print(f"Ch {ch}, era {era}:")
             auc = evaluate_model(yvals, input_y_pred=out, input_y_wts=ywts, plot_dir=f"{outdir}/Plots",suff=f"ch{ch}_era{era}")
 
     if trial is not None:
@@ -763,6 +770,6 @@ def dumploss(loss,minloss,outfl,lrcurve=None,valloss=None):
         ax2.set_ylabel('Learning Rate', color='gray')
         ax2.set_yscale("log")
         ax2.legend(loc=9)    
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(outfl)
     plt.close()
