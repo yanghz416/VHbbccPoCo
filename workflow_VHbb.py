@@ -1,20 +1,24 @@
 import awkward as ak
 import numpy as np
-import ctypes #test
 import uproot
 import pandas as pd
 import math
 import warnings
-import os
+import os, pickle
 import lightgbm as lgb
-# import tensorflow as tf
 import gc
+# import tensorflow as tf
 # from keras.models import Sequential
 # from keras.layers import Dense
 # from keras.callbacks import EarlyStopping
 # from keras.models import load_model
 import CommonSelectors
 from CommonSelectors import *
+import inspect
+
+import torch
+from MVA.gnnmodels import GraphAttentionClassifier
+
 from pocket_coffea.utils.utils import dump_ak_array
 
 from pocket_coffea.workflows.base import BaseProcessorABC
@@ -375,10 +379,136 @@ class VHbbBaseProcessor(BaseProcessorABC):
         print("Separate DNN evaluation completed.")
         
         return dnn_score
+    
+    def resize_tensor(self,tensor,target):
+        m, n, p = tensor.shape
+        
+        if n > target:
+            return tensor[:, :target, :]
+        elif n < target:
+            padding = torch.zeros((m, target - n, p), device=tensor.device, dtype=tensor.dtype)
+            return torch.cat((tensor, padding), dim=1)
+        else:
+            return tensor
+
+    def evaluateGNN(self,data):
+        # model = torch.jit.load(self.params.Models.GNN[self.channel][self.events.metadata["year"]].model_file) #TODO This would be the most elegant way, but the current model does not work with torch.jit
+
+        modelparams = pickle.load(open(self.params.Models.GNN[self.channel][self.events.metadata["year"]].params,'rb'))
+        model = GraphAttentionClassifier(**modelparams)
+        model.load_state_dict(torch.load(self.params.Models.GNN[
+            self.channel][self.events.metadata["year"]].model_file,weights_only=True,map_location=self.device))
+        model.eval()
+
+        if self.proc_type=="ZLL":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
+                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
+                'll'    : ["ll_pt","ll_eta","ll_phi","ll_mass"],
+                'glo'   : ["MET_pt","MET_phi","nPV"],
+                'cat'   : ["LeptonCategory"]
+            }
+            lcount = 2
+            catpad = 0
+        elif self.proc_type=="WLNu":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : ["LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all"],
+                'lepp4' : ["LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass"],
+                'll'    : ["W_pt","W_eta","W_phi","W_mt"],
+                'glo'   : ["MET_pt","MET_phi","nPV","W_m"],
+                'cat'   : ["LeptonCategory"]
+            }
+            lcount = 1
+            catpad = 0
+        elif self.proc_type=="ZNuNu":
+            varsdict = {
+                'jet'   : ["JetGood_btagCvL","JetGood_btagCvB"],
+                'jetp4' : ["JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass"],
+                'lep'   : [],
+                'lepp4' : [],
+                'll'    : ["Z_pt","Z_eta","Z_phi","Z_m"],
+                'glo'   : ["MET_pt","MET_phi","nPV"],
+                'cat'   : []
+            }
+            lcount = 1
+            catpad = None
+
+
+        pads = {
+            'jet'   : 6,
+            'jetp4' : 6,
+            'lep'   : lcount,
+            'lepp4' : lcount,
+            'll'    : 0,
+            'glo'   : 0,
+            'cat'   : catpad
+        }
+
+        tensordict = {}  
+        for arr in varsdict:  
+            maxelem = pads[arr] 
+            if maxelem is None or len(varsdict[arr])==0:
+                tensordict[arr] = torch.tensor([1])
+                continue           
+            for field in varsdict[arr]:
+                var = data[field]
+                
+                if maxelem > 0:
+                    N = np.max(ak.num(var, axis=1))  
+                    padded = ak.fill_none(ak.pad_none(var,N,axis=1),0)
+                else: 
+                    padded = var
+                if arr not in tensordict:
+                    tensordict[arr] = []
+                dtype = torch.float32
+                if arr == 'cat': dtype = torch.int64
+                tensordict[arr].append(torch.tensor(padded,dtype=dtype))
+
+            stacked = torch.stack(tensordict[arr],dim=-1)
+            if maxelem > 0:
+                stacked = self.resize_tensor(stacked,maxelem)
+            tensordict[arr] = stacked
+        
+        with torch.no_grad():
+            prediction = model(tensordict["jet"],tensordict["jetp4"],tensordict["lep"],tensordict["lepp4"],tensordict["ll"],tensordict["glo"],tensordict["cat"])[:,0]
+        
+        del model, tensordict
+
+        return prediction.detach().cpu().numpy()    
         
     # Function that defines common variables employed in analyses and save them as attributes of `events`
     def define_common_variables_before_presel(self, variation):
         self.events["JetGood_Ht"] = ak.sum(abs(self.events.JetGood.pt), axis=1)
+        
+        jetvars = ["btagCvL","btagCvB"]
+        leptonvars = ["miniPFRelIso_all","pfRelIso03_all"]
+        p4vars = ["pt","eta","phi","mass"]
+        
+        if self.myJetTagger == "PNet":
+            self.events["JetGood_"+"btagB"] = self.events.JetGood["btagPNetB"]
+            self.events["JetGood_"+"btagCvL"] = self.events.JetGood["btagPNetCvL"]
+            self.events["JetGood_"+"btagCvB"] = self.events.JetGood["btagPNetCvB"]
+        elif self.myJetTagger == "DeepFlav":
+            self.events["JetGood_"+"btagB"] = self.events.JetGood["btagDeepFlavB"]
+            self.events["JetGood_"+"btagCvL"] = self.events.JetGood["btagDeepFlavCvL"]
+            self.events["JetGood_"+"btagCvB"] = self.events.JetGood["btagDeepFlavCvB"]
+        elif self.myJetTagger == "RobustParT":
+            self.events["JetGood_"+"btagB"] = self.events.JetGood["btagRobustParTAK4B"]
+            self.events["JetGood_"+"btagCvL"] = self.events.JetGood["btagRobustParTAK4CvL"]
+            self.events["JetGood_"+"btagCvB"] = self.events.JetGood["btagRobustParTAK4CvB"]
+        else:
+            raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")   
+            
+        for var in p4vars:
+            self.events["JetGood_"+var] = self.events.JetGood[var]
+        for var in leptonvars+p4vars:
+            self.events["LeptonGood_"+var] = self.events.LeptonGood[var]
+        for var in p4vars:
+            self.events["ll_"+var] = self.events.ll[var]
         
         self.myJetTagger = self.params.ctagging[self._year]["tagger"]
         
@@ -411,44 +541,44 @@ class VHbbBaseProcessor(BaseProcessorABC):
       
         odd_event_mask = (self.events.EventNr % 2 == 1)
         
-        if self._isMC:
-            self.events["nGenPart"] = ak.num(self.events.GenPart)
-            self.events["GenPart_eta"] = self.events.GenPart.eta
-            self.events["GenPart_genPartIdxMother"] = self.events.GenPart.genPartIdxMother
-            self.events["GenPart_mass"] = self.events.GenPart.mass
-            self.events["GenPart_pdgId"] = self.events.GenPart.pdgId
-            self.events["GenPart_phi"] = self.events.GenPart.phi
-            self.events["GenPart_pt"] = self.events.GenPart.pt
-            self.events["GenPart_status"] = self.events.GenPart.status
-            self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
+#         if self._isMC:
+#             self.events["nGenPart"] = ak.num(self.events.GenPart)
+#             self.events["GenPart_eta"] = self.events.GenPart.eta
+#             self.events["GenPart_genPartIdxMother"] = self.events.GenPart.genPartIdxMother
+#             self.events["GenPart_mass"] = self.events.GenPart.mass
+#             self.events["GenPart_pdgId"] = self.events.GenPart.pdgId
+#             self.events["GenPart_phi"] = self.events.GenPart.phi
+#             self.events["GenPart_pt"] = self.events.GenPart.pt
+#             self.events["GenPart_status"] = self.events.GenPart.status
+#             self.events["GenPart_statusFlags"] = self.events.GenPart.statusFlags
             
-            # a C++ interface test
-            # LorentzBooster(self.events.GenPart_pt, 
-            #                self.events.GenPart_eta, 
-            #                self.events.GenPart_phi, 
-            #                self.events.GenPart_mass)
+#             # a C++ interface test
+#             # LorentzBooster(self.events.GenPart_pt, 
+#             #                self.events.GenPart_eta, 
+#             #                self.events.GenPart_phi, 
+#             #                self.events.GenPart_mass)
 
-            self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
-            self.events["LHE_HT"] = self.events.LHE.HT
-            self.events["LHE_HTIncoming"] = self.events.LHE.HTIncoming
-            self.events["LHE_Nb"] = self.events.LHE.Nb
-            self.events["LHE_Nc"] = self.events.LHE.Nc
-            self.events["LHE_Nglu"] = self.events.LHE.Nglu
-            self.events["LHE_Njets"] = self.events.LHE.Njets
-            self.events["LHE_NpLO"] = self.events.LHE.NpLO
-            self.events["LHE_NpNLO"] = self.events.LHE.NpNLO
-            self.events["LHE_Nuds"] = self.events.LHE.Nuds
-            self.events["LHE_Vpt"] = self.events.LHE.Vpt
+#             self.events["LHE_AlphaS"] = self.events.LHE.AlphaS
+#             self.events["LHE_HT"] = self.events.LHE.HT
+#             self.events["LHE_HTIncoming"] = self.events.LHE.HTIncoming
+#             self.events["LHE_Nb"] = self.events.LHE.Nb
+#             self.events["LHE_Nc"] = self.events.LHE.Nc
+#             self.events["LHE_Nglu"] = self.events.LHE.Nglu
+#             self.events["LHE_Njets"] = self.events.LHE.Njets
+#             self.events["LHE_NpLO"] = self.events.LHE.NpLO
+#             self.events["LHE_NpNLO"] = self.events.LHE.NpNLO
+#             self.events["LHE_Nuds"] = self.events.LHE.Nuds
+#             self.events["LHE_Vpt"] = self.events.LHE.Vpt
 
-            self.events["LHEPart_eta"] = self.events.LHEPart.eta
-            self.events["LHEPart_incomingpz"] = self.events.LHEPart.incomingpz
-            self.events["LHEPart_mass"] = self.events.LHEPart.mass
-            self.events["LHEPart_pdgId"] = self.events.LHEPart.pdgId
-            self.events["LHEPart_phi"] = self.events.LHEPart.phi
-            self.events["LHEPart_pt"] = self.events.LHEPart.pt
-            self.events["LHEPart_spin"] = self.events.LHEPart.spin
-            self.events["LHEPart_status"] = self.events.LHEPart.status
-            self.events["nLHEPart"] = ak.num(self.events.LHEPart)
+#             self.events["LHEPart_eta"] = self.events.LHEPart.eta
+#             self.events["LHEPart_incomingpz"] = self.events.LHEPart.incomingpz
+#             self.events["LHEPart_mass"] = self.events.LHEPart.mass
+#             self.events["LHEPart_pdgId"] = self.events.LHEPart.pdgId
+#             self.events["LHEPart_phi"] = self.events.LHEPart.phi
+#             self.events["LHEPart_pt"] = self.events.LHEPart.pt
+#             self.events["LHEPart_spin"] = self.events.LHEPart.spin
+#             self.events["LHEPart_status"] = self.events.LHEPart.status
+#             self.events["nLHEPart"] = ak.num(self.events.LHEPart)
                 
         if self.proc_type=="ZLL":
 
@@ -509,59 +639,94 @@ class VHbbBaseProcessor(BaseProcessorABC):
             self.events["ZHbb_deltaR"] = np.abs(self.events.ll.delta_r(self.events.dijet_bsort))
             self.events["VHbb_deltaR"] = self.events.ZHbb_deltaR
             
+            # why cant't we use delta_phi function here?
+            self.angle21_gen = (abs(self.events.ll.l2phi - self.events.dijet_csort.j1Phi) < np.pi)
+            self.angle22_gen = (abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi) < np.pi)
+            self.events["deltaPhi_l2_j1"] = ak.where(self.angle21_gen, abs(self.events.ll.l2phi - self.events.dijet_csort.j1Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet_csort.j1Phi))              
+            self.events["deltaPhi_l2_j2"] = ak.where(self.angle22_gen, abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi), 2*np.pi - abs(self.events.ll.l2phi - self.events.dijet_csort.j2Phi))
+            self.events["deltaPhi_l2_j1"] = np.abs(delta_phi(self.events.ll.l2phi, self.events.dijet_csort.j1Phi))
+            
             if self.run_bdt:
-                odd_events = self.events[odd_event_mask]
+                #events = self.events[odd_event_mask]
                 # Create a record of variables to be dumped as root/parquete file:
-                variables_to_process = ak.zip({
-                    "events_dilep_m": odd_events["dilep_m"],
-                    "events_dilep_pt": odd_events["dilep_pt"],
-                    "events_dilep_dr": odd_events["dilep_dr"],
-                    "events_dilep_deltaPhi": odd_events["dilep_deltaPhi"],
-                    "events_dilep_deltaEta": odd_events["dilep_deltaEta"],
-                    # "events_dibjet_m": odd_events["dibjet_m"],  # Commented out as per the features list
-                    "events_dibjet_pt": odd_events["dibjet_pt"],
-                    "events_dibjet_dr": odd_events["dibjet_dr"],
-                    "events_dibjet_deltaPhi": odd_events["dibjet_deltaPhi"],
-                    "events_dibjet_deltaEta": odd_events["dibjet_deltaEta"],
-                    "events_dibjet_pt_max": odd_events["dibjet_pt_max"],
-                    "events_dibjet_pt_min": odd_events["dibjet_pt_min"],
-                    "events_dibjet_mass_max": odd_events["dibjet_mass_max"],
-                    "events_dibjet_mass_min": odd_events["dibjet_mass_min"],
-                    "events_dibjet_BvsL_max": odd_events["dibjet_BvsL_max"],
-                    "events_dibjet_BvsL_min": odd_events["dibjet_BvsL_min"],
-                    "events_dibjet_CvsB_max": odd_events["dibjet_CvsB_max"],
-                    "events_dibjet_CvsB_min": odd_events["dibjet_CvsB_min"],
-                    "events_VHbb_pt_ratio": odd_events["VHbb_pt_ratio"],
-                    "events_VHbb_deltaPhi": odd_events["VHbb_deltaPhi"],
-                    "events_VHbb_deltaR": odd_events["VHbb_deltaR"]
-                })
 
-                df = ak.to_pandas(variables_to_process)
-                columns_to_exclude = ['dibjet_m']
-                df = df.drop(columns=columns_to_exclude, errors='ignore')
+#                 variables_for_MVA_eval_list = ["dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+#                                         "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+#                                         "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+#                                         "dijet_pt_max","dijet_pt_min",
+#                                         "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2"]
+
+#                 variables_for_MVA_eval = ak.zip({v:self.events[v] for v in variables_for_MVA_eval_list})  #TODO: use odd_events instead
+
+                gnn_vars = ["JetGood_btagCvL","JetGood_btagCvB",
+                            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+                            "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+                            "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+                            "ll_pt","ll_eta","ll_phi","ll_mass",
+                            "MET_pt","MET_phi","nPV","LeptonCategory"]
+
+                ak_gnn = self.events[gnn_vars] #TODO: use odd_events instead
+
+                # df = ak.to_pandas(variables_for_MVA_eval)
+                # columns_to_exclude = ['dilep_m']
+                # df = df.drop(columns=columns_to_exclude, errors='ignore')
+
                 self.channel = "2L"
                 if not self.params.separate_models: 
-                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
 
-                    bdt_predictions = self.evaluateBDT(df_final)
+                    variables_to_process = ak.zip({
+                        "events_dilep_m": self.events["dilep_m"],
+                        "events_dilep_pt": self.events["dilep_pt"],
+                        "events_dilep_dr": self.events["dilep_dr"],
+                        "events_dilep_deltaPhi": self.events["dilep_deltaPhi"],
+                        "events_dilep_deltaEta": self.events["dilep_deltaEta"],
+                        # "events_dibjet_m": self.events["dibjet_m"],  # Commented out as per the features list
+                        "events_dibjet_pt": self.events["dibjet_pt"],
+                        "events_dibjet_dr": self.events["dibjet_dr"],
+                        "events_dibjet_deltaPhi": self.events["dibjet_deltaPhi"],
+                        "events_dibjet_deltaEta": self.events["dibjet_deltaEta"],
+                        "events_dibjet_pt_max": self.events["dibjet_pt_max"],
+                        "events_dibjet_pt_min": self.events["dibjet_pt_min"],
+                        "events_dibjet_mass_max": self.events["dibjet_mass_max"],
+                        "events_dibjet_mass_min": self.events["dibjet_mass_min"],
+                        "events_dibjet_BvsL_max": self.events["dibjet_BvsL_max"],
+                        "events_dibjet_BvsL_min": self.events["dibjet_BvsL_min"],
+                        "events_dibjet_CvsB_max": self.events["dibjet_CvsB_max"],
+                        "events_dibjet_CvsB_min": self.events["dibjet_CvsB_min"],
+                        "events_VHbb_pt_ratio": self.events["VHbb_pt_ratio"],
+                        "events_VHbb_deltaPhi": self.events["VHbb_deltaPhi"],
+                        "events_VHbb_deltaR": self.events["VHbb_deltaR"]
+                    })
+
+                    df = ak.to_pandas(variables_to_process)
+
+                    df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
+                    bdt_predictions = self.evaluateBDT(df_final, "Hbb")
                     bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
                     # Convert NaN to None
                     bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
-                    self.events["BDT"] = bdt_predictions
+                    self.events["BDT_Hbb"] = bdt_predictions
 
-                    if self.run_dnn:
-                        self.events["DNN"] = self.evaluateDNN(df_final)
+                    ## just for now
+                    self.events["GNN_Hbb"] = np.zeros_like(self.events["BDT_Hbb"])
+
+                    # if self.run_dnn:
+                    #     self.events["DNN_Hbb"] = self.evaluateDNN(df_final)
+                    # else:
+                    #     self.events["DNN_Hbb"] = np.zeros_like(self.events["BDT_Hbb"])
+
+                    if self.run_gnn:
+                        self.events["GNN"] = self.evaluateGNN(ak_gnn)
                     else:
-                        self.events["DNN"] = np.zeros_like(self.events["BDT"])
+                        self.events["GNN"] = np.zeros_like(self.events["BDT_Hbb"])
+
                 else:
                     df_final = df.reindex(range(len(self.events)), fill_value=np.nan)
-
                     bdt_predictions = self.evaluateseparateBDTs(df_final)
                     bdt_predictions = np.where(df_final.isnull().any(axis=1), np.nan, bdt_predictions)
                     # Convert NaN to None
                     bdt_predictions = [None if np.isnan(x) else x for x in bdt_predictions]
                     self.events["BDT"] = bdt_predictions
-
                     if self.run_dnn:
                         self.events["DNN"] = self.evaluateseparateDNNs(df_final)
                     else:
