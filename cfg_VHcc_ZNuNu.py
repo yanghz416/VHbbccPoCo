@@ -63,7 +63,7 @@ files_Run3 = [
 
 parameters["proc_type"] = "ZNuNu"
 parameters['run_dnn'] = False
-parameters['run_gnn'] = False
+parameters['run_gnn'] = True
 parameters["save_arrays"] = True
 parameters["save_gnn_arrays"] = False
 ctx = click.get_current_context()

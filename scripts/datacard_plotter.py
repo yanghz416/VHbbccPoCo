@@ -150,7 +150,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
 
                 # Plot statistical uncertainty band on the upper plot
                 ax_main.fill_between(edges, extendarr(bottoms - stack_uncertainty), extendarr(bottoms + stack_uncertainty), 
-                                     color="gray", alpha=0.3, step="post", label="MC Stat. Unc.")
+                                     color="gray", alpha=0.3, step="post", label="Stat. Unc.")
 
                 # Plot signal
                 if signal_hist:
