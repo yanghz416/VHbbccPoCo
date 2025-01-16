@@ -173,8 +173,8 @@ Models:
           model_file: '${config_dir:}/../MVA/DNN_models/ZH_HToCC_ZToNuNu_2017_dnn_model_QCD.h5'
   'GNN':
     'Global':
-      model_file: '${config_dir:}/../MVA/GNN_models/Global/gnn.pt'
-      params: '${config_dir:}/../MVA/GNN_models/Global/modelparams.pkl'
+      model_file: '${config_dir:}/../MVA/GNN_models/Global/gnn_v2.pt'
+      params: '${config_dir:}/../MVA/GNN_models/Global/modelparams_v2.pkl'
     '2L':
       '2022_preEE':
         model_file: '${config_dir:}/../MVA/GNN_models/ZH_Hto2C_Zto2L_2022_preEE/gnn.pt'

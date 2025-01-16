@@ -114,20 +114,25 @@ def WLNuTwoJets(events, params, **kwargs):
         )
     return ak.where(ak.is_none(mask), False, mask)
 
-def jettag(events, params, **kwargs):
-    if params['tagger'] == "PNet":
+def gettaggernames(taggername):
+    if taggername == "PNet":
         CvL = "btagPNetCvL"
         CvB = "btagPNetCvB"
-    elif params['tagger'] == "DeepFlav":
+        BvL = "btagPNetB"
+    elif taggername == "DeepFlav":
         CvL = "btagDeepFlavCvL"
         CvB = "btagDeepFlavCvB"
-    elif params['tagger'] == "RobustParT":
+        BvL = "btagDeepFlavB"
+    elif taggername == "RobustParT":
         CvL = "btagRobustParTAK4CvL"
         CvB = "btagRobustParTAK4CvB"
+        BvL = "btagRobustParTAK4B"
     else:
         raise NotImplementedError(f"This tagger is not implemented: {params['tagger']}")
+    return CvL,CvB,BvL
 
-    #print(events.JetsCvsL.[ctag][:, 0]>0.2)
+def jettag(events, params, **kwargs):
+    CvL,CvB,BvL = gettaggernames(params['tagger'])
 
     if params["ctag"]:
         mask_CvL = (events.JetsCvsL[CvL][:,0]>params["cut_CvL"])
@@ -144,14 +149,7 @@ def jettag(events, params, **kwargs):
     return ak.where(ak.is_none(mask), False, mask)
 
 def bjettag(events, params, **kwargs):
-    if params['tagger'] == "PNet":
-        BvL = "btagPNetB"
-    elif params['tagger'] == "DeepFlav":
-        BvL = "btagDeepFlavB"
-    elif params['tagger'] == "RobustParT":
-        BvL = "btagRobustParTAK4B"
-    else:
-        raise NotImplementedError(f"This tagger is not implemented: {params['tagger']}")
+    CvL,CvB,BvL = gettaggernames(params['tagger'])
         
     tightness = params["btag_cut"]
     _btag_cut = events[f"btag_cut_{tightness}"]
@@ -162,6 +160,20 @@ def bjettag(events, params, **kwargs):
       mask_BvL = (events.JetsBvsL[BvL][:, params["nJ"]]>_btag_cut)
       
     mask = mask_BvL
+    
+    return ak.where(ak.is_none(mask), False, mask)
+
+def cORbjettag(events, params, year, processor_params, **kwargs):
+    CvL,CvB,BvL = gettaggernames(params['tagger'])
+
+    mask_CvL = (events.JetsCvsL[CvL][:,0]>params["cut_CvL"])
+    mask_CvB = (events.JetsCvsL[CvB][:,0]>params["cut_CvB"])
+
+    wp = params["btag_wp"]
+    _btag_cut = processor_params["btagger"][year][params['tagger']]["WP"][wp]
+    mask_BvL = (events.JetsBvsL[BvL][:,0]>_btag_cut)
+
+    mask = mask_CvL | mask_CvB | mask_BvL
     
     return ak.where(ak.is_none(mask), False, mask)
   
@@ -464,6 +476,17 @@ btag_j1 = Cut(
     }
 )
 
+cORbtag_j1 = Cut(
+    name="ctagORbtag_j1",
+    function=cORbjettag,
+    params={
+        "tagger": 'PNet',
+        "cut_CvL": 0.2,
+        "cut_CvB": 0.4,
+        "btag_wp": "T"
+    }
+)
+
 def bjet_tagger(tagger='DeepFlav', nJ = 0, btag_cut = 'M', invert = False):
     return Cut(
     name = "bjet_tagger",
@@ -489,7 +512,7 @@ dijet_mass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": False,
-        "mjj": {'low': 70, 'high': 250}
+        "mjj": {'low': 70, 'high': 180}
     },
 )
 
@@ -498,7 +521,7 @@ dijet_invmass_cut = Cut(
     function=DiJetMassCut,
     params={
         "invert": True,
-	"mjj": {'low': 70, 'high': 250}
+	"mjj": {'low': 70, 'high': 180}
     },
 )
 
@@ -802,3 +825,41 @@ def ll_antiZ_4j(lep_flav='both'):
     )
 
 
+# Variables to dump in arrays for DNN/GNN training
+
+vars2L = [  "EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
+            "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
+            "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
+            "dijet_pt_max","dijet_pt_min",
+            "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
+            "digenjet_m","ncgenjets","nbgenjets",
+            "JetGood_btagCvL","JetGood_btagCvB",
+            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+            "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+            "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+            "ll_pt","ll_eta","ll_phi","ll_mass",
+            "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"
+        ]
+
+vars1L = [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+            "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
+            "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
+            "b_CvsL", "b_CvsB", "b_Btag", "top_mass",
+            "digenjet_m","ncgenjets","nbgenjets",
+            "JetGood_btagCvL","JetGood_btagCvB",
+            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+            "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
+            "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
+            "W_pt","W_eta","W_phi","W_mt",
+            "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"
+        ]
+vars0L = [  "EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
+            "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
+            "dijet_pt_max", "dijet_pt_min", "ZH_pt_ratio", "ZH_deltaPhi",
+            "digenjet_m","ncgenjets","nbgenjets",
+            "JetGood_btagCvL","JetGood_btagCvB",
+            "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
+            "Z_pt","Z_eta","Z_phi","Z_m",
+            "PuppiMET_pt","PuppiMET_phi","nPV"
+        ]

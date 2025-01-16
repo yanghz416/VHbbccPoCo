@@ -49,22 +49,35 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                         stack_components[proc] = copy.deepcopy((values, edges))
 
                 # Load signal histogram
-                signal_name = f"{era}_{newCatName}/ZH_hbb_{brstr}nominal"
-                if signal_name in root_file:
-                    hist = root_file[signal_name]
-                    values, edges = hist.to_numpy(flow=False)
+                bbsignals = ["ZH_hbb","ggZH_hbb","WH_hbb"]
+                signal_hist = None
+                for signame in bbsignals:
+                    signal_name = f"{era}_{newCatName}/{signame}_{brstr}nominal"
+                    if signal_name in root_file:
+                        hist = root_file[signal_name]
+                        values, edges = hist.to_numpy(flow=False)
 
-                    if variable in flatx: edges = range(len(edges))
-                    signal_hist = copy.deepcopy((values, edges))
+                        if variable in flatx: edges = range(len(edges))
+                        if signal_hist is None:
+                            signal_hist = [np.array(values), copy.deepcopy(edges)]
+
+                        else:
+                            signal_hist[0] += np.array(values)
                     
                 # Load signal histogram
-                signal_cc_name = f"{era}_{newCatName}/ZH_hcc_{brstr}nominal"
-                if signal_cc_name in root_file:
-                    hist = root_file[signal_cc_name]
-                    values, edges = hist.to_numpy(flow=False)
-                    
-                    if variable in flatx: edges = range(len(edges))
-                    signal_cc_hist = copy.deepcopy((values, edges))
+                ccsignals = ["ZH_hcc","ggZH_hcc","WH_hcc"]
+                signal_cc_hist = None
+                for signame in ccsignals:
+                    signal_cc_name = f"{era}_{newCatName}/{signame}_{brstr}nominal"
+                    if signal_cc_name in root_file:
+                        hist = root_file[signal_cc_name]
+                        values, edges = hist.to_numpy(flow=False)
+                        
+                        if variable in flatx: edges = range(len(edges))
+                        if signal_cc_hist is None:
+                            signal_cc_hist = [np.array(values), copy.deepcopy(edges)]
+                        else:
+                            signal_cc_hist[0] += np.array(values)
 
                 # Load data histogram
                 data_name = f"{era}_{newCatName}/data_obs_{brstr}nominal"
@@ -92,11 +105,23 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                 bottoms = None
 
                 # Plot stack components
-                colors = {"TT": "#02baf7", "VJet": "#f5f768", "VV": "#91bfdb", "ZH_hbb": "#ff0000", "ZH_hcc": "#b700ff"}
-                labels = {"TT": "TT", "VJet": "VJet", "VV": "VV", "ZH_hbb": "ZH_hbb", "ZH_hcc": "ZH_hcc"}
+                colors = {"TT": "#00BFFF", "VJet": "#f5f768", "VV": "#91bfdb", "ZH_hbb": "#ff0000", "ZH_hcc": "#b700ff","ggZH_hbb": "#ff0000", "ggZH_hcc": "#b700ff","WH_hbb": "#ff0000", "WH_hcc": "#b700ff",
+                    "WW": "#FFA07A",
+                    "WZ": "#FFA07A",
+                    "ZZ": "#FFA07A",
+                    "QCD": "#D3D3D3",
+                    "ST": "#2B193D",
+
+                    "Zj_bj":  "#196f3d",
+                    "Zj_cj":  "#52be80",
+                    "Zj_ll":  "#ADFF2F",
+                    
+                    "WJetsToLNu_FxFx": "#F6D608",
+                    "ZJetsToNuNu_FxFx": "#ADFF2F"}
+
                 bottoms = None
                 stack_uncertainty = None  # Initialize stack uncertainty
-                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color'] + [cm.viridis(i) for i in range(0, 256, 51)]
+                color_cycle = plt.rcParams['axes.prop_cycle'].by_key()['color'] + [cm.viridis(i) for i in range(0, 256, 26)]
                 colid = 0
                 for proc, hist_data in stack_components.items():
                     if hist_data is not None:
@@ -105,13 +130,14 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                         bin_widths = np.diff(edges)  # Compute bin widths
 
                         # Use bin centers for alignment with signal and data
-                        if proc in colors:
-                            col = colors[proc]
-                            lab = labels[proc]
+                        if any([c in proc for c in colors]):
+                            matchedproc = [c for c in colors if c in proc][0]
+                            col = colors[matchedproc]
                         else:
                             col = color_cycle[colid]
-                            lab = proc
                             colid += 1
+                        lab = proc
+
                         ax_main.bar(bin_centers, values, width=bin_widths, bottom=bottoms, color=col, label=lab)
                         if bottoms is None:
                             bottoms = values
@@ -120,6 +146,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
                             
                 # Calculate stack uncertainties (upper and lower bounds)
                 stack_uncertainty = np.sqrt(bottoms)            #TODO: This is not right; fix it with per sample Poisson
+                maxMC = np.max(bottoms)
 
                 # Plot statistical uncertainty band on the upper plot
                 ax_main.fill_between(edges, extendarr(bottoms - stack_uncertainty), extendarr(bottoms + stack_uncertainty), 
@@ -169,10 +196,11 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
 
                 # Formatting for the main plot
                 ax_main.set_ylabel("Events")
-                ax_main.legend(ncol=3,fontsize=8,loc="upper right")
+                ax_main.legend(ncol=3,fontsize=8,loc="best")
 
                 ax_main.grid(axis="y", linestyle="--", alpha=0.5)
                 ax_main.tick_params(axis="x", labelbottom=False)  # Hide x-axis labels on the upper plot
+                ax_main.set_ylim(bottom=0,top=maxMC*1.3)
 
                 # Formatting for the ratio plot
                 ax_ratio.set_xlabel(variable + " (bin #)" if variable in flatx else "")
@@ -191,7 +219,7 @@ def plot_histograms(root_file_path, config, eras, categ_to_var,plotdir="plot_dat
 
                 # Set y-axis to log scale
                 ax_main.set_yscale("log")
-                ax_main.set_ylim(bottom=0.1)  # Ensure the lower limit is positive for log scale
+                ax_main.set_ylim(bottom=0.1,top=maxMC*30)  # Ensure the lower limit is positive for log scale
                 ax_main.grid(axis="y", linestyle="--", alpha=0.5)  # Update grid for log scale
 
                 # Save log scale plot

@@ -31,6 +31,7 @@ from pocket_coffea.lib.objects import (
     jet_selection,
     btagging,
     CvsLsorted,
+    ProbBsorted,
     get_dilepton,
     get_dijet
 )
@@ -130,39 +131,12 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events.ElectronGood, self.events.MuonGood
         )
         
+        if "jet_tagger" not in inspect.signature(jet_selection).parameters:
+            raise NotImplementedError("Looks like this is an old version of PocketCoffea where jet_selection was defined in a different way. Please update to the latest version.")
         myJetTagger = self.params.ctagging[self._year]["tagger"]
-        self.myJetTagger = myJetTagger
-
-        
-        
-        self.newjetdefiniton = "jet_tagger" in inspect.signature(jet_selection).parameters
-        # This is a hack for now until https://github.com/PocketCoffea/PocketCoffea/pull/276/ is merged
-        if self.newjetdefiniton:
-            self.events["JetGood"], self.jetGoodMask = jet_selection(
-                self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
-            )
-        else:
-            self.events["JetGood"], self.jetGoodMask = jet_selection(
-                self.events, "Jet", self.params, self._year, "LeptonGood"
-            )
-            if self.myJetTagger == "PNet":
-                B   = "btagPNetB"
-                CvL = "btagPNetCvL"
-                CvB = "btagPNetCvB"
-            elif self.myJetTagger == "DeepFlav":
-                B   = "btagDeepFlavB"
-                CvL = "btagDeepFlavCvL"
-                CvB = "btagDeepFlavCvB"
-            elif self.myJetTagger == "RobustParT":
-                B   = "btagRobustParTAK4B"
-                CvL = "btagRobustParTAK4CvL"
-                CvB = "btagRobustParTAK4CvB"
-            else:
-                raise NotImplementedError(f"This tagger is not implemented: {self.myJetTagger}")
-            self.events.JetGood["btagB"] = self.events.JetGood[B]
-            self.events.JetGood["btagCvL"] = self.events.JetGood[CvL]
-            self.events.JetGood["btagCvB"] = self.events.JetGood[CvB]
-            
+        self.events["JetGood"], self.jetGoodMask = jet_selection(
+            self.events, "Jet", self.params, self._year, "LeptonGood", myJetTagger
+        )            
         
         self.events['EventNr'] = self.events.event
         
@@ -383,8 +357,6 @@ class VHccBaseProcessor(BaseProcessorABC):
         all_predictions = torch.nan_to_num(all_predictions)
 
         return all_predictions.numpy()
-
-        
             
     
     # Function that defines common variables employed in analyses and save them as attributes of `events`
@@ -412,31 +384,63 @@ class VHccBaseProcessor(BaseProcessorABC):
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
 
-        if self.newjetdefiniton:
-            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
-            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
-        else:
-            #TODO: This is temporary
-            self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"], tagger = self.myJetTagger)
-            self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL, tagger = self.myJetTagger)
-
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"])
+        self.events["JetsBvsL"] = ProbBsorted(self.events["JetGood"])
+        self.events["dijet_csort"] = get_dijet(self.events.JetsCvsL)
         #self.events["dijet_pt"] = self.events.dijet.pt
         
+        if self.events.metadata["isMC"] and "GenJet" in self.events.fields:
+            # Find gen jet pair with inv mass closest to Higgs mass, to use as a regression target in MVA training
+            matchedGenJets = self.events.GenJet[
+                ak.where(
+                    self.events.JetGood.genJetIdx>=0,
+                    self.events.JetGood.genJetIdx,
+                    0
+                )
+            ]
+            GenJet1,GenJet2 = ak.unzip(ak.combinations(matchedGenJets,2))
+            diGenJetMasses = (GenJet1+GenJet2).mass
+            min_indices = ak.argmin(np.abs(diGenJetMasses-125), axis=1, keepdims=True)
+            best_mass = ak.flatten(diGenJetMasses[min_indices])
+            self.events["digenjet_m"] = ak.where(
+                np.isnan(best_mass),
+                0,
+                best_mass
+            )
+            
+            nbgenjets = ak.sum(matchedGenJets.hadronFlavour==5,axis=1)
+            ncgenjets = ak.sum(matchedGenJets.hadronFlavour==4,axis=1)
+
+            self.events["nbgenjets"] = ak.where(
+                np.isnan(nbgenjets),
+                0,
+                nbgenjets
+            )
+            self.events["ncgenjets"] = ak.where(
+                np.isnan(ncgenjets),
+                0,
+                ncgenjets
+            )
+        else:
+            self.events["digenjet_m"] = ak.zeros_like(self.events.dijet_csort.mass)
+            self.events["nbgenjets"] = ak.zeros_like(self.events.dijet_csort.mass)
+            self.events["ncgenjets"] = ak.zeros_like(self.events.dijet_csort.mass)
+
+        #Common to all channels
+        self.events["dijet_m"] = self.events.dijet_csort.mass
+        self.events["dijet_pt"] = self.events.dijet_csort.pt
+        self.events["dijet_dr"] = self.events.dijet_csort.deltaR
+        self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
+        self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
+        self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
+        self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
+        self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
+        self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
+        self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
+        self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
+
+        
         if self.proc_type=="ZLL":
-
-            ### General
-            self.events["dijet_m"] = self.events.dijet_csort.mass
-            self.events["dijet_pt"] = self.events.dijet_csort.pt
-            self.events["dijet_dr"] = self.events.dijet_csort.deltaR
-            self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
-            self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
-            self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
-            self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
-            self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
-            self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
-            self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
-            self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
-
             self.events["dilep_m"] = self.events.ll.mass
             self.events["dilep_pt"] = self.events.ll.pt
             self.events["dilep_dr"] = self.events.ll.deltaR
@@ -546,18 +550,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             bjet_mask = ak.num(self.events.BJetGood) > 0
             ### FIXME: Check if we need to mask events with no b-jets
             
-            self.events["dijet_m"] = self.events.dijet_csort.mass
-            self.events["dijet_pt"] = self.events.dijet_csort.pt
-            self.events["dijet_dr"] = self.events.dijet_csort.deltaR
-            self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
-            self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
-            self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
-            self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
-            self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
-            self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
-            self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
-            self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
-            
             self.events["deltaPhi_jet1_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,0]))
             self.events["deltaPhi_jet2_MET"] = np.abs(self.events.PuppiMET.delta_phi(self.events.JetGood[:,1]))
         
@@ -643,18 +635,6 @@ class VHccBaseProcessor(BaseProcessorABC):
             self.events["Z_eta"] = ak.zeros_like(self.events.Z_candidate.pt)
             self.events["Z_phi"] = self.events.Z_candidate.phi
             self.events["Z_m"] = ak.ones_like(self.events.Z_candidate.pt)*91.1876
-            
-            self.events["dijet_m"] = self.events.dijet_csort.mass
-            self.events["dijet_pt"] = self.events.dijet_csort.pt
-            self.events["dijet_dr"] = self.events.dijet_csort.deltaR
-            self.events["dijet_deltaPhi"] = self.events.dijet_csort.deltaPhi
-            self.events["dijet_deltaEta"] = self.events.dijet_csort.deltaEta
-            self.events["dijet_CvsL_max"] = self.events.dijet_csort.j1CvsL
-            self.events["dijet_CvsL_min"] = self.events.dijet_csort.j2CvsL
-            self.events["dijet_CvsB_max"] = self.events.dijet_csort.j1CvsB
-            self.events["dijet_CvsB_min"] = self.events.dijet_csort.j2CvsB
-            self.events["dijet_pt_max"] = self.events.dijet_csort.j1pt
-            self.events["dijet_pt_min"] = self.events.dijet_csort.j2pt
             
             self.events["ZH_pt_ratio"] = self.events.dijet_csort.pt/self.events.Z_candidate.pt
             self.events["ZH_deltaPhi"] = np.abs(self.events.Z_candidate.delta_phi(self.events.dijet_csort))
