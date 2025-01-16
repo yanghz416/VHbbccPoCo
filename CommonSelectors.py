@@ -156,10 +156,18 @@ def bjettag(events, params, **kwargs):
     tightness = params["btag_cut"]
     _btag_cut = events[f"btag_cut_{tightness}"]
     
-    if params["inv"]:
-      mask_BvL = (events.JetsBvsL[BvL][:, params["nJ"]]<_btag_cut)
+    if params["nJ"] == 0:
+        jet_order = '1'
+    elif params["nJ"] == 1:
+        jet_order = '2'
     else:
-      mask_BvL = (events.JetsBvsL[BvL][:, params["nJ"]]>_btag_cut)
+        _nJ = params["nJ"]+1
+        print(f"the number {str(_nJ)} jet is not supported yet")
+        
+    if params["inv"]:
+        mask_BvL = (events.dijet_bsort[f'j{jet_order}BvsL']<_btag_cut)
+    else:
+        mask_BvL = (events.dijet_bsort[f'j{jet_order}BvsL']>_btag_cut)
       
     mask = mask_BvL
     
@@ -388,6 +396,12 @@ subsampleDict = {
                     'DiJet_cx': [DiJet_cx],
                     'DiJet_ll': [DiJet_ll],
                 },
+                'DYJetsToLL_PT_FxFx': {
+                    'DiJet_incl': [passthrough],
+                    'DiJet_bx': [DiJet_bx],
+                    'DiJet_cx': [DiJet_cx],
+                    'DiJet_ll': [DiJet_ll],
+                },
                 'WJetsToLNu_FxFx': {
                     'DiJet_incl': [passthrough],
                     'DiJet_bx': [DiJet_bx],
@@ -466,14 +480,14 @@ btag_j1 = Cut(
 
 def bjet_tagger(tagger='DeepFlav', nJ = 0, btag_cut = 'M', invert = False):
     return Cut(
-    name = "bjet_tagger",
-    function = bjettag,
-    params = {
-      "tagger": tagger,
-      "nJ": nJ,
-      "btag_cut": btag_cut,
-      "inv": invert
-    }
+        name = "bjet_tagger",
+        function = bjettag,
+        params = {
+          "tagger": tagger,
+          "nJ": nJ,
+          "btag_cut": btag_cut,
+          "inv": invert
+        }
     )
 
 dijet_pt_cut = Cut(
@@ -531,6 +545,61 @@ def ZNNHBB_2J():
             "pt_jet2": 0,
         },
     )
+
+# Common Selectors for the 0L channel
+def ZNuNuHBB_Common_Selectors(events, params, **kwargs):
+    
+    two_J = (events.nJetGood >= 2)
+    
+    met = (events.MET_used.pt > params["pt_met"])
+    
+    AL = ( events.NaL == params["add_lep"] )
+    
+    bJ = ( (events.dijet_bsort.leadb_pt > params["b1_pt"]) & 
+           (events.dijet_bsort.subleadb_pt > params["b2_pt"]) )
+    
+    vh_dphi = ( events.VHbb_deltaPhi > params["VHdPhi"] )
+    
+    hv_pt_ratio = ( (events.VHbb_pt_ratio >= params["HVpTRatio_min"]) & 
+                    (events.VHbb_pt_ratio <= params["HVpTRatio_max"]) )
+    
+    bb_pt = ( events.dijet_bsort.pt > params["pt_dibjet"] )
+    
+    b_mass_win = ( (events.dijet_bsort.j1mass >= params["b1_mass_min"]) & 
+                   (events.dijet_bsort.j1mass <= params["b1_mass_max"]) & 
+                   (events.dijet_bsort.j2mass >= params["b2_mass_min"]) & 
+                   (events.dijet_bsort.j2mass <= params["b2_mass_max"])
+                 )
+    
+    mask = ( two_J & met & AL & bJ & vh_dphi & hv_pt_ratio & bb_pt & b_mass_win )
+    
+    return ak.where(ak.is_none(mask), False, mask)
+
+def ZNuNuHBB_2J_Common_Selectors(pt_met=180, add_lep=0, pt_dibjet=150,
+                                 b1_pt=60, b2_pt=35, VHdPhi=2.2,
+                                 HVpTRatio_min=0.5, HVpTRatio_max=2,
+                                 b1_mass_min = 5, b1_mass_max=30,
+                                 b2_mass_min = 5, b2_mass_max=30,
+                                ):
+    return Cut(
+        name = 'ZNuNuHBB_2J_Common_Selectors',
+        function = ZNuNuHBB_Common_Selectors,
+        params={
+            "pt_met": 180,
+            "add_lep": add_lep,
+            "b1_pt": b1_pt,
+            "b2_pt": b2_pt,
+            "VHdPhi": VHdPhi,
+            "HVpTRatio_min": HVpTRatio_min,
+            "HVpTRatio_max": HVpTRatio_max,
+            "pt_dibjet": pt_dibjet,
+            "b1_mass_min": b1_mass_min,
+            "b2_mass_min": b2_mass_min,
+            "b1_mass_max": b1_mass_max,
+            "b2_mass_max": b2_mass_max,
+        }
+    )
+
 def bJ_pt_cut(b1_pt = 60, b2_pt = 35):
     return Cut(
         name="bJ_pt_cut",
@@ -585,14 +654,90 @@ def wlnu_plus_2j(lep_flav='both'):
         },
     )
 
-def WLNuHBB_2J(lep_flav='both'):
+def WLNuHBB_2J(lep_flav='both', pt_w=0):
     return Cut(
     name = "WLNuTwoJets_"+lep_flav,
     function=WLNuTwoJets,
     params={
             "lep_flav": lep_flav,
-            "pt_w": 0
+            "pt_w": pt_w
         },
+    )
+
+# Common selectors for the SL channel
+def WLNuHBB_Common_Selectors(events, params, **kwargs):
+    two_J = (events.nJetGood >= 2)
+    
+    lep_flav = ( ( (params["lep_flav"]=="mu") & (events.nMuonGood==1) ) |
+                 ( (params["lep_flav"]=="el") & (events.nElectronGood==1) ) |
+                 ( (params["lep_flav"]=="both") & (events.nLeptonGood==1) )
+               )
+    
+    met = ( events.pt_miss > params["pt_met"] )
+    
+    w_pt = ( events.W_pt > params["pt_w"] )
+    
+    dibjet = ( (events.dijet_bsort.mass > params["mjj"]["low"]) & 
+               (events.dijet_bsort.mass < params["mjj"]["high"]) )
+    
+    b_mass_win = ( (events.dijet_bsort.j1mass >= params["b1_mass_min"]) & 
+                   (events.dijet_bsort.j1mass <= params["b1_mass_max"]) & 
+                   (events.dijet_bsort.j2mass >= params["b2_mass_min"]) & 
+                   (events.dijet_bsort.j2mass <= params["b2_mass_max"])
+                 )
+    
+    b_pt = ( (events.dijet_bsort.j1pt > params["pt_b1"]) & 
+             (events.dijet_bsort.j2pt > params["pt_b2"]) )
+    
+    bb_pt = ( events.dijet_bsort.pt > params["pt_dijet"] )
+    
+    bb_eta = ( events.dijet_bsort.deltaEta < params["bb_deta"] )
+    
+    VH_dphi = ( events.VHbb_deltaPhi > params["VHdPhi"] )
+    
+    VH_deta = ( events.VHbb_deltaEta < params["VHdEta"] )
+    
+    HV_pt_ratio = ( (events.VHbb_pt_ratio >= params["HVpTRatio_min"]) & 
+                    (events.VHbb_pt_ratio <= params["HVpTRatio_max"]) )
+    
+    AL = ( events.NaL == params["add_lep"] )
+    
+    mask = ( two_J & lep_flav & met & w_pt & 
+             dibjet & b_mass_win & b_pt & bb_pt & bb_eta & 
+             VH_dphi & VH_deta & HV_pt_ratio & 
+             AL)
+    
+    return ak.where(ak.is_none(mask), False, mask)
+
+def WLNuHBB_2J_Common_Selectors(lep_flav='both', pt_w=0, pt_met=30, 
+                                dib_m_min=50, dib_m_max=250,
+                                b1_mass_min=5, b2_mass_min=5, b1_mass_max=30, b2_mass_max=30,
+                                pt_b1=30, pt_b2=30, pt_bb=100, bb_deta=1.8,
+                                VHdPhi=1.5, VHdEta=2, HVpTRatio_min=0.5, HVpTRatio_max=2,
+                                add_lep=0
+                               ):
+    return Cut(
+        name = 'WLNuHBB_2J_Common_Selectors'+lep_flav,
+        function = WLNuHBB_Common_Selectors,
+        params={
+            "lep_flav": lep_flav,
+            "pt_w": pt_w,
+            "pt_met": pt_met,
+            "mjj": {'low': dib_m_min, 'high': dib_m_max}, 
+            "b1_mass_min": b1_mass_min,
+            "b2_mass_min": b2_mass_min,
+            "b1_mass_max": b1_mass_max,
+            "b2_mass_max": b2_mass_max,
+            "pt_b1": pt_b1,
+            "pt_b2": pt_b2,
+            "pt_dijet": pt_bb,
+            "bb_deta": bb_deta,
+            "VHdPhi": VHdPhi,
+            "VHdEta": VHdEta,
+            "HVpTRatio_min": HVpTRatio_min,
+            "HVpTRatio_max": HVpTRatio_max,
+            "add_lep": add_lep,
+        }
     )
 
 def LepMetDPhi(dphi = 2):
@@ -650,11 +795,93 @@ def Zll_2j(lep_flav='both'):
 
 def ZLLHBB_2J(lep_flav='both'):
     return Cut(
-    name = 'ZLLHBB_2J',
+    name = 'ZLLHBB_2J'+lep_flav,
     function=TwoLepTwoJets,
     params={"lep_flav": lep_flav,
             "pt_dilep": 0,
             "mll": {'low': 10, 'high': 450}
+            }
+    )
+
+# VHbb DiLepton channel common selections
+def ZLLHBB_Common_Selectors(events, params, **kwargs):
+    if params["lep_flav"] not in ['mu','el','both']:
+        print("This lepton flavor is not supported:", params["lep_flav"])
+        raise Exception("The lepton flavor is not supported")
+    
+    two_J = (events.nJetGood >= 2)
+    
+    lep_flav = ( ( (params["lep_flav"]=="mu") & (events.nMuonGood>=2) ) |
+                 ( (params["lep_flav"]=="el") & (events.nElectronGood>=2) ) |
+                 ( (params["lep_flav"]=="both") & (events.nLeptonGood>=2) )
+                )
+    
+    ll_pt = ( events.ll.pt > params["pt_dilep"] )
+    
+    ll_mass = ( (events.ll.mass > params["mll"]["low"]) & 
+                (events.ll.mass < params["mll"]["high"]) )
+    
+    mjj = ( (events.dijet_bsort.mass > params["mjj"]["low"]) & 
+            (events.dijet_bsort.mass < params["mjj"]["high"]) )
+    
+    ptjj = ( events.dijet_bsort.pt > params["pt_dibjet"] )
+    
+    met = ( events.pt_miss < params["pt_met"] )
+    
+    dibjet_eta = ( events.dijet_bsort.deltaEta < params["bb_deta"] )
+    
+    b_mass_win = ( (events.dijet_bsort.j1mass >= params["b1_mass_min"]) & 
+                   (events.dijet_bsort.j1mass <= params["b1_mass_max"]) & 
+                   (events.dijet_bsort.j2mass >= params["b2_mass_min"]) & 
+                   (events.dijet_bsort.j2mass <= params["b2_mass_max"])
+                 )
+    
+    b_pt = ( (events.dijet_bsort.j1pt > params["b1_pt"]) & 
+             (events.dijet_bsort.j2pt > params["b2_pt"]) )
+    
+    NaL = ( events.NaL == params["add_lep"] )
+    
+    VHdPhi = ( events.VHbb_deltaPhi > params["VHdPhi"] )
+    
+    VHdR = ( events.VHbb_deltaR < params["VHdR"] )
+    
+    HVpTRatio = ( (events.VHbb_pt_ratio >= params["HVpTRatio_min"]) & 
+                  (events.VHbb_pt_ratio <= params["HVpTRatio_max"])
+                )
+    
+    mask = ( two_J & lep_flav & ll_pt & ll_mass & mjj & ptjj & met & 
+            dibjet_eta & b_pt & b_mass_win & NaL & VHdPhi & VHdR & HVpTRatio )
+    
+    return ak.where(ak.is_none(mask), False, mask)
+
+def ZLLHBB_2J_Common_Selectors(lep_flav='both', ptll_min=0, mll_min=10, mll_max=450, 
+                               mjj_min=0, mjj_max=2000, ptjj_min=50, bb_deta = 1.0,
+                               b1_pt=30, b2_pt=30, b1_mass_min=5, b2_mass_min=5, 
+                               b1_mass_max=30, b2_mass_max=30,
+                               pt_met=60, add_lep=0, VHdPhi=2.5, VHdR=3.6,
+                               HVpTRatio_min=0.5, HVpTRatio_max=2.0
+                              ):
+    return Cut(
+        name = 'ZLLHBB_2J_Common_Selectors'+lep_flav,
+        function=ZLLHBB_Common_Selectors,
+        params={"lep_flav": lep_flav,
+                "pt_dilep": ptll_min,
+                "mll": {'low': mll_min, 'high': mll_max},
+                "mjj": {'low': mjj_min, 'high': mjj_max},
+                "pt_dibjet": ptjj_min,
+                "pt_met": pt_met,
+                "bb_deta": bb_deta,
+                "b1_pt": b1_pt,
+                "b2_pt": b2_pt,
+                "b1_mass_min": b1_mass_min,
+                "b2_mass_min": b2_mass_min,
+                "b1_mass_max": b1_mass_max,
+                "b2_mass_max": b2_mass_max,
+                "add_lep": add_lep,
+                "VHdPhi": VHdPhi,
+                "VHdR": VHdR,
+                "HVpTRatio_min": HVpTRatio_min,
+                "HVpTRatio_max": HVpTRatio_max
             }
     )
 
@@ -801,4 +1028,18 @@ def ll_antiZ_4j(lep_flav='both'):
                 }
     )
 
+# 
+def Hcc_flag_func(events, params, **kwargs):
+    if params["invert"]: mask = ( events.Hcc_flag < 1 )
+    else: mask = ( events.Hcc_flag > 0 )
+    return ak.where(ak.is_none(mask), False, mask)
+    
+def Hcc_flag( invert = False ):
+    return Cut(
+        name = 'Hcc_flag',
+        function = Hcc_flag_func,
+        params={
+            "invert": invert,
+        }
+    )
 
