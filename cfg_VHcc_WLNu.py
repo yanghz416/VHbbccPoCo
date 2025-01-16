@@ -35,6 +35,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
+                                                  f"{localdir}/params/btagger.yaml",
                                                   f"{localdir}/params/trainings.yaml",
                                                   update=True)
 
@@ -63,10 +64,10 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "WLNu"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters['run_dnn'] = False
-parameters['run_gnn'] = True
-parameters["save_gnn_arrays"] = True
+parameters['run_gnn'] = False
+parameters["save_gnn_arrays"] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -136,7 +137,9 @@ cfg = Configurator(
         "CR_Wen_2J_LF": [wlnu_plus_2j('el'), antictag_j1, dijet_mass_cut],
         "CR_Wen_2J_HF": [wlnu_plus_2j('el'), btag_j1, dijet_mass_cut],
         "CR_Wen_2J_CC": [wlnu_plus_2j('el'), ctag_j1, dijet_invmass_cut],
-        "CR_Wen_4J_TT": [wlnu_plus_2j('el'), four_jets, btag_j1, dijet_mass_cut]
+        "CR_Wen_4J_TT": [wlnu_plus_2j('el'), four_jets, btag_j1, dijet_mass_cut],
+
+        "inclusive":    [wlnu_plus_2j(), cORbtag_j1]
 
     },
 
@@ -144,32 +147,11 @@ cfg = Configurator(
         "common": {
             "bycategory": {
                 "SR_Wln_2J_cJ": [
-                    ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                                      "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                                      "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
-                                      "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
-                                      "b_CvsL", "b_CvsB", "b_Btag", "top_mass",
-                                      "JetGood_btagCvL","JetGood_btagCvB",
-                                      "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                      "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
-                                      "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                                      "W_pt","W_eta","W_phi","W_mt",
-                                      "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"] +
-                           ["GNN","GNN_transformed"] if parameters['run_gnn'] else [], flatten=False),
+                    ColOut("events", vars1L, flatten=False),
                 ],
-                # "presel_Wln_2J": [
-                #     ColOut("events", ["EventNr", "dijet_m", "dijet_pt", "dijet_dr", "dijet_deltaPhi", "dijet_deltaEta",
-                #                       "dijet_CvsL_max", "dijet_CvsL_min", "dijet_CvsB_max", "dijet_CvsB_min",
-                #                       "dijet_pt_max", "dijet_pt_min", "W_mt", "W_pt", "pt_miss",
-                #                       "WH_deltaPhi", "deltaPhi_l1_j1", "deltaPhi_l1_MET", "deltaPhi_l1_b", "deltaEta_l1_b", "deltaR_l1_b",
-                #                       "b_CvsL", "b_CvsB", "b_Btag", "top_mass",
-                #                       "JetGood_btagCvL","JetGood_btagCvB",
-                #                       "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                #                       "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
-                #                       "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                #                       "W_pt","W_eta","W_phi","W_mt",
-                #                       "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"], flatten=False),
-                # ]
+                "inclusive": [
+                    ColOut("events", vars1L, flatten=False),
+                ],
             }
         },
     } if parameters["save_arrays"] else {

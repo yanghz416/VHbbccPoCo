@@ -18,13 +18,14 @@ def count_parameters(model):
     return sum(p.numel() for p in model.parameters() if p.requires_grad)
 
 class GraphDataset(Dataset):
-    def __init__(self, datadict, labels, weights=None, weightsigns=None, dvc=None):
+    def __init__(self, datadict, labels, labels_reg, weights=None, weightsigns=None, dvc=None):
         if dvc:
             for d in datadict:
                 datadict[d] = datadict[d].to(dvc)
         self.data = datadict
 
         self.labels = labels
+        self.labels_reg = labels_reg
         if weights is None:
             self.weights = torch.ones_like(labels)
             if weightsigns is not None:
@@ -34,6 +35,22 @@ class GraphDataset(Dataset):
         else:
             self.weights = weights
 
+        ## Reweights
+
+        # By category 
+        regcategory = datadict["category"][:,1]
+        nregs = torch.max(regcategory)+1
+        countlist = [self.weights[(regcategory==ireg)].sum() for ireg in range(nregs)]
+        print("Weights per category:",countlist)
+        weightofreg0 = (self.weights[regcategory==0]).sum()
+        for ireg in range(1,nregs):
+            weightofregi = (self.weights[regcategory==ireg]).sum()
+            self.weights = torch.where(regcategory==ireg,self.weights*weightofreg0/weightofregi,self.weights)
+
+        countlist = [self.weights[(regcategory==ireg)].sum() for ireg in range(nregs)]
+        print("Weights per category after reweighting:",countlist)
+
+        # Sig-bkg
         bkgwt = (self.weights[self.labels==0]).sum()
         sigwt = (self.weights[self.labels==1]).sum()
         print(f"Total background weight: {bkgwt}, total signal weight: {sigwt}")
@@ -42,6 +59,8 @@ class GraphDataset(Dataset):
         bkgwt = (self.weights[self.labels==0]).sum()
         sigwt = (self.weights[self.labels==1]).sum()
         print(f"Total background weight after reweighting: {bkgwt}, total signal weight after reweighting: {sigwt}")
+
+        
         
         if dvc:
             self.labels = self.labels.to(dvc)
@@ -52,10 +71,10 @@ class GraphDataset(Dataset):
 
     def __getitem__(self, idx):
         orderoftensors = ['jet','jetP4','lep','lepP4','VP4','global','category']
-        return *[self.data[d][idx] for d in orderoftensors], self.labels[idx], self.weights[idx]
+        return *[self.data[d][idx] for d in orderoftensors], self.labels[idx], self.weights[idx], self.labels_reg[idx]
 
 class GraphAttentionClassifier(nn.Module):
-    def __init__(self, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, cat_embed_dim=2, num_classes=2, globdim=4, dropout=0.2, pairwisefeats = 7, hyperembeddim=16):
+    def __init__(self, jet_dim=2, lep_dim=2, ll_dim=4, num_heads=4, attention_dim=128, cat_embed_dim=2, num_classes=1, globdim=4, dropout=0.2, pairwisefeats = 7, hyperembeddim=16, reg_classes=3):
         super(GraphAttentionClassifier, self).__init__()
         self.num_heads = num_heads
         self.pairwisefeats = pairwisefeats
@@ -81,7 +100,7 @@ class GraphAttentionClassifier(nn.Module):
         self.multihead_attention_jl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
         self.embedjjl = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim)
         self.multihead_attention_jjl = nn.MultiheadAttention(embed_dim=hyperembeddim, num_heads=num_heads, batch_first=True)
-
+        
         self.embedjjj = nn.Linear(pairwisefeats+cat_embed_dim, hyperembeddim*2)
         self.multihead_attention_jjj = nn.MultiheadAttention(embed_dim=hyperembeddim*2, num_heads=num_heads, batch_first=True)
 
@@ -105,6 +124,11 @@ class GraphAttentionClassifier(nn.Module):
         self.fc3 = nn.Linear(attention_dim+catlen, attention_dim)
         self.bn3 = nn.BatchNorm1d(attention_dim)
         self.fc4 = nn.Linear(attention_dim+catlen, num_classes)
+
+        self.regression = False
+        if reg_classes > 0:
+            self.fcreg = nn.Linear(attention_dim+catlen, reg_classes)
+            self.regression = True
 
         self.dropout = nn.Dropout(dropout)
     
@@ -420,26 +444,31 @@ class GraphAttentionClassifier(nn.Module):
         x = self.fc3(x)
         x = self.bn3(x)
         x = F.relu(x)
+        x = self.dropout(x)
 
         x = torch.cat([x,catconc],dim=1)
-        x = self.fc4(x)
-        
-        return torch.sigmoid(x)
+        output = self.fc4(x)
+
+        if not self.regression:
+            return torch.sigmoid(output)
+        else:
+            reg_output = self.fcreg(x)
+            return torch.sigmoid(output), reg_output
 
 def getinputs(data,device):
-    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = data
-    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),glo.to(device),cat.to(device),label.to(device),weight.to(device)
-    return jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight
+    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg = data
+    jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg = jet.to(device),jetp4.to(device),lep.to(device),lepp4.to(device),llp4.to(device),glo.to(device),cat.to(device),label.to(device),weight.to(device),y_reg.to(device)
+    return jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg
 
-def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None):
+def runGNNtraining(tensordict, y, y_reg, outdir, test=False, w=None, e=None, weightedsampling=False, trial=None, ngpu=1, cpulist=None, loadmodel=None):
     from training import evaluate_model
     outhandle = outhandler(outdir)
     outhandle.addcustom("baseline")
     ncpu=6
 
     if trial is not None:
-        lr = trial.suggest_float('lr', 4e-4, 4e-3)
-        dropout = 0 #trial.suggest_float('dropout', 0., 0.1)
+        lr = trial.suggest_float('lr', 5e-5, 2e-3)
+        dropout = trial.suggest_float('dropout', 0., 0.2, step=0.01)
         attention_dim = trial.suggest_int('attn_dim', 64, 512, step=64)
         hyperembeddim = trial.suggest_int('hyper_dim', 12, 40, step=4)
 
@@ -476,19 +505,20 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         lr = outhandle.getenv("LR",0.007)
         dropout = outhandle.getenv("DROPOUT",0.)
-        attention_dim = int(outhandle.getenv("ATTENTION",512))        
-        hyperembeddim = int(outhandle.getenv("DIM",48))
+        attention_dim = int(outhandle.getenv("ATTENTION",256))        
+        hyperembeddim = int(outhandle.getenv("DIM",16))
     set_cpu_affinity = None
     # if test:
     print("Device:", device)
 
     y = torch.tensor(y.to_numpy(),dtype=torch.float32)
+    y_reg = torch.tensor(y_reg,dtype=torch.float32)
     if w is not None:
         w = torch.tensor(w.to_numpy(),dtype=torch.float32)
     if e is not None:
         e = torch.tensor(e.to_numpy(),dtype=torch.int32)
 
-    graph = GraphDataset(tensordict, y, w) 
+    graph = GraphDataset(tensordict, y, y_reg, w) 
 
     if device=="cpu":
         nloaders = os.cpu_count()
@@ -500,9 +530,10 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
     decayrate = 0.5
     earlystop = 12
     reportevery = 1
+    k_regression = 0.1
 
-    batch_size = 1024*32
-    val_batch_size = 1024*32
+    batch_size = 1024*16
+    val_batch_size = 1024*16
     if test:
         batch_size = 16
         val_batch_size = 16
@@ -600,67 +631,97 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
                 start_time = time.time()
                 model.train()
                 total_loss = 0.
+                total_loss_cls = 0.
+                total_loss_reg = 0.
                 with alive_bar(len(train_loader),title=f"Epoch {iepoch} training") if trial is None else nullcontext() as batchbar:
                     for data in train_loader:
-                        jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
+                        jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg = getinputs(data,device)
 
                         optimizer.zero_grad()
-                        outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
+                        outputs, outreg = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
                         if weightedsampling:
-                            loss = criterion(outputs[:,0], label)
+                            loss_cls = criterion(outputs[:,0], label)
+                            loss_reg = torch.mean(torch.log(torch.cosh(outreg-y_reg)))
                         else:
-                            loss = criterion(outputs[:,0], label)*weight
-                            loss = loss.mean()
+                            totalweight = weight.sum()
+                            if totalweight > 0:
+                                loss_cls = criterion(outputs[:,0], label)*weight
+                                loss_cls = loss_cls.sum() / weight.sum()
+                                loss_reg = torch.sum(torch.log(torch.cosh(outreg-y_reg)),dim=1)*weight
+                                loss_reg = loss_reg.sum() / weight.sum()
+                            else:
+                                loss_cls = 1e10
+                                loss_reg = 1e10
+                        loss = loss_cls + k_regression*loss_reg
 
                         loss.backward()
                         torch.nn.utils.clip_grad_norm_(model.parameters(), 10.) 
                         optimizer.step()
                         total_loss += loss.item()
+                        total_loss_cls += loss_cls.item()
+                        total_loss_reg += loss_reg.item()
 
                         if trial is None: batchbar()
 
                 model.eval()
                 val_loss = 0.
+                val_loss_cls = 0.
+                val_loss_reg = 0.
                 with alive_bar(len(val_loader),title=f"Epoch {iepoch} validating") if trial is None else nullcontext() as batchbar:
                     for data in val_loader:
-                        jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
+                        jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg = getinputs(data,device)
                         with torch.no_grad():
-                            outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
+                            outputs, outreg = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
                             if weightedsampling:
                                 loss = criterion(outputs[:,0], label)
+                                loss_reg = torch.mean(torch.log(torch.cosh(outreg-y_reg)))
                             else:
-                                loss = criterion(outputs[:,0], label)*weight
-                                loss = loss.mean()
+                                totalweight = weight.sum()
+                                if totalweight > 0:
+                                    loss_cls = criterion(outputs[:,0], label)*weight
+                                    loss_cls = loss_cls.sum() / weight.sum()
+                                    loss_reg = torch.sum(torch.log(torch.cosh(outreg-y_reg)),dim=1)*weight
+                                    loss_reg = loss_reg.sum() / weight.sum()
+                                else:
+                                    loss_cls = 1e10
+                                    loss_reg = 1e10
+                            loss = loss_cls + k_regression*loss_reg
 
                             val_loss += loss.item()
+                            val_loss_cls += loss_cls.item()
+                            val_loss_reg += loss_reg.item()
 
                         if trial is None: batchbar()
 
                 avg_train_loss = total_loss / len(train_loader)
-                avg_val_loss = val_loss / len(val_loader)
+                # avg_val_loss = val_loss / len(val_loader)
+                avg_train_loss_cls = total_loss_cls / len(train_loader)
+                avg_val_loss_cls = val_loss_cls / len(val_loader)
+                avg_train_loss_reg = total_loss_reg / len(train_loader)
+                avg_val_loss_reg = val_loss_reg / len(val_loader)
                 
-                if avg_val_loss < bestloss:
-                    bestloss = avg_val_loss
+                if avg_val_loss_cls < bestloss:
+                    bestloss = avg_val_loss_cls
                     bestepoch = iepoch
                     bestmodel = copy.deepcopy(model.state_dict())
 
                 if trial is not None:
-                    trial.report(avg_val_loss, iepoch)
+                    trial.report(avg_val_loss_cls, iepoch)
                     # Check if the trial should be pruned
                     if trial.should_prune():
                         raise optuna.TrialPruned()
 
-                scheduler.step(avg_val_loss)
+                scheduler.step(avg_val_loss_cls)
                 nowlr = optimizer.param_groups[-1]['lr']
                 end_time = time.time()
                 elapsed_minutes = (end_time - start_time) / 60
 
-                status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss:.6f}, Val Loss: {avg_val_loss:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
+                status = f"LR: {nowlr:.6f}, Train Loss: {avg_train_loss_cls:.6f}+{avg_train_loss_reg:.6f}, Val Loss: {avg_val_loss_cls:.6f}+{avg_val_loss_reg:.6f}, Best Val Loss: {bestloss:.6f}, Best epoch: {bestepoch}"
                 if trial is not None:
                     status = f"Trial: {trial.number}, Epoch: {iepoch}, Time: {elapsed_minutes:.1f} mins, "+ status
 
                 trainlosses.append(avg_train_loss)
-                vallosses.append(avg_val_loss)
+                vallosses.append(avg_val_loss_cls)
                 bestlosses.append(bestloss)
                 lrs.append(nowlr)
 
@@ -709,9 +770,9 @@ def runGNNtraining(tensordict, y, outdir, test=False, w=None, e=None, weightedsa
             val_subset = Subset(graph, val_indices)    
             val_loader = DataLoader(val_subset, batch_size=val_batch_size, shuffle=False, num_workers=nloaders, pin_memory=True, worker_init_fn=set_cpu_affinity)
             for data in val_loader:
-                jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight = getinputs(data,device)
+                jet,jetp4,lep,lepp4,llp4,glo,cat,label,weight,y_reg = getinputs(data,device)
                 with torch.no_grad():
-                    outputs = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
+                    outputs, outreg = model(jet,jetp4,lep,lepp4,llp4,glo,cat)
                     allouts.append(outputs[:,0])
                     truth.append(label)
                     wts.append(weight)

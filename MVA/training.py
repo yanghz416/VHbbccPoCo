@@ -44,19 +44,22 @@ def get_inputs(channel,model_type='gnn'):
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                     "ll_pt","ll_eta","ll_phi","ll_mass",
-                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory",
+                    "digenjet_m","ncgenjets","nbgenjets"]
         if channel == "WLNu":
             inps = ["JetGood_btagCvL","JetGood_btagCvB",
                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                     "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
                     "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                     "W_pt","W_eta","W_phi","W_mt",
-                    "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV","W_m","LeptonCategory",
+                    "digenjet_m","ncgenjets","nbgenjets"]
         if channel == "ZNuNu":
             inps = ["JetGood_btagCvL","JetGood_btagCvB",
                     "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
                     "Z_pt","Z_eta","Z_phi","Z_m",
-                    "PuppiMET_pt","PuppiMET_phi","nPV"]
+                    "PuppiMET_pt","PuppiMET_phi","nPV",
+                    "digenjet_m","ncgenjets","nbgenjets"]
 
 
     inps = ["EventNr"]+inps
@@ -75,9 +78,9 @@ def get_SR_name(channel):
 
 def load_files(dr, SR, cols, test=False):
     all_files = glob.glob(f"{dr}/**/{SR}/*.parquet", recursive=True)
-    if any([f for f in all_files if "_bx" in f]):
-        print("\tWill explicity remove bc/cx/ll directories.")
-        all_files = [f for f in all_files if "DiJet_bx" not in f and "DiJet_cx" not in f and "DiJet_ll" not in f]
+    if any([f for f in all_files if "_incl" in f]):
+        print("\tWill explicity remove DiJet_incl directories.")
+        all_files = [f for f in all_files if "DiJet_incl" not in f]
     ln = len(all_files)
     if test:        
         all_files = all_files[:min(5,ln)]
@@ -152,6 +155,9 @@ def addmissingcols(df):
             "events_Z_eta" : "events_V_eta",
             "events_Z_phi" : "events_V_phi",
             "events_Z_m" : "events_V_mass",
+            "events_digenjet_m": "digenjet_m",
+            "events_ncgenjets": "ncgenjets", 
+            "events_nbgenjets": "nbgenjets"
             }
 
     for opt in optionalnames:
@@ -173,7 +179,8 @@ def addmissingcols(df):
                 "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
                 "V_pt","V_eta","V_phi","V_mass",
                 "PuppiMET_pt","PuppiMET_phi","nPV","W_m",
-                "LeptonCategory","weight"]
+                "LeptonCategory","weight",
+                "digenjet_m","ncgenjets","nbgenjets"]
 
     return df[cols]
 
@@ -316,6 +323,7 @@ def evaluate_model(y, input_y_pred, input_y_wts=None, plot_dir=None, suff=""):
     plt.xlabel('Score')
     plt.legend()
     plt.savefig(f'{plot_dir}/Score_{model_type}_{suff}.png')
+    plt.close()
 
     # Plot ROC curve
     plt.figure()
@@ -330,8 +338,8 @@ def evaluate_model(y, input_y_pred, input_y_wts=None, plot_dir=None, suff=""):
     plt.title(suff)
     plt.legend(loc='lower right')
     plt.savefig(f'{plot_dir}/roc_curve_{model_type}_{suff}.png')
-
     plt.close()
+    
     return auc
 
 
@@ -428,7 +436,7 @@ def split_list(lst, m):
     
     return splits
 
-def train_gnn(X, y, signame, test, w=None, e=None, hyperparameter=False, ntrials=20, loadmodel=None, dumppt=None, loadpt=None):
+def train_gnn(X, y, y_reg, signame, test, w=None, e=None, hyperparameter=False, ntrials=20, loadmodel=None, dumppt=None, loadpt=None):
     import torch, optuna
     from gnnmodels import runGNNtraining
 
@@ -440,30 +448,32 @@ def train_gnn(X, y, signame, test, w=None, e=None, hyperparameter=False, ntrials
         gc.collect()
         if nanmask is not None:
             y = y[~nanmask.numpy()]
+            y_reg = y_reg[~nanmask.numpy()]
             if w is not None: w = w[~nanmask.numpy()]
             if e is not None: e = e[~nanmask.numpy()]
 
         if dumppt is not None:
-            torch.save([tensors,y,w,e],dumppt)
+            torch.save([tensors,y,w,e,y_reg],dumppt)
 
     else:
         print("Loading dumped pt files:",loadpt)
-        tensors,y,w,e = None,None,None,None
+        tensors,y,w,e,y_reg = None,None,None,None,None
         for fl in loadpt:
             thisload = torch.load(fl)
             if tensors is None:
-                tensors,y,w,e = thisload
+                tensors,y,w,e,y_reg = thisload
             else:
                 for t in tensors:
                     tensors[t] = torch.cat([tensors[t],thisload[0][t]])
                 y = np.concatenate([y,thisload[1]])
                 w = np.concatenate([w,thisload[2]])
                 e = np.concatenate([e,thisload[3]])
+                y_reg = np.concatenate([y_reg,thisload[4]])
             print("\tLoaded",fl)
             del thisload
             gc.collect()
 
-    outdir = f"Models/global_v3/gnn"
+    outdir = f"Models/global_v4/gnn"
     print("Will store model in:",outdir)
 
     if hyperparameter:        
@@ -477,14 +487,14 @@ def train_gnn(X, y, signame, test, w=None, e=None, hyperparameter=False, ntrials
         cpu_list = list(os.sched_getaffinity(0))
         print("Available cpus:",cpu_list)
         cpu_allocations = split_list(cpu_list,ngpu)
-        func = lambda trial: runGNNtraining(tensors,y,outdir,test,w,e,trial=trial,ngpu=ngpu,cpulist=cpu_allocations)
+        func = lambda trial: runGNNtraining(tensors,y,y_reg,outdir,test,w,e,trial=trial,ngpu=ngpu,cpulist=cpu_allocations)
         print("CUDA_VISIBLE_DEVICES:", os.environ.get("CUDA_VISIBLE_DEVICES"))
         print(f"OPTUNA will run {ngpu} jobs in parallel.")
         print("Starting jobs...\n\n")
         study.optimize(func, n_trials=ntrials, n_jobs=ngpu)
         print("\n\nResult:", study.best_params)
     else:
-        runGNNtraining(tensors,y,outdir,test,w,e,loadmodel=loadmodel)
+        runGNNtraining(tensors,y,y_reg,outdir,test,w,e,loadmodel=loadmodel)
         
 
 # Main function to load data and train/evaluate model
@@ -522,10 +532,15 @@ def main():
         y = df['target']
         e = df['EventNr']
         w = df["weight"]
+        y_reg = df[["digenjet_m","ncgenjets","nbgenjets"]]
+        y_reg = np.concatenate([ak.unzip(y_reg)],axis=1).T
+        y_reg[:,0] /= 200
+        y_reg[:,1] /= 2
+        y_reg[:,2] /= 2
     else:
-        X,y,w,e, = None,None,None,None
+        X,y,w,e,y_reg = None,None,None,None,None
 
-    train_gnn(X, y, common_signal_name, args.test, w, e, args.hyperparameter, args.ntrials, args.loadmodel, dumppt=args.dumppt, loadpt=args.loadpt)
+    train_gnn(X, y, y_reg, common_signal_name, args.test, w, e, args.hyperparameter, args.ntrials, args.loadmodel, dumppt=args.dumppt, loadpt=args.loadpt)
 
 if __name__ == "__main__":
     main()

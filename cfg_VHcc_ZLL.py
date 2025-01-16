@@ -35,6 +35,7 @@ parameters = defaults.merge_parameters_from_files(default_parameters,
                                                   f"{localdir}/params/object_preselection.yaml",
                                                   f"{localdir}/params/triggers.yaml",
                                                   f"{localdir}/params/ctagging.yaml",
+                                                  f"{localdir}/params/btagger.yaml",
                                                   f"{localdir}/params/trainings.yaml",
                                                   update=True)
 files_2016 = [
@@ -60,11 +61,11 @@ files_Run3 = [
 ]
 
 parameters["proc_type"] = "ZLL"
-parameters["save_arrays"] = False
+parameters["save_arrays"] = True
 parameters["separate_models"] = False
 parameters['run_dnn'] = False
-parameters['run_gnn'] = True
-parameters["save_gnn_arrays"] = True
+parameters['run_gnn'] = False
+parameters["save_gnn_arrays"] = False
 ctx = click.get_current_context()
 outputdir = ctx.params.get('outputdir')
 
@@ -157,39 +158,19 @@ cfg = Configurator(
         "CR_ll_2J_HF": [Zll_2j('both'), btag_j1, dijet_mass_cut],
         "CR_ll_2J_CC": [Zll_2j('both'), ctag_j1, dijet_invmass_cut],
         "CR_ll_4J_TT": [ll_antiZ_4j('both'), btag_j1, dijet_mass_cut],
+
+        "inclusive": [Zll_2j(), cORbtag_j1]
     },
     
     columns = {
         "common": {
             "bycategory": {
                     "SR_ll_2J_cJ": [
-                        ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
-                                    "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
-                                    "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
-                                    "dijet_pt_max","dijet_pt_min",
-                                    "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                                    "JetGood_btagCvL","JetGood_btagCvB",
-                                    "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                                    "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
-                                    "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                                    "ll_pt","ll_eta","ll_phi","ll_mass",
-                                    "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"] + [
-                                        "GNN","GNN_transformed"
-                                    ] if parameters['run_gnn'] else [], flatten=False),
+                        ColOut("events", vars2L, flatten=False),
                     ],
-                    # "baseline_2L2J_no_ctag": [
-                    #     ColOut("events", ["EventNr", "dilep_m","dilep_pt","dilep_dr","dilep_deltaPhi","dilep_deltaEta",
-                    #                 "dijet_m","dijet_pt","dijet_dr","dijet_deltaPhi","dijet_deltaEta",
-                    #                 "dijet_CvsL_max","dijet_CvsL_min","dijet_CvsB_max","dijet_CvsB_min",
-                    #                 "dijet_pt_max","dijet_pt_min",
-                    #                 "ZH_pt_ratio","ZH_deltaPhi","deltaPhi_l2_j1","deltaPhi_l2_j2",
-                    #                 "JetGood_btagCvL","JetGood_btagCvB",
-                    #                 "JetGood_pt","JetGood_eta","JetGood_phi","JetGood_mass",
-                    #                 "LeptonGood_miniPFRelIso_all","LeptonGood_pfRelIso03_all",
-                    #                 "LeptonGood_pt","LeptonGood_eta","LeptonGood_phi","LeptonGood_mass",
-                    #                 "ll_pt","ll_eta","ll_phi","ll_mass",
-                    #                 "PuppiMET_pt","PuppiMET_phi","nPV","LeptonCategory"], flatten=False),
-                    # ]
+                    "inclusive": [
+                        ColOut("events", vars2L, flatten=False),
+                    ],
                 }
         },
         
