@@ -4,6 +4,7 @@
    * At RWTH it should be at your `/net/scratch_cms3a/<username>` area
    * At lxplus CERN, it should be in your `/eos/user/u/username` area
 2. Three way to create a dedicated environment for `PocketCoffea`:
+
 2.1 In apptainer shell, Fllow [their installation instructions](https://github.com/De-Cristo/VHccPoCo/tree/vhbb_dev/params/skip_plot_opt_vhbb_run3) for general options.
    but when install package, use this code:
 ```
@@ -63,10 +64,13 @@ source myPocket/bin/activate
     conda install conda-forge:imblearn
     ```
     For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
+
 4. Checkout *this* repo:
     ```
 	git clone 
     ```
+
+    
 5. (If your local username is different from your CERN username) Setup your CERN username variable:
     ```
     export CERN_USERNAME="YOURUSERNAME"
