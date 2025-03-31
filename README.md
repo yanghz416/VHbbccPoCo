@@ -99,7 +99,7 @@ For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certifi
     ```
     runner --cfg VHccPoCo/cfg_VHcc_ZLL.py -o output_VHcc_v01 --executor parsl-condor@RWTH -s 60
 
-    ####meet problem when run in executor(first should change "build-datasets" from "-rs 'T[123]_(IT|UK|US)" to "T[2]_(IT|UK|US|CN)")
+    ####meet problem when run in executor
 
 	runner --cfg VHccPoCo/cfg_VHbb_ZLL.py --executor dask@lxplus --custom-run-options VHccPoCo/params/skip_plot_opt_vhbb_run3/custom_run_options_vhbb_test.yaml  -o output_vhbb_zll_dev_preEE 2>&1 | tee dask_out.log 
 	
