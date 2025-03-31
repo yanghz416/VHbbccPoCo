@@ -43,29 +43,29 @@ source myPocket/bin/activate
 
 
 2.3  Install the packages, and compile: (Need large AFS space)
-    ```
+```
 	conda create -n PocketCoffea python=3.10 -c conda-forge
 	conda activate PocketCoffea
 	# install PocketCoffea
 	git clone git@github.com:PocketCoffea/PocketCoffea.git
 	cd PocketCoffea
 	pip install -e .
-    ```
-	Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
-	Afterwards install additional packages needed for BDT/DNN training and evaluation. Keep using conda, since using pip might
-	alter the environment, leading to conflicts.
-    ```
-	conda install conda-forge::xrootd
-	conda install conda-forge::lightgbm
-	conda install conda-forge::tensorflow
-    conda install pytorch::pytorch
-    conda install conda-forge:alive-progress
-    conda install conda-forge:optuna
-    conda install conda-forge:imblearn
-    ```
-    For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
+```
+Follow [their installation instructions](https://pocketcoffea.readthedocs.io/en/latest/installation.html) for other options.
+Afterwards install additional packages needed for BDT/DNN training and evaluation. Keep using conda, since using pip might
+alter the environment, leading to conflicts.
+```
+conda install conda-forge::xrootd
+conda install conda-forge::lightgbm
+conda install conda-forge::tensorflow
+conda install pytorch::pytorch
+conda install conda-forge:alive-progress
+conda install conda-forge:optuna
+conda install conda-forge:imblearn
+```
+For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certificates`.
 
-4. Checkout *this* repo:
+3. Checkout *this* repo:
     ```
 	git clone 
     ```
