@@ -6,16 +6,16 @@ object_preselection:
     id: tightId
 
   Electron:
-    pt: 18
+    pt: 15
     eta: 2.4
-    iso: 0.06
+    iso: 0.12
 #    id: mvaFall17V2Iso_WP80   # for Run2
     id: mvaIso_WP80 # for Run3
 
   Jet:
-    dr_lepton: 0.5
-    pt: 20  #25
-    eta: 2.4
+    dr_lepton: -999
+    pt: 20.0  #25
+    eta: 2.5
     jetId: 2
     puId:
       wp: T
@@ -23,4 +23,4 @@ object_preselection:
       maxpt: 50
 
   bJetWP: M
-  bJet_algorithm: PNet
+  bJet_algorithm: DeepFlav #PNet
