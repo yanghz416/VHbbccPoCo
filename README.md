@@ -7,7 +7,7 @@
 2.Three way to create a dedicated environment for `PocketCoffea`:
 
 2.1 In apptainer shell, Fllow [their installation instructions](https://github.com/De-Cristo/VHccPoCo/tree/vhbb_dev/params/skip_plot_opt_vhbb_run3) for general options.
-   but when install package, use this code:
+   But when install package, use this code:
 ```
 cd /eos/user/h/haozhong/
 voms-proxy-init -voms cms -rfc --valid 168:00
