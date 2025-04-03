@@ -424,8 +424,8 @@ class VHbbBaseProcessor(BaseProcessorABC):
         #     self.events, "Jet", self.params, self._year, "LeptonGood"
         # )
         self.events["JetGood"], self.jetGoodMask = jet_selection(
-            self.events, "Jet", self.params, self._year, ""
-        )
+            self.events, "Jet", self.params, self._year, "", "DeepFlav")
+        
         self.events['EventNr'] = self.events.event
 
         self.events["BJetGood"] = btagging(
@@ -555,8 +555,8 @@ class VHbbBaseProcessor(BaseProcessorABC):
         self.myJetTagger = self.params.ctagging[self._year]["tagger"]
         
         self.events["dijet"] = get_dijet(self.events.JetGood)
-        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"],
-                                             tagger = self.params.object_preselection.bJet_algorithm)
+        self.events["JetsCvsL"] = CvsLsorted(self.events["JetGood"],)
+                                           #  tagger = self.params.object_preselection.bJet_algorithm) #in jet_selection() define tagger,the new CvsLsorted, the old BvsLsorted needn't change
         self.events["dijet_csort"] = get_dibjet(self.events.JetsCvsL, 
                                                 tagger = self.params.object_preselection.bJet_algorithm)
         
@@ -574,11 +574,11 @@ class VHbbBaseProcessor(BaseProcessorABC):
         
         self.events["pt_miss"] = self.events.MET_used.pt
                 
-        self.events["btag_cut_L"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.L
-        self.events["btag_cut_M"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.M
-        self.events["btag_cut_T"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.T
-        self.events["btag_cut_XT"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.XT
-        self.events["btag_cut_XXT"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.XXT
+        # self.events["btag_cut_L"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.L
+        # self.events["btag_cut_M"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.M
+        # self.events["btag_cut_T"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.T
+        # self.events["btag_cut_XT"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.XT
+        # self.events["btag_cut_XXT"] = self.params.btagger[self._year][self.params.object_preselection.bJet_algorithm].WP.XXT
 
     def define_common_variables_after_presel(self, variation):
       
