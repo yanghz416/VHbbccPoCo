@@ -85,6 +85,7 @@ For brux20 cluster at Brown, you may need `conda install conda-forge::ca-certifi
 	 mkdir datasets
 	 build-datasets --cfg samples_Run3.json -o -rs 'T[2]_(EU|CN|UK|US)_\w+' -ir 
 	 #Add --overwrite if the outputs are already there.
+         #Sometime you may can't build all datasets, you can change samples_Run3.json and  build part datasets each time.
     
     ```
     Use `-p 12` with `build-datasets` to parallelizing with 12 cores.
