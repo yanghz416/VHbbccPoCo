@@ -18,9 +18,9 @@ object_preselection:
     eta: 2.5
     jetId: 2
     puId:
-      wp: T
+      wp: M
       value: 4
       maxpt: 50
 
   bJetWP: M
-  bJet_algorithm: DeepFlav #PNet
+  bJet_algorithm: PNet
