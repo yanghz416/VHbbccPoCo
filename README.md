@@ -29,7 +29,10 @@ Next time use pocket-coffea
 cd /eos/user/h/haozhong/
 voms-proxy-init -voms cms -rfc --valid 168:00
 
-apptainer shell -B /eos -B /afs -B /cvmfs/cms.cern.ch  -B /tmp -B /eos/home-h/haozhong/PocketCoffea/pocket_coffea/parameters:/usr/local/lib/python3.11/site-packages/pocket_coffea/parameters -B /eos/cms/ -B /etc/sysconfig/ngbauth-submit   -B ${XDG_RUNTIME_DIR}  --env KRB5CCNAME="FILE:${XDG_RUNTIME_DIR}/krb5cc"                /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-stable
+apptainer shell -B /eos -B /afs -B /cvmfs/cms.cern.ch  -B /tmp -B /eos/home-h/haozhong/PocketCoffea/pocket_coffea:/usr/local/lib/python3.11/site-packages/pocket_coffea -B /eos/cms/ -B /etc/sysconfig/ngbauth-submit   -B ${XDG_RUNTIME_DIR}  --env KRB5CCNAME="FILE:${XDG_RUNTIME_DIR}/krb5cc"        
+        /cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch/cms-analysis/general/pocketcoffea:lxplus-el9-stable
+
+
 
 cd PocketCoffea
 source myPocket/bin/activate
